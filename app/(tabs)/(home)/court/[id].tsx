@@ -1,0 +1,305 @@
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { useCourts } from '@/hooks/useCourts';
+import { useCheckIn } from '@/hooks/useCheckIn';
+import { useAuth } from '@/hooks/useAuth';
+import { IconSymbol } from '@/components/IconSymbol';
+
+export default function CourtDetailScreen() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams();
+  const { courts } = useCourts();
+  const { user } = useAuth();
+  const { checkIn, checkOut, getUserCheckIn, loading } = useCheckIn();
+  
+  const [selectedSkillLevel, setSelectedSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [currentCheckIn, setCurrentCheckIn] = useState<any>(null);
+
+  const court = courts.find(c => c.id === id);
+
+  useEffect(() => {
+    if (user) {
+      checkCurrentCheckIn();
+    }
+  }, [user]);
+
+  const checkCurrentCheckIn = async () => {
+    if (!user) return;
+    const checkInData = await getUserCheckIn(user.id);
+    if (checkInData && checkInData.court_id === id) {
+      setIsCheckedIn(true);
+      setCurrentCheckIn(checkInData);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    if (!user || !court) return;
+
+    const result = await checkIn(user.id, court.id, selectedSkillLevel);
+    
+    if (result.success) {
+      setIsCheckedIn(true);
+      Alert.alert('Success', `You&apos;re checked in at ${court.name}!`);
+    } else {
+      Alert.alert('Error', result.error || 'Failed to check in');
+    }
+  };
+
+  const handleCheckOut = async () => {
+    if (!user || !court) return;
+
+    const result = await checkOut(user.id, court.id);
+    
+    if (result.success) {
+      setIsCheckedIn(false);
+      setCurrentCheckIn(null);
+      Alert.alert('Success', 'You&apos;ve checked out!');
+    } else {
+      Alert.alert('Error', result.error || 'Failed to check out');
+    }
+  };
+
+  if (!court) {
+    return (
+      <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={commonStyles.text}>Court not found</Text>
+        <TouchableOpacity 
+          style={[buttonStyles.primary, { marginTop: 20 }]}
+          onPress={() => router.back()}
+        >
+          <Text style={buttonStyles.text}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const getActivityColor = (level: 'low' | 'medium' | 'high') => {
+    switch (level) {
+      case 'high': return colors.error;
+      case 'medium': return colors.accent;
+      case 'low': return colors.success;
+    }
+  };
+
+  return (
+    <View style={commonStyles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol 
+            ios_icon_name="chevron.left" 
+            android_material_icon_name="chevron_left" 
+            size={24} 
+            color={colors.primary} 
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
+        <View style={styles.header}>
+          <Text style={commonStyles.title}>{court.name}</Text>
+          <View style={styles.addressContainer}>
+            <IconSymbol 
+              ios_icon_name="location.fill" 
+              android_material_icon_name="location_on" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+            <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>{court.address}</Text>
+          </View>
+        </View>
+
+        <View style={commonStyles.card}>
+          <View style={styles.activityHeader}>
+            <Text style={commonStyles.subtitle}>Current Activity</Text>
+            <View style={[styles.activityBadge, { backgroundColor: getActivityColor(court.activityLevel) }]}>
+              <Text style={styles.activityText}>
+                {court.activityLevel.charAt(0).toUpperCase() + court.activityLevel.slice(1)}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.playerInfo}>
+            <IconSymbol 
+              ios_icon_name="person.2.fill" 
+              android_material_icon_name="people" 
+              size={24} 
+              color={colors.primary} 
+            />
+            <Text style={[commonStyles.text, { marginLeft: 12 }]}>
+              {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'} currently here
+            </Text>
+          </View>
+        </View>
+
+        {!isCheckedIn ? (
+          <View style={commonStyles.card}>
+            <Text style={commonStyles.subtitle}>Check In</Text>
+            <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
+              Select your skill level and let others know you&apos;re here!
+            </Text>
+
+            <View style={styles.skillLevelContainer}>
+              {(['Beginner', 'Intermediate', 'Advanced'] as const).map((level) => (
+                <TouchableOpacity
+                  key={level}
+                  style={[
+                    styles.skillLevelButton,
+                    selectedSkillLevel === level && styles.skillLevelButtonActive,
+                  ]}
+                  onPress={() => setSelectedSkillLevel(level)}
+                >
+                  <Text
+                    style={[
+                      styles.skillLevelText,
+                      selectedSkillLevel === level && styles.skillLevelTextActive,
+                    ]}
+                  >
+                    {level}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={[buttonStyles.primary, { marginTop: 20 }]}
+              onPress={handleCheckIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <Text style={buttonStyles.text}>I&apos;m Here!</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
+            <View style={styles.checkedInHeader}>
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check_circle" 
+                size={32} 
+                color={colors.success} 
+              />
+              <Text style={[commonStyles.subtitle, { marginLeft: 12 }]}>You&apos;re Checked In!</Text>
+            </View>
+            
+            <Text style={[commonStyles.textSecondary, { marginTop: 12, marginBottom: 20 }]}>
+              Your check-in will expire in 3 hours or you can check out manually.
+            </Text>
+
+            <TouchableOpacity
+              style={[buttonStyles.secondary, { borderColor: colors.error }]}
+              onPress={handleCheckOut}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.error} />
+              ) : (
+                <Text style={[buttonStyles.textSecondary, { color: colors.error }]}>Check Out</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={commonStyles.card}>
+          <Text style={commonStyles.subtitle}>About This Court</Text>
+          <Text style={[commonStyles.textSecondary, { marginTop: 8 }]}>
+            This is a public pickleball court. Check in to let others know you&apos;re playing and see who else is here!
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 48,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 4,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  activityBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  activityText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  playerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  skillLevelContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  skillLevelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+  },
+  skillLevelButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  skillLevelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  skillLevelTextActive: {
+    color: colors.card,
+  },
+  checkedInHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});

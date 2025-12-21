@@ -1,34 +1,30 @@
-import { SymbolView, SymbolViewProps, SymbolWeight } from "expo-symbols";
-import { StyleProp, ViewStyle } from "react-native";
 
-export function IconSymbol({
-  ios_icon_name,
-  android_material_icon_name,
-  size = 24,
-  color,
-  style,
-  weight = "regular",
-}: {
-  ios_icon_name: SymbolViewProps["name"];
-  android_material_icon_name: any;
+import React from 'react';
+import { SymbolView } from 'expo-symbols';
+import { colors } from '@/styles/commonStyles';
+
+interface IconSymbolProps {
+  ios_icon_name?: string;
+  android_material_icon_name?: string;
   size?: number;
-  color: string;
-  style?: StyleProp<ViewStyle>;
-  weight?: SymbolWeight;
-}) {
+  color?: string;
+}
+
+export function IconSymbol({ 
+  ios_icon_name, 
+  android_material_icon_name, 
+  size = 24, 
+  color = colors.text 
+}: IconSymbolProps) {
+  const iconName = ios_icon_name || android_material_icon_name || 'house';
+
   return (
     <SymbolView
-      weight={weight}
+      name={iconName}
+      size={size}
       tintColor={color}
-      resizeMode="scaleAspectFit"
-      name={ios_icon_name}
-      style={[
-        {
-          width: size,
-          height: size,
-        },
-        style,
-      ]}
+      type="monochrome"
+      weight="regular"
     />
   );
 }

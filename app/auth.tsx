@@ -1,0 +1,231 @@
+
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { useAuth } from '@/hooks/useAuth';
+import { IconSymbol } from '@/components/IconSymbol';
+
+export default function AuthScreen() {
+  const router = useRouter();
+  const { signIn, signUp, isConfigured } = useAuth();
+  
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (isSignUp && password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    if (!isConfigured) {
+      Alert.alert(
+        'Supabase Required',
+        'Please enable Supabase by pressing the Supabase button in Natively and connecting to a project to use authentication features.'
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    if (isSignUp) {
+      const result = await signUp(email, password);
+      if (result.success) {
+        Alert.alert('Success', 'Account created! Please check your email to verify your account.');
+        setIsSignUp(false);
+      } else {
+        Alert.alert('Error', result.error || 'Failed to create account');
+      }
+    } else {
+      const result = await signIn(email, password);
+      if (result.success) {
+        router.replace('/(tabs)/(home)/');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to sign in');
+      }
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <View style={commonStyles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol 
+            ios_icon_name="chevron.left" 
+            android_material_icon_name="chevron_left" 
+            size={24} 
+            color={colors.primary} 
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <IconSymbol 
+              ios_icon_name="map.fill" 
+              android_material_icon_name="map" 
+              size={48} 
+              color={colors.primary} 
+            />
+          </View>
+          <Text style={commonStyles.title}>
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
+          </Text>
+          <Text style={commonStyles.textSecondary}>
+            {isSignUp ? 'Sign up to start finding courts' : 'Sign in to continue'}
+          </Text>
+        </View>
+
+        <View style={styles.form}>
+          <TextInput
+            style={commonStyles.input}
+            placeholder="Email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <TextInput
+            style={commonStyles.input}
+            placeholder="Password"
+            placeholderTextColor={colors.textSecondary}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+
+          {isSignUp && (
+            <TextInput
+              style={commonStyles.input}
+              placeholder="Confirm Password"
+              placeholderTextColor={colors.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          )}
+
+          <TouchableOpacity
+            style={[buttonStyles.primary, { marginTop: 8 }]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.card} />
+            ) : (
+              <Text style={buttonStyles.text}>
+                {isSignUp ? 'Sign Up' : 'Sign In'}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.switchButton}
+            onPress={() => setIsSignUp(!isSignUp)}
+          >
+            <Text style={commonStyles.textSecondary}>
+              {isSignUp ? 'Already have an account? ' : 'Don&apos;t have an account? '}
+              <Text style={styles.switchButtonText}>
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {!isConfigured && (
+          <View style={[commonStyles.card, { backgroundColor: colors.accent, marginTop: 20 }]}>
+            <View style={styles.warningHeader}>
+              <IconSymbol 
+                ios_icon_name="exclamationmark.triangle.fill" 
+                android_material_icon_name="warning" 
+                size={24} 
+                color={colors.card} 
+              />
+              <Text style={[commonStyles.subtitle, { marginLeft: 12, color: colors.card }]}>
+                Supabase Required
+              </Text>
+            </View>
+            <Text style={[commonStyles.textSecondary, { marginTop: 12, color: colors.card }]}>
+              To use authentication and all features, please enable Supabase by pressing the Supabase button 
+              in Natively and connecting to a project.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 48,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 4,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: colors.highlight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  form: {
+    width: '100%',
+  },
+  switchButton: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  switchButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});

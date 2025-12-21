@@ -1,40 +1,70 @@
-// This file is a fallback for using MaterialIcons on Android and web.
 
-import React from "react";
-import { SymbolWeight } from "expo-symbols";
-import {
-  OpaqueColorValue,
-  StyleProp,
-  TextStyle,
-  ViewStyle,
-} from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { colors } from '@/styles/commonStyles';
 
-/**
- * An icon component that uses native SFSymbols on iOS, and MaterialIcons on Android and web. This ensures a consistent look across platforms, and optimal resource usage.
- *
- * Icon `name`s are based on SFSymbols and require manual mapping to MaterialIcons.
- */
-export function IconSymbol({
-  ios_icon_name = undefined,
-  android_material_icon_name,
-  size = 24,
-  color,
-  style,
-}: {
-  ios_icon_name?: string | undefined;
-  android_material_icon_name: keyof typeof MaterialIcons.glyphMap;
+interface IconSymbolProps {
+  ios_icon_name?: string;
+  android_material_icon_name?: string;
   size?: number;
-  color: string | OpaqueColorValue;
-  style?: StyleProp<ViewStyle>;
-  weight?: SymbolWeight;
-}) {
+  color?: string;
+}
+
+export function IconSymbol({ 
+  ios_icon_name, 
+  android_material_icon_name, 
+  size = 24, 
+  color = colors.text 
+}: IconSymbolProps) {
+  const iconMap: { [key: string]: string } = {
+    'home': '🏠',
+    'map': '🗺️',
+    'map.fill': '🗺️',
+    'map.circle.fill': '📍',
+    'people': '👥',
+    'person': '👤',
+    'person.fill': '👤',
+    'person.2.fill': '👥',
+    'person.2.slash': '🚫',
+    'location.fill': '📍',
+    'location_on': '📍',
+    'checkmark.circle.fill': '✅',
+    'check_circle': '✅',
+    'chevron.right': '›',
+    'chevron.left': '‹',
+    'chevron_right': '›',
+    'chevron_left': '‹',
+    'arrow.clockwise': '🔄',
+    'refresh': '🔄',
+    'bell.fill': '🔔',
+    'notifications': '🔔',
+    'lock.shield.fill': '🔒',
+    'shield': '🔒',
+    'exclamationmark.triangle.fill': '⚠️',
+    'warning': '⚠️',
+    'phone.fill': '📞',
+    'phone': '📞',
+    'people_outline': '👥',
+  };
+
+  const iconName = ios_icon_name || android_material_icon_name || 'home';
+  const icon = iconMap[iconName] || '•';
+
   return (
-    <MaterialIcons
-      color={color}
-      size={size}
-      name={android_material_icon_name}
-      style={style as StyleProp<TextStyle>}
-    />
+    <View style={[styles.container, { width: size, height: size }]}>
+      <Text style={[styles.icon, { fontSize: size * 0.8, color }]}>
+        {icon}
+      </Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    textAlign: 'center',
+  },
+});
