@@ -26,6 +26,8 @@ export function IconSymbol({
     'person.fill': '👤',
     'person.2.fill': '👥',
     'person.2.slash': '🚫',
+    'person.crop.circle': '👤',
+    'person.crop.circle.fill': '👤',
     'location.fill': '📍',
     'location_on': '📍',
     'checkmark.circle.fill': '✅',
@@ -45,6 +47,11 @@ export function IconSymbol({
     'phone.fill': '📞',
     'phone': '📞',
     'people_outline': '👥',
+    'settings': '⚙️',
+    'gear': '⚙️',
+    'trash': '🗑️',
+    'delete': '🗑️',
+    'account_circle': '👤',
   };
 
   const iconName = ios_icon_name || android_material_icon_name || 'home';

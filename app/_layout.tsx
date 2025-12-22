@@ -1,8 +1,8 @@
 
 import "react-native-reanimated";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
-import { Stack, router } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,12 +16,11 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
-import { supabase, isSupabaseConfigured } from "@/app/integrations/supabase/client";
 
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "welcome",
+  initialRouteName: "index",
 };
 
 export default function RootLayout() {
@@ -30,65 +29,12 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [authChecked, setAuthChecked] = useState(false);
-  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  useEffect(() => {
-    // Check authentication state on app start
-    const checkAuth = async () => {
-      console.log('=== Starting auth check ===');
-      
-      if (!isSupabaseConfigured()) {
-        console.log('Supabase not configured, redirecting to welcome');
-        setInitialRoute('welcome');
-        setAuthChecked(true);
-        return;
-      }
-
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.log('Error getting session:', error);
-          setInitialRoute('welcome');
-        } else if (session?.user) {
-          console.log('User is logged in:', session.user.email);
-          setInitialRoute('home');
-        } else {
-          console.log('No active session, showing welcome');
-          setInitialRoute('welcome');
-        }
-      } catch (error) {
-        console.log('Error checking auth:', error);
-        setInitialRoute('welcome');
-      } finally {
-        setAuthChecked(true);
-        console.log('=== Auth check complete ===');
-      }
-    };
-
-    if (loaded) {
-      checkAuth();
-    }
-  }, [loaded]);
-
-  // Navigate to initial route once determined
-  useEffect(() => {
-    if (authChecked && initialRoute) {
-      console.log('Navigating to initial route:', initialRoute);
-      if (initialRoute === 'home') {
-        router.replace('/(tabs)/(home)/');
-      } else {
-        router.replace('/welcome');
-      }
-    }
-  }, [authChecked, initialRoute]);
 
   React.useEffect(() => {
     if (
@@ -102,7 +48,7 @@ export default function RootLayout() {
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
 
-  if (!loaded || !authChecked) {
+  if (!loaded) {
     return null;
   }
 
@@ -144,6 +90,7 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             >
+              <Stack.Screen name="index" />
               <Stack.Screen name="welcome" />
               <Stack.Screen name="auth" />
               <Stack.Screen name="(tabs)" />
