@@ -19,81 +19,34 @@ export default function WelcomeScreen() {
           <View style={styles.logoContainer}>
             <Text style={styles.paddleEmoji}>🏓</Text>
           </View>
-          <Text style={[commonStyles.title, { fontSize: 36, marginTop: 20, color: colors.primary }]}>
+          <Text style={[commonStyles.title, { fontSize: 42, marginTop: 20, color: colors.primary }]}>
             PickleRadar
           </Text>
-          <Text style={[commonStyles.text, { textAlign: 'center', marginTop: 12, fontSize: 18 }]}>
-            Welcome to PickleRadar – find friends and courts!
+          <Text style={[styles.tagline, { textAlign: 'center', marginTop: 16, fontSize: 18 }]}>
+            Find friends, courts, and your next game - all in one app!
           </Text>
         </View>
 
         <View style={styles.featuresContainer}>
           <View style={styles.featureItem}>
-            <View style={[styles.featureIcon, { backgroundColor: colors.highlight }]}>
-              <IconSymbol 
-                ios_icon_name="map.circle.fill" 
-                android_material_icon_name="location_on" 
-                size={32} 
-                color={colors.primary} 
-              />
+            <View style={styles.bulletPoint}>
+              <Text style={styles.bulletText}>•</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.featureTitle}>Real-Time Court Activity</Text>
-              <Text style={commonStyles.textSecondary}>
-                See which courts are active right now with live player counts
-              </Text>
-            </View>
+            <Text style={styles.featureText}>Live court activity maps</Text>
           </View>
 
           <View style={styles.featureItem}>
-            <View style={[styles.featureIcon, { backgroundColor: colors.highlight }]}>
-              <IconSymbol 
-                ios_icon_name="person.2.fill" 
-                android_material_icon_name="people" 
-                size={32} 
-                color={colors.primary} 
-              />
+            <View style={styles.bulletPoint}>
+              <Text style={styles.bulletText}>•</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.featureTitle}>Connect with Friends</Text>
-              <Text style={commonStyles.textSecondary}>
-                Know when your friends are playing and join them on the court
-              </Text>
-            </View>
+            <Text style={styles.featureText}>See where your friends are playing</Text>
           </View>
 
           <View style={styles.featureItem}>
-            <View style={[styles.featureIcon, { backgroundColor: colors.highlight }]}>
-              <IconSymbol 
-                ios_icon_name="bell.fill" 
-                android_material_icon_name="notifications" 
-                size={32} 
-                color={colors.primary} 
-              />
+            <View style={styles.bulletPoint}>
+              <Text style={styles.bulletText}>•</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.featureTitle}>Smart Notifications</Text>
-              <Text style={commonStyles.textSecondary}>
-                Get notified when friends check in or nearby courts become active
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <View style={[styles.featureIcon, { backgroundColor: colors.highlight }]}>
-              <IconSymbol 
-                ios_icon_name="lock.shield.fill" 
-                android_material_icon_name="shield" 
-                size={32} 
-                color={colors.primary} 
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.featureTitle}>Privacy First</Text>
-              <Text style={commonStyles.textSecondary}>
-                Your location is private. Share only with friends you choose
-              </Text>
-            </View>
+            <Text style={styles.featureText}>Skill level info for better matchups</Text>
           </View>
         </View>
 
@@ -119,13 +72,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
+    paddingTop: 80,
+    paddingHorizontal: 24,
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
   },
   logoContainer: {
     width: 120,
@@ -140,35 +93,44 @@ const styles = StyleSheet.create({
   paddleEmoji: {
     fontSize: 64,
   },
+  tagline: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: colors.text,
+    lineHeight: 26,
+    paddingHorizontal: 20,
+  },
   featuresContainer: {
-    marginBottom: 40,
+    marginBottom: 48,
+    paddingHorizontal: 8,
   },
   featureItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  featureIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  bulletPoint: {
+    width: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
-    borderWidth: 2,
-    borderColor: colors.primary,
   },
-  featureTitle: {
-    fontSize: 18,
+  bulletText: {
+    fontSize: 28,
     fontWeight: '700',
+    color: colors.primary,
+  },
+  featureText: {
+    fontSize: 17,
+    fontWeight: '500',
     color: colors.text,
-    marginBottom: 4,
+    flex: 1,
+    lineHeight: 24,
   },
   buttonContainer: {
     width: '100%',
   },
   pickleballGraphic: {
-    marginTop: 24,
+    marginTop: 32,
     alignItems: 'center',
   },
   pickleballText: {

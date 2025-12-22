@@ -9,7 +9,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, signOut, updateUserProfile } = useAuth();
+  const { user, signOut, updateUserProfile, loading: authLoading } = useAuth();
   const { checkInHistory, loading: historyLoading } = useCheckIn(user?.id);
   
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>(
@@ -21,6 +21,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (user) {
+      console.log('ProfileScreen: User data loaded:', user);
       setSkillLevel(user.skillLevel || 'Beginner');
       setPrivacyOptIn(user.privacyOptIn);
       setNotificationsEnabled(user.notificationsEnabled);
@@ -56,6 +57,17 @@ export default function ProfileScreen() {
     );
   };
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  // Show login prompt if not authenticated
   if (!user) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
@@ -68,7 +80,7 @@ export default function ProfileScreen() {
           />
         </View>
         <Text style={[commonStyles.title, { marginTop: 16, textAlign: 'center' }]}>
-          Please log in to view profile
+          Not Logged In
         </Text>
         <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
           Sign in to access your profile and settings
@@ -83,6 +95,7 @@ export default function ProfileScreen() {
     );
   }
 
+  // Show user profile
   return (
     <View style={commonStyles.container}>
       <ScrollView 
@@ -99,7 +112,9 @@ export default function ProfileScreen() {
               color={colors.primary} 
             />
           </View>
-          <Text style={[commonStyles.title, { color: colors.primary }]}>{user.email}</Text>
+          <Text style={[commonStyles.title, { color: colors.primary, fontSize: 22 }]}>
+            {user.email}
+          </Text>
           <View style={styles.userStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{checkInHistory?.length || 0}</Text>
