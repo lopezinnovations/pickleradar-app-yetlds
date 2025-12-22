@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useCourts } from '@/hooks/useCourts';
 import { IconSymbol } from '@/components/IconSymbol';
+import { SkillLevelBars } from '@/components/SkillLevelBars';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -31,6 +32,13 @@ export default function HomeScreen() {
       case 'low':
         return 'Low Activity';
     }
+  };
+
+  const getSkillLevelLabel = (averageSkillLevel: number) => {
+    if (averageSkillLevel === 0) return 'No data';
+    if (averageSkillLevel <= 1.5) return 'Beginner';
+    if (averageSkillLevel <= 2.5) return 'Intermediate';
+    return 'Advanced';
   };
 
   if (loading) {
@@ -125,17 +133,33 @@ export default function HomeScreen() {
                 </View>
                 
                 <View style={styles.courtFooter}>
-                  <View style={styles.playerCount}>
-                    <IconSymbol 
-                      ios_icon_name="person.2.fill" 
-                      android_material_icon_name="people" 
-                      size={16} 
-                      color={colors.textSecondary} 
-                    />
-                    <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
-                      {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
-                    </Text>
+                  <View style={styles.playerInfoContainer}>
+                    <View style={styles.playerCount}>
+                      <IconSymbol 
+                        ios_icon_name="person.2.fill" 
+                        android_material_icon_name="people" 
+                        size={16} 
+                        color={colors.textSecondary} 
+                      />
+                      <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
+                        {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
+                      </Text>
+                    </View>
+                    
+                    {court.currentPlayers > 0 && (
+                      <View style={styles.skillLevelContainer}>
+                        <Text style={[commonStyles.textSecondary, { fontSize: 12, marginRight: 6 }]}>
+                          Avg: {getSkillLevelLabel(court.averageSkillLevel)}
+                        </Text>
+                        <SkillLevelBars 
+                          averageSkillLevel={court.averageSkillLevel} 
+                          size={16}
+                          color={colors.primary}
+                        />
+                      </View>
+                    )}
                   </View>
+                  
                   <IconSymbol 
                     ios_icon_name="chevron.right" 
                     android_material_icon_name="chevron_right" 
@@ -243,7 +267,16 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  playerInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
   playerCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  skillLevelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },

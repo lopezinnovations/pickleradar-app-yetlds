@@ -55,10 +55,6 @@ export default function WelcomeScreen() {
           >
             <Text style={buttonStyles.text}>Get Started</Text>
           </TouchableOpacity>
-          
-          <View style={styles.pickleballGraphic}>
-            <Text style={styles.pickleballText}>🏓 🎾 🏓</Text>
-          </View>
         </View>
       </ScrollView>
     </View>
@@ -117,12 +113,5 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: '100%',
-  },
-  pickleballGraphic: {
-    marginTop: 32,
-    alignItems: 'center',
-  },
-  pickleballText: {
-    fontSize: 32,
   },
 });
