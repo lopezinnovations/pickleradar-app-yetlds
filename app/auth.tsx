@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -119,9 +119,11 @@ export default function AuthScreen() {
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.paddleEmoji}>🏓</Text>
-          </View>
+          <Image 
+            source={require('@/assets/images/d00ee021-be7a-42f9-a115-ea45cb937f7f.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={[commonStyles.title, { color: colors.primary }]}>
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </Text>
@@ -263,19 +265,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoContainer: {
+  logo: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: colors.highlight,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 16,
     borderWidth: 3,
     borderColor: colors.primary,
-  },
-  paddleEmoji: {
-    fontSize: 48,
   },
   form: {
     width: '100%',

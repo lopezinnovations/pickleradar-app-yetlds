@@ -15,7 +15,6 @@ export const useFriends = (userId: string | undefined) => {
     }
 
     try {
-      // Fetch accepted friends
       const { data: acceptedFriends, error: friendsError } = await supabase
         .from('friends')
         .select(`
@@ -27,7 +26,6 @@ export const useFriends = (userId: string | undefined) => {
 
       if (friendsError) throw friendsError;
 
-      // Fetch pending requests (where user is the recipient)
       const { data: pending, error: pendingError } = await supabase
         .from('friends')
         .select(`
@@ -39,12 +37,10 @@ export const useFriends = (userId: string | undefined) => {
 
       if (pendingError) throw pendingError;
 
-      // Get check-in info for friends
       const friendsWithDetails: FriendWithDetails[] = await Promise.all(
         (acceptedFriends || []).map(async (friendship: any) => {
           const friendData = friendship.friend;
           
-          // Check if friend is currently checked in
           const { data: checkIn } = await supabase
             .from('check_ins')
             .select('court_id, courts(name)')
@@ -102,7 +98,6 @@ export const useFriends = (userId: string | undefined) => {
     }
 
     try {
-      // Find user by email
       const { data: friendUser, error: userError } = await supabase
         .from('users')
         .select('id')
@@ -117,7 +112,6 @@ export const useFriends = (userId: string | undefined) => {
         return { success: false, error: 'Cannot add yourself as a friend' };
       }
 
-      // Check if friendship already exists
       const { data: existing } = await supabase
         .from('friends')
         .select('*')
@@ -128,7 +122,6 @@ export const useFriends = (userId: string | undefined) => {
         return { success: false, error: 'Friend request already exists' };
       }
 
-      // Create friend request
       const { error } = await supabase
         .from('friends')
         .insert([

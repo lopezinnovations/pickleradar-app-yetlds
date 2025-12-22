@@ -51,7 +51,6 @@ export default function CourtDetailScreen() {
     if (result.success) {
       setIsCheckedIn(true);
       Alert.alert('Success', `You're checked in at ${court.name}!`);
-      // Refresh court data to update player count
       await refetch();
       await checkCurrentCheckIn();
     } else {
@@ -67,8 +66,7 @@ export default function CourtDetailScreen() {
     if (result.success) {
       setIsCheckedIn(false);
       setCurrentCheckIn(null);
-      Alert.alert('Success', 'You've checked out!');
-      // Refresh court data to update player count
+      Alert.alert('Success', 'You have checked out!');
       await refetch();
     } else {
       Alert.alert('Error', result.error || 'Failed to check out');

@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
-import { IconSymbol } from '@/components/IconSymbol';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -16,9 +15,11 @@ export default function WelcomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.paddleEmoji}>🏓</Text>
-          </View>
+          <Image 
+            source={require('@/assets/images/d00ee021-be7a-42f9-a115-ea45cb937f7f.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={[commonStyles.title, { fontSize: 42, marginTop: 20, color: colors.primary }]}>
             PickleRadar
           </Text>
@@ -80,18 +81,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 48,
   },
-  logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.highlight,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logo: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     borderWidth: 3,
     borderColor: colors.primary,
-  },
-  paddleEmoji: {
-    fontSize: 64,
   },
   tagline: {
     fontSize: 18,

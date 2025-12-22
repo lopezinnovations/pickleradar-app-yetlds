@@ -4,7 +4,6 @@ import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/clie
 import { Court } from '@/types';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
-// Mock data for when Supabase is not configured
 const MOCK_COURTS: Court[] = [
   {
     id: '1',
@@ -38,7 +37,6 @@ const MOCK_COURTS: Court[] = [
   },
 ];
 
-// Convert skill level string to numeric value
 const skillLevelToNumber = (skillLevel: string): number => {
   switch (skillLevel) {
     case 'Beginner':
@@ -48,7 +46,7 @@ const skillLevelToNumber = (skillLevel: string): number => {
     case 'Advanced':
       return 3;
     default:
-      return 2; // Default to Intermediate
+      return 2;
   }
 };
 
@@ -81,10 +79,8 @@ export const useCourts = () => {
       
       console.log('useCourts: Fetched', data?.length || 0, 'courts');
       
-      // Calculate activity levels and average skill based on active check-ins
       const courtsWithActivity = await Promise.all(
         (data || []).map(async (court) => {
-          // Fetch active check-ins for this court
           const { data: checkIns, error: checkInsError } = await supabase
             .from('check_ins')
             .select('skill_level')
@@ -97,7 +93,6 @@ export const useCourts = () => {
 
           const currentPlayers = checkIns?.length || 0;
           
-          // Calculate average skill level
           let averageSkillLevel = 0;
           if (currentPlayers > 0 && checkIns) {
             const skillSum = checkIns.reduce((sum, checkIn) => {
@@ -106,7 +101,6 @@ export const useCourts = () => {
             averageSkillLevel = skillSum / currentPlayers;
           }
 
-          // Determine activity level
           let activityLevel: 'low' | 'medium' | 'high' = 'low';
           if (currentPlayers >= 6) activityLevel = 'high';
           else if (currentPlayers >= 3) activityLevel = 'medium';
@@ -135,68 +129,60 @@ export const useCourts = () => {
     }
   }, []);
 
-  const setupRealtimeSubscription = useCallback(() => {
-    try {
-      // Check if already subscribed
-      if (channelRef.current?.state === 'subscribed') {
-        console.log('useCourts: Already subscribed to realtime updates');
-        return;
-      }
-
-      console.log('useCourts: Setting up realtime subscription for check-ins');
-      
-      const channel = supabase.channel('check_ins:changes', {
-        config: { broadcast: { self: true } }
-      });
-      
-      channelRef.current = channel;
-
-      // Listen for all check-in changes
-      channel
-        .on('broadcast', { event: 'INSERT' }, (payload) => {
-          console.log('useCourts: Check-in created', payload);
-          fetchCourts();
-        })
-        .on('broadcast', { event: 'DELETE' }, (payload) => {
-          console.log('useCourts: Check-in deleted', payload);
-          fetchCourts();
-        })
-        .on('broadcast', { event: 'UPDATE' }, (payload) => {
-          console.log('useCourts: Check-in updated', payload);
-          fetchCourts();
-        })
-        .subscribe((status, err) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('useCourts: Successfully subscribed to check-in updates');
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error('useCourts: Channel error:', err);
-          } else if (status === 'CLOSED') {
-            console.log('useCourts: Channel closed');
-          }
-        });
-    } catch (error) {
-      console.error('useCourts: Error setting up realtime subscription:', error);
-    }
-  }, [fetchCourts]);
-
   useEffect(() => {
     console.log('useCourts: Initializing...');
     fetchCourts();
     
-    // Set up real-time subscription for check-ins
     if (isSupabaseConfigured()) {
-      setupRealtimeSubscription();
+      try {
+        if (channelRef.current?.state === 'subscribed') {
+          console.log('useCourts: Already subscribed to realtime updates');
+          return;
+        }
+
+        console.log('useCourts: Setting up realtime subscription for check-ins');
+        
+        const channel = supabase.channel('check_ins:changes', {
+          config: { broadcast: { self: true } }
+        });
+        
+        channelRef.current = channel;
+
+        channel
+          .on('broadcast', { event: 'INSERT' }, (payload) => {
+            console.log('useCourts: Check-in created', payload);
+            fetchCourts();
+          })
+          .on('broadcast', { event: 'DELETE' }, (payload) => {
+            console.log('useCourts: Check-in deleted', payload);
+            fetchCourts();
+          })
+          .on('broadcast', { event: 'UPDATE' }, (payload) => {
+            console.log('useCourts: Check-in updated', payload);
+            fetchCourts();
+          })
+          .subscribe((status, err) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('useCourts: Successfully subscribed to check-in updates');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('useCourts: Channel error:', err);
+            } else if (status === 'CLOSED') {
+              console.log('useCourts: Channel closed');
+            }
+          });
+      } catch (error) {
+        console.error('useCourts: Error setting up realtime subscription:', error);
+      }
     }
 
     return () => {
-      // Cleanup subscription on unmount
       if (channelRef.current) {
         console.log('useCourts: Cleaning up realtime subscription');
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
-  }, [fetchCourts, setupRealtimeSubscription]);
+  }, [fetchCourts]);
 
   return { courts, loading, refetch: fetchCourts };
 };
