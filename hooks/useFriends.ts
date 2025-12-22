@@ -8,6 +8,16 @@ export const useFriends = (userId: string | undefined) => {
   const [pendingRequests, setPendingRequests] = useState<FriendWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getRemainingTime = (expiresAt: string): { hours: number; minutes: number; totalMinutes: number } => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffMs = expiry.getTime() - now.getTime();
+    const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return { hours, minutes, totalMinutes };
+  };
+
   const fetchFriends = useCallback(async () => {
     if (!userId || !isSupabaseConfigured()) {
       setLoading(false);
@@ -43,10 +53,15 @@ export const useFriends = (userId: string | undefined) => {
           
           const { data: checkIn } = await supabase
             .from('check_ins')
-            .select('court_id, courts(name)')
+            .select('court_id, expires_at, courts(name)')
             .eq('user_id', friendData.id)
             .gte('expires_at', new Date().toISOString())
             .single();
+
+          let remainingTime = undefined;
+          if (checkIn?.expires_at) {
+            remainingTime = getRemainingTime(checkIn.expires_at);
+          }
 
           return {
             id: friendship.id,
@@ -58,6 +73,7 @@ export const useFriends = (userId: string | undefined) => {
             friendSkillLevel: friendData.skill_level,
             currentCourtId: checkIn?.court_id,
             currentCourtName: checkIn?.courts?.name,
+            remainingTime,
           };
         })
       );

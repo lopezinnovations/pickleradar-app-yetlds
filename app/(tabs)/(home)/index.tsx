@@ -4,12 +4,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useCourts } from '@/hooks/useCourts';
+import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
 import { SkillLevelBars } from '@/components/SkillLevelBars';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { courts, loading, refetch } = useCourts();
+  const { user } = useAuth();
+  const { courts, loading, refetch } = useCourts(user?.id);
 
   // Auto-refresh courts data whenever the screen is focused
   useFocusEffect(
@@ -153,6 +155,20 @@ export default function HomeScreen() {
                         {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
                       </Text>
                     </View>
+
+                    {court.friendsPlayingCount > 0 && (
+                      <View style={styles.friendsCount}>
+                        <IconSymbol 
+                          ios_icon_name="person.2.fill" 
+                          android_material_icon_name="people" 
+                          size={16} 
+                          color={colors.accent} 
+                        />
+                        <Text style={[commonStyles.textSecondary, { marginLeft: 6, color: colors.accent, fontWeight: '600' }]}>
+                          {court.friendsPlayingCount} {court.friendsPlayingCount === 1 ? 'friend' : 'friends'}
+                        </Text>
+                      </View>
+                    )}
                     
                     {court.currentPlayers > 0 && (
                       <View style={styles.skillLevelContainer}>
@@ -279,8 +295,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flexWrap: 'wrap',
   },
   playerCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  friendsCount: {
     flexDirection: 'row',
     alignItems: 'center',
   },

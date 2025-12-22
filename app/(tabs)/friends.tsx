@@ -186,16 +186,32 @@ export default function FriendsScreen() {
                       </Text>
                     )}
                     {friend.currentCourtName && (
-                      <View style={styles.playingBadge}>
-                        <IconSymbol 
-                          ios_icon_name="location.fill" 
-                          android_material_icon_name="location_on" 
-                          size={14} 
-                          color={colors.accent} 
-                        />
-                        <Text style={styles.playingText}>
-                          Playing at {friend.currentCourtName}
-                        </Text>
+                      <View style={styles.playingContainer}>
+                        <View style={styles.playingBadge}>
+                          <IconSymbol 
+                            ios_icon_name="location.fill" 
+                            android_material_icon_name="location_on" 
+                            size={14} 
+                            color={colors.accent} 
+                          />
+                          <Text style={styles.playingText}>
+                            Playing at {friend.currentCourtName}
+                          </Text>
+                        </View>
+                        {friend.remainingTime && (
+                          <View style={styles.timeContainer}>
+                            <IconSymbol 
+                              ios_icon_name="clock.fill" 
+                              android_material_icon_name="schedule" 
+                              size={14} 
+                              color={colors.primary} 
+                            />
+                            <Text style={styles.timeText}>
+                              {friend.remainingTime.hours > 0 && `${friend.remainingTime.hours}h `}
+                              {friend.remainingTime.minutes}m left
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     )}
                   </View>
@@ -254,6 +270,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 16,
   },
+  playingContainer: {
+    marginTop: 4,
+  },
   playingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -262,6 +281,17 @@ const styles = StyleSheet.create({
   playingText: {
     fontSize: 12,
     color: colors.accent,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  timeText: {
+    fontSize: 12,
+    color: colors.primary,
     fontWeight: '600',
     marginLeft: 4,
   },

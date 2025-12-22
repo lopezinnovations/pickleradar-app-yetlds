@@ -23,6 +23,8 @@ export type Database = {
           id: string
           skill_level: string
           user_id: string
+          duration_minutes: number
+          notification_id: string | null
         }
         Insert: {
           court_id: string
@@ -31,6 +33,8 @@ export type Database = {
           id?: string
           skill_level: string
           user_id: string
+          duration_minutes?: number
+          notification_id?: string | null
         }
         Update: {
           court_id?: string
@@ -39,6 +43,8 @@ export type Database = {
           id?: string
           skill_level?: string
           user_id?: string
+          duration_minutes?: number
+          notification_id?: string | null
         }
         Relationships: [
           {

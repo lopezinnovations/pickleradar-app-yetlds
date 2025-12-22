@@ -8,6 +8,7 @@ export interface Court {
   activityLevel: 'low' | 'medium' | 'high';
   currentPlayers: number;
   averageSkillLevel: number; // 0-3 representing average skill (0 = no players, 1 = Beginner, 2 = Intermediate, 3 = Advanced)
+  friendsPlayingCount: number; // Number of friends currently checked in at this court
 }
 
 export interface User {
@@ -26,6 +27,8 @@ export interface CheckIn {
   skillLevel: 'Beginner' | 'Intermediate' | 'Advanced';
   timestamp: string;
   expiresAt: string;
+  durationMinutes: number;
+  notificationId?: string;
 }
 
 export interface Friend {
@@ -41,4 +44,9 @@ export interface FriendWithDetails extends Friend {
   friendSkillLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
   currentCourtId?: string;
   currentCourtName?: string;
+  remainingTime?: {
+    hours: number;
+    minutes: number;
+    totalMinutes: number;
+  };
 }

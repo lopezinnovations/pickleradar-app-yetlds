@@ -14,6 +14,7 @@ const MOCK_COURTS: Court[] = [
     activityLevel: 'high',
     currentPlayers: 8,
     averageSkillLevel: 3.5,
+    friendsPlayingCount: 0,
   },
   {
     id: '2',
@@ -24,6 +25,7 @@ const MOCK_COURTS: Court[] = [
     activityLevel: 'medium',
     currentPlayers: 4,
     averageSkillLevel: 2.5,
+    friendsPlayingCount: 0,
   },
   {
     id: '3',
@@ -34,6 +36,7 @@ const MOCK_COURTS: Court[] = [
     activityLevel: 'low',
     currentPlayers: 2,
     averageSkillLevel: 1.5,
+    friendsPlayingCount: 0,
   },
 ];
 
@@ -50,7 +53,7 @@ const skillLevelToNumber = (skillLevel: string): number => {
   }
 };
 
-export const useCourts = () => {
+export const useCourts = (userId?: string) => {
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -78,12 +81,25 @@ export const useCourts = () => {
       }
       
       console.log('useCourts: Fetched', data?.length || 0, 'courts');
+
+      // Get user's friends if userId is provided
+      let friendIds: string[] = [];
+      if (userId) {
+        const { data: friendsData } = await supabase
+          .from('friends')
+          .select('friend_id')
+          .eq('user_id', userId)
+          .eq('status', 'accepted');
+
+        friendIds = (friendsData || []).map(f => f.friend_id);
+        console.log('useCourts: User has', friendIds.length, 'friends');
+      }
       
       const courtsWithActivity = await Promise.all(
         (data || []).map(async (court) => {
           const { data: checkIns, error: checkInsError } = await supabase
             .from('check_ins')
-            .select('skill_level')
+            .select('skill_level, user_id')
             .eq('court_id', court.id)
             .gte('expires_at', new Date().toISOString());
 
@@ -92,6 +108,10 @@ export const useCourts = () => {
           }
 
           const currentPlayers = checkIns?.length || 0;
+          
+          // Count friends playing at this court
+          const friendsPlaying = checkIns?.filter(checkIn => friendIds.includes(checkIn.user_id)) || [];
+          const friendsPlayingCount = friendsPlaying.length;
           
           let averageSkillLevel = 0;
           if (currentPlayers > 0 && checkIns) {
@@ -114,11 +134,12 @@ export const useCourts = () => {
             activityLevel,
             currentPlayers,
             averageSkillLevel,
+            friendsPlayingCount,
           };
         })
       );
 
-      console.log('useCourts: Successfully processed courts with activity levels and skill averages');
+      console.log('useCourts: Successfully processed courts with activity levels, skill averages, and friend counts');
       setCourts(courtsWithActivity);
     } catch (error) {
       console.log('useCourts: Error in fetchCourts, falling back to mock data:', error);
@@ -127,7 +148,7 @@ export const useCourts = () => {
       setLoading(false);
       console.log('useCourts: Fetch complete');
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     console.log('useCourts: Initializing...');

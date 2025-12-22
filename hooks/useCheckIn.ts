@@ -1,12 +1,27 @@
 
 import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
+import { scheduleCheckInNotification, cancelCheckOutNotification, sendManualCheckOutNotification } from '@/utils/notifications';
 
 interface CheckInHistory {
   id: string;
   courtName: string;
   skillLevel: string;
   checkedInAt: string;
+}
+
+interface CheckInData {
+  id: string;
+  user_id: string;
+  court_id: string;
+  skill_level: string;
+  created_at: string;
+  expires_at: string;
+  duration_minutes: number;
+  notification_id?: string;
+  courts?: {
+    name: string;
+  };
 }
 
 export const useCheckIn = (userId?: string) => {
@@ -58,7 +73,8 @@ export const useCheckIn = (userId?: string) => {
   const checkIn = async (
     userId: string,
     courtId: string,
-    skillLevel: 'Beginner' | 'Intermediate' | 'Advanced'
+    skillLevel: 'Beginner' | 'Intermediate' | 'Advanced',
+    durationMinutes: number = 90
   ) => {
     if (!isSupabaseConfigured()) {
       console.log('Supabase not configured - mock check-in');
@@ -90,6 +106,13 @@ export const useCheckIn = (userId?: string) => {
 
       // If user is checked in elsewhere, remove those check-ins first
       if (otherCheckIns && otherCheckIns.length > 0) {
+        // Cancel any scheduled notifications
+        for (const checkIn of otherCheckIns) {
+          if (checkIn.notification_id) {
+            await cancelCheckOutNotification(checkIn.notification_id);
+          }
+        }
+        
         await supabase
           .from('check_ins')
           .delete()
@@ -97,9 +120,21 @@ export const useCheckIn = (userId?: string) => {
           .gte('expires_at', new Date().toISOString());
       }
 
-      // Create check-in (expires in 3 hours)
+      // Get court name for notification
+      const { data: courtData } = await supabase
+        .from('courts')
+        .select('name')
+        .eq('id', courtId)
+        .single();
+
+      const courtName = courtData?.name || 'Unknown Court';
+
+      // Schedule notifications and get notification ID
+      const notificationId = await scheduleCheckInNotification(courtName, durationMinutes);
+
+      // Create check-in with custom duration
       const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 3);
+      expiresAt.setMinutes(expiresAt.getMinutes() + durationMinutes);
 
       const { error } = await supabase
         .from('check_ins')
@@ -109,6 +144,8 @@ export const useCheckIn = (userId?: string) => {
             court_id: courtId,
             skill_level: skillLevel,
             expires_at: expiresAt.toISOString(),
+            duration_minutes: durationMinutes,
+            notification_id: notificationId,
           },
         ]);
 
@@ -134,6 +171,20 @@ export const useCheckIn = (userId?: string) => {
 
     setLoading(true);
     try {
+      // Get the check-in to cancel notification and get court name
+      const { data: checkInData } = await supabase
+        .from('check_ins')
+        .select('notification_id, courts(name)')
+        .eq('user_id', userId)
+        .eq('court_id', courtId)
+        .single();
+
+      if (checkInData?.notification_id) {
+        await cancelCheckOutNotification(checkInData.notification_id);
+      }
+
+      const courtName = (checkInData as any)?.courts?.name || 'Unknown Court';
+
       const { error } = await supabase
         .from('check_ins')
         .delete()
@@ -141,6 +192,10 @@ export const useCheckIn = (userId?: string) => {
         .eq('court_id', courtId);
 
       if (error) throw error;
+
+      // Send manual check-out notification
+      await sendManualCheckOutNotification(courtName);
+
       return { success: true, error: null };
     } catch (error: any) {
       console.log('Check-out error:', error);
@@ -150,7 +205,7 @@ export const useCheckIn = (userId?: string) => {
     }
   };
 
-  const getUserCheckIn = async (userId: string) => {
+  const getUserCheckIn = async (userId: string): Promise<CheckInData | null> => {
     if (!isSupabaseConfigured()) {
       return null;
     }
@@ -170,12 +225,22 @@ export const useCheckIn = (userId?: string) => {
         }
         throw error;
       }
-      return data;
+      return data as CheckInData;
     } catch (error) {
       console.log('Error fetching user check-in:', error);
       return null;
     }
   };
 
-  return { checkIn, checkOut, getUserCheckIn, loading, checkInHistory };
+  const getRemainingTime = (expiresAt: string): { hours: number; minutes: number; totalMinutes: number } => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffMs = expiry.getTime() - now.getTime();
+    const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return { hours, minutes, totalMinutes };
+  };
+
+  return { checkIn, checkOut, getUserCheckIn, getRemainingTime, loading, checkInHistory };
 };

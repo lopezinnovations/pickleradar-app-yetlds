@@ -10,7 +10,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut, updateUserProfile, loading: authLoading } = useAuth();
-  const { checkInHistory, loading: historyLoading } = useCheckIn(user?.id);
+  const { checkInHistory, getUserCheckIn, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
   
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>(
     user?.skillLevel || 'Beginner'
@@ -18,6 +18,8 @@ export default function ProfileScreen() {
   const [privacyOptIn, setPrivacyOptIn] = useState(user?.privacyOptIn || false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(user?.notificationsEnabled || false);
   const [locationEnabled, setLocationEnabled] = useState(user?.locationEnabled || false);
+  const [currentCheckIn, setCurrentCheckIn] = useState<any>(null);
+  const [remainingTime, setRemainingTime] = useState<{ hours: number; minutes: number } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -26,8 +28,34 @@ export default function ProfileScreen() {
       setPrivacyOptIn(user.privacyOptIn);
       setNotificationsEnabled(user.notificationsEnabled);
       setLocationEnabled(user.locationEnabled);
+      loadCurrentCheckIn();
     }
   }, [user]);
+
+  const loadCurrentCheckIn = async () => {
+    if (!user) return;
+    const checkIn = await getUserCheckIn(user.id);
+    if (checkIn) {
+      setCurrentCheckIn(checkIn);
+      const time = getRemainingTime(checkIn.expires_at);
+      setRemainingTime({ hours: time.hours, minutes: time.minutes });
+    }
+  };
+
+  // Update remaining time every minute
+  useEffect(() => {
+    if (currentCheckIn?.expires_at) {
+      const updateTime = () => {
+        const time = getRemainingTime(currentCheckIn.expires_at);
+        setRemainingTime({ hours: time.hours, minutes: time.minutes });
+      };
+      
+      updateTime();
+      const interval = setInterval(updateTime, 60000); // Update every minute
+      
+      return () => clearInterval(interval);
+    }
+  }, [currentCheckIn, getRemainingTime]);
 
   const handleSaveSettings = async () => {
     await updateUserProfile({
@@ -127,6 +155,37 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {currentCheckIn && (
+          <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
+            <View style={styles.currentCheckInHeader}>
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check_circle" 
+                size={24} 
+                color={colors.success} 
+              />
+              <Text style={[commonStyles.subtitle, { marginLeft: 8 }]}>Currently Checked In</Text>
+            </View>
+            <Text style={[commonStyles.text, { marginTop: 8, fontWeight: '600' }]}>
+              {currentCheckIn.courts?.name || 'Unknown Court'}
+            </Text>
+            {remainingTime && (
+              <View style={styles.remainingTimeContainer}>
+                <IconSymbol 
+                  ios_icon_name="clock.fill" 
+                  android_material_icon_name="schedule" 
+                  size={16} 
+                  color={colors.primary} 
+                />
+                <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
+                  {remainingTime.hours > 0 && `${remainingTime.hours}h `}
+                  {remainingTime.minutes}m remaining
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Skill Level</Text>
@@ -312,6 +371,15 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: colors.border,
     marginHorizontal: 16,
+  },
+  currentCheckInHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  remainingTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
   },
   skillLevelContainer: {
     flexDirection: 'row',

@@ -6,22 +6,31 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useCourts } from '@/hooks/useCourts';
 import { useCheckIn } from '@/hooks/useCheckIn';
 import { useAuth } from '@/hooks/useAuth';
+import { useFriends } from '@/hooks/useFriends';
 import { IconSymbol } from '@/components/IconSymbol';
 import { SkillLevelBars } from '@/components/SkillLevelBars';
+
+const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180]; // Duration options in minutes
 
 export default function CourtDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { courts, refetch } = useCourts();
   const { user } = useAuth();
-  const { checkIn, checkOut, getUserCheckIn, loading } = useCheckIn();
+  const { courts, refetch } = useCourts(user?.id);
+  const { checkIn, checkOut, getUserCheckIn, getRemainingTime, loading } = useCheckIn();
+  const { friends } = useFriends(user?.id);
   
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
+  const [selectedDuration, setSelectedDuration] = useState(90); // Default 90 minutes (1.5 hours)
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [currentCheckIn, setCurrentCheckIn] = useState<any>(null);
   const [isLoadingCourt, setIsLoadingCourt] = useState(true);
+  const [remainingTime, setRemainingTime] = useState<{ hours: number; minutes: number } | null>(null);
 
   const court = courts.find(c => c.id === id);
+
+  // Get friends playing at this court
+  const friendsAtCourt = friends.filter(friend => friend.currentCourtId === id);
 
   // Refresh court data when screen is focused
   useFocusEffect(
@@ -44,15 +53,33 @@ export default function CourtDetailScreen() {
     }
   }, [user, court]);
 
+  // Update remaining time every minute
+  useEffect(() => {
+    if (currentCheckIn?.expires_at) {
+      const updateTime = () => {
+        const time = getRemainingTime(currentCheckIn.expires_at);
+        setRemainingTime({ hours: time.hours, minutes: time.minutes });
+      };
+      
+      updateTime();
+      const interval = setInterval(updateTime, 60000); // Update every minute
+      
+      return () => clearInterval(interval);
+    }
+  }, [currentCheckIn, getRemainingTime]);
+
   const checkCurrentCheckIn = async () => {
     if (!user || !court) return;
     const checkInData = await getUserCheckIn(user.id);
     if (checkInData && checkInData.court_id === court.id) {
       setIsCheckedIn(true);
       setCurrentCheckIn(checkInData);
+      const time = getRemainingTime(checkInData.expires_at);
+      setRemainingTime({ hours: time.hours, minutes: time.minutes });
     } else {
       setIsCheckedIn(false);
       setCurrentCheckIn(null);
+      setRemainingTime(null);
     }
   };
 
@@ -62,11 +89,22 @@ export default function CourtDetailScreen() {
       return;
     }
 
-    const result = await checkIn(user.id, court.id, selectedSkillLevel);
+    const result = await checkIn(user.id, court.id, selectedSkillLevel, selectedDuration);
     
     if (result.success) {
       setIsCheckedIn(true);
-      Alert.alert('Success', `You're checked in at ${court.name}!`);
+      const hours = Math.floor(selectedDuration / 60);
+      const minutes = selectedDuration % 60;
+      let durationText = '';
+      if (hours > 0) {
+        durationText = `${hours} hour${hours > 1 ? 's' : ''}`;
+        if (minutes > 0) {
+          durationText += ` and ${minutes} minutes`;
+        }
+      } else {
+        durationText = `${minutes} minutes`;
+      }
+      Alert.alert('Success', `You're checked in at ${court.name} for ${durationText}!`);
       await refetch();
       await checkCurrentCheckIn();
     } else {
@@ -82,10 +120,23 @@ export default function CourtDetailScreen() {
     if (result.success) {
       setIsCheckedIn(false);
       setCurrentCheckIn(null);
+      setRemainingTime(null);
       Alert.alert('Success', 'You have checked out!');
       await refetch();
     } else {
       Alert.alert('Error', result.error || 'Failed to check out');
+    }
+  };
+
+  const formatDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0 && mins > 0) {
+      return `${hours}h ${mins}m`;
+    } else if (hours > 0) {
+      return `${hours}h`;
+    } else {
+      return `${mins}m`;
     }
   };
 
@@ -196,6 +247,25 @@ export default function CourtDetailScreen() {
               </View>
             </View>
 
+            {court.friendsPlayingCount > 0 && (
+              <View style={styles.statRow}>
+                <View style={styles.statIcon}>
+                  <IconSymbol 
+                    ios_icon_name="person.2.fill" 
+                    android_material_icon_name="people" 
+                    size={24} 
+                    color={colors.accent} 
+                  />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={commonStyles.textSecondary}>Friends Playing</Text>
+                  <Text style={[commonStyles.text, styles.statValue, { color: colors.accent }]}>
+                    {court.friendsPlayingCount} {court.friendsPlayingCount === 1 ? 'friend' : 'friends'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
             {court.currentPlayers > 0 && (
               <View style={styles.statRow}>
                 <View style={styles.statIcon}>
@@ -224,13 +294,41 @@ export default function CourtDetailScreen() {
           </View>
         </View>
 
+        {friendsAtCourt.length > 0 && (
+          <View style={commonStyles.card}>
+            <Text style={commonStyles.subtitle}>Friends at This Court</Text>
+            {friendsAtCourt.map((friend, index) => (
+              <View key={index} style={styles.friendItem}>
+                <View style={styles.friendIcon}>
+                  <IconSymbol 
+                    ios_icon_name="person.fill" 
+                    android_material_icon_name="person" 
+                    size={20} 
+                    color={colors.primary} 
+                  />
+                </View>
+                <View style={styles.friendInfo}>
+                  <Text style={commonStyles.text}>{friend.friendEmail}</Text>
+                  {friend.remainingTime && (
+                    <Text style={commonStyles.textSecondary}>
+                      {friend.remainingTime.hours > 0 && `${friend.remainingTime.hours}h `}
+                      {friend.remainingTime.minutes}m remaining
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
         {!isCheckedIn ? (
           <View style={commonStyles.card}>
             <Text style={commonStyles.subtitle}>Check In</Text>
             <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
-              Select your skill level and let others know you&apos;re here!
+              Select your skill level and how long you plan to stay
             </Text>
 
+            <Text style={[commonStyles.text, { marginBottom: 8, fontWeight: '600' }]}>Skill Level</Text>
             <View style={styles.skillLevelButtons}>
               {skillLevels.map((level, index) => (
                 <TouchableOpacity
@@ -248,6 +346,31 @@ export default function CourtDetailScreen() {
                     ]}
                   >
                     {level}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[commonStyles.text, { marginTop: 20, marginBottom: 8, fontWeight: '600' }]}>
+              Duration
+            </Text>
+            <View style={styles.durationGrid}>
+              {DURATION_OPTIONS.map((duration, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.durationButton,
+                    selectedDuration === duration && styles.durationButtonActive,
+                  ]}
+                  onPress={() => setSelectedDuration(duration)}
+                >
+                  <Text
+                    style={[
+                      styles.durationText,
+                      selectedDuration === duration && styles.durationTextActive,
+                    ]}
+                  >
+                    {formatDuration(duration)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -277,8 +400,23 @@ export default function CourtDetailScreen() {
               <Text style={[commonStyles.subtitle, { marginLeft: 12 }]}>You&apos;re Checked In!</Text>
             </View>
             
+            {remainingTime && (
+              <View style={styles.remainingTimeContainer}>
+                <IconSymbol 
+                  ios_icon_name="clock.fill" 
+                  android_material_icon_name="schedule" 
+                  size={20} 
+                  color={colors.primary} 
+                />
+                <Text style={[commonStyles.text, { marginLeft: 8, fontWeight: '600' }]}>
+                  {remainingTime.hours > 0 && `${remainingTime.hours}h `}
+                  {remainingTime.minutes}m remaining
+                </Text>
+              </View>
+            )}
+            
             <Text style={[commonStyles.textSecondary, { marginTop: 12, marginBottom: 20 }]}>
-              Your check-in will expire in 3 hours or you can check out manually.
+              You will be automatically checked out when your time expires, or you can check out manually.
             </Text>
 
             <TouchableOpacity
@@ -379,6 +517,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  friendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 12,
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  friendIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.highlight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  friendInfo: {
+    flex: 1,
+  },
   skillLevelButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -406,8 +564,43 @@ const styles = StyleSheet.create({
   skillLevelTextActive: {
     color: colors.card,
   },
+  durationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  durationButton: {
+    width: '31%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+  },
+  durationButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  durationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  durationTextActive: {
+    color: colors.card,
+  },
   checkedInHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  remainingTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: colors.card,
+    borderRadius: 12,
   },
 });
