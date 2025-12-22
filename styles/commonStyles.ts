@@ -3,7 +3,7 @@ import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 // Pickleball-themed color palette: greens, yellows, and whites
 export const colors = {
-  background: '#f9fdf7',
+  background: '#ffffff',
   text: '#1a3d1a',
   textSecondary: '#5a7a5a',
   primary: '#2C7A7B', // Teal green

@@ -290,8 +290,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.primary,
   },
   userStats: {
     flexDirection: 'row',

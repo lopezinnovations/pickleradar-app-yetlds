@@ -81,9 +81,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 160,
     height: 160,
-    borderRadius: 80,
-    borderWidth: 3,
-    borderColor: colors.primary,
   },
   tagline: {
     fontSize: 18,

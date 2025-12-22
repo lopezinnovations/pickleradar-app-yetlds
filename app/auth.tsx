@@ -268,10 +268,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 96,
     height: 96,
-    borderRadius: 48,
     marginBottom: 16,
-    borderWidth: 3,
-    borderColor: colors.primary,
   },
   form: {
     width: '100%',
