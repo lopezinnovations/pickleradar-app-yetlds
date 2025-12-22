@@ -1,25 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useCourts } from '@/hooks/useCourts';
-import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { courts, loading, refetch } = useCourts();
-  const { user, isConfigured } = useAuth();
-
-  useEffect(() => {
-    // Redirect to welcome if not authenticated
-    if (!isConfigured) {
-      router.replace('/welcome');
-    } else if (!user) {
-      router.replace('/auth');
-    }
-  }, [user, isConfigured]);
 
   const getActivityColor = (level: 'low' | 'medium' | 'high') => {
     switch (level) {
@@ -91,43 +80,51 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {courts.map((court) => (
-            <TouchableOpacity
-              key={court.id}
-              style={commonStyles.card}
-              onPress={() => router.push(`/(tabs)/(home)/court/${court.id}`)}
-            >
-              <View style={styles.courtHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.courtName}>{court.name}</Text>
-                  <Text style={commonStyles.textSecondary}>{court.address}</Text>
+          {courts.length === 0 ? (
+            <View style={commonStyles.card}>
+              <Text style={[commonStyles.text, { textAlign: 'center' }]}>
+                No courts found. Check back later!
+              </Text>
+            </View>
+          ) : (
+            courts.map((court) => (
+              <TouchableOpacity
+                key={court.id}
+                style={commonStyles.card}
+                onPress={() => router.push(`/(tabs)/(home)/court/${court.id}`)}
+              >
+                <View style={styles.courtHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.courtName}>{court.name}</Text>
+                    <Text style={commonStyles.textSecondary}>{court.address}</Text>
+                  </View>
+                  <View style={[styles.activityBadge, { backgroundColor: getActivityColor(court.activityLevel) }]}>
+                    <Text style={styles.activityText}>{getActivityLabel(court.activityLevel)}</Text>
+                  </View>
                 </View>
-                <View style={[styles.activityBadge, { backgroundColor: getActivityColor(court.activityLevel) }]}>
-                  <Text style={styles.activityText}>{getActivityLabel(court.activityLevel)}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.courtFooter}>
-                <View style={styles.playerCount}>
+                
+                <View style={styles.courtFooter}>
+                  <View style={styles.playerCount}>
+                    <IconSymbol 
+                      ios_icon_name="person.2.fill" 
+                      android_material_icon_name="people" 
+                      size={16} 
+                      color={colors.textSecondary} 
+                    />
+                    <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
+                      {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
+                    </Text>
+                  </View>
                   <IconSymbol 
-                    ios_icon_name="person.2.fill" 
-                    android_material_icon_name="people" 
-                    size={16} 
+                    ios_icon_name="chevron.right" 
+                    android_material_icon_name="chevron_right" 
+                    size={20} 
                     color={colors.textSecondary} 
                   />
-                  <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
-                    {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
-                  </Text>
                 </View>
-                <IconSymbol 
-                  ios_icon_name="chevron.right" 
-                  android_material_icon_name="chevron_right" 
-                  size={20} 
-                  color={colors.textSecondary} 
-                />
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
     </View>

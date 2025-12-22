@@ -31,6 +31,7 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const [authChecked, setAuthChecked] = useState(false);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
   useEffect(() => {
     if (loaded) {
@@ -41,24 +42,34 @@ export default function RootLayout() {
   useEffect(() => {
     // Check authentication state on app start
     const checkAuth = async () => {
+      console.log('=== Starting auth check ===');
+      
       if (!isSupabaseConfigured()) {
-        console.log('Supabase not configured');
+        console.log('Supabase not configured, redirecting to welcome');
+        setInitialRoute('welcome');
         setAuthChecked(true);
         return;
       }
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial auth check:', session ? 'User logged in' : 'No session');
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          // User is logged in, redirect to home
-          router.replace('/(tabs)/(home)/');
+        if (error) {
+          console.log('Error getting session:', error);
+          setInitialRoute('welcome');
+        } else if (session?.user) {
+          console.log('User is logged in:', session.user.email);
+          setInitialRoute('home');
+        } else {
+          console.log('No active session, showing welcome');
+          setInitialRoute('welcome');
         }
       } catch (error) {
         console.log('Error checking auth:', error);
+        setInitialRoute('welcome');
       } finally {
         setAuthChecked(true);
+        console.log('=== Auth check complete ===');
       }
     };
 
@@ -66,6 +77,18 @@ export default function RootLayout() {
       checkAuth();
     }
   }, [loaded]);
+
+  // Navigate to initial route once determined
+  useEffect(() => {
+    if (authChecked && initialRoute) {
+      console.log('Navigating to initial route:', initialRoute);
+      if (initialRoute === 'home') {
+        router.replace('/(tabs)/(home)/');
+      } else {
+        router.replace('/welcome');
+      }
+    }
+  }, [authChecked, initialRoute]);
 
   React.useEffect(() => {
     if (

@@ -9,26 +9,34 @@ export const useAuth = () => {
   const [isConfigured, setIsConfigured] = useState(false);
 
   useEffect(() => {
-    setIsConfigured(isSupabaseConfigured());
+    console.log('useAuth: Initializing...');
+    const configured = isSupabaseConfigured();
+    setIsConfigured(configured);
+    console.log('useAuth: Supabase configured:', configured);
     
-    if (!isSupabaseConfigured()) {
+    if (!configured) {
+      console.log('useAuth: Supabase not configured, skipping auth');
       setLoading(false);
       return;
     }
 
     // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Current session:', session ? 'Active' : 'None');
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.log('useAuth: Error getting session:', error);
       } else {
-        setLoading(false);
+        console.log('useAuth: Current session:', session ? 'Active' : 'None');
+        if (session?.user) {
+          fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
+      console.log('useAuth: Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
       if (session?.user) {
         fetchUserProfile(session.user.id);
       } else {
@@ -37,10 +45,14 @@ export const useAuth = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('useAuth: Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
+    console.log('useAuth: Fetching user profile for:', userId);
     try {
       const { data, error } = await supabase
         .from('users')
@@ -49,10 +61,11 @@ export const useAuth = () => {
         .single();
 
       if (error) {
-        console.log('Error fetching user profile:', error);
+        console.log('useAuth: Error fetching user profile:', error);
         throw error;
       }
       
+      console.log('useAuth: User profile fetched successfully');
       setUser({
         id: data.id,
         email: data.email,
@@ -62,7 +75,7 @@ export const useAuth = () => {
         locationEnabled: data.location_enabled || false,
       });
     } catch (error) {
-      console.log('Error fetching user profile:', error);
+      console.log('useAuth: Error in fetchUserProfile:', error);
     } finally {
       setLoading(false);
     }
@@ -70,7 +83,7 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      console.log('Attempting to sign up user:', email);
+      console.log('useAuth: Attempting to sign up user:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -80,14 +93,15 @@ export const useAuth = () => {
       });
 
       if (error) {
-        console.log('Sign up error:', error);
+        console.log('useAuth: Sign up error:', error);
         throw error;
       }
 
-      console.log('Sign up response:', data);
+      console.log('useAuth: Sign up response:', data);
 
       if (data.user) {
         // Create user profile
+        console.log('useAuth: Creating user profile...');
         const { error: profileError } = await supabase
           .from('users')
           .insert([
@@ -101,12 +115,15 @@ export const useAuth = () => {
           ]);
 
         if (profileError) {
-          console.log('Profile creation error:', profileError);
+          console.log('useAuth: Profile creation error:', profileError);
           throw profileError;
         }
 
+        console.log('useAuth: User profile created successfully');
+
         // Check if email confirmation is required
         if (!data.session) {
+          console.log('useAuth: Email verification required');
           return { 
             success: true, 
             error: null, 
@@ -116,6 +133,7 @@ export const useAuth = () => {
         }
       }
 
+      console.log('useAuth: Sign up successful');
       return { 
         success: true, 
         error: null, 
@@ -123,7 +141,7 @@ export const useAuth = () => {
         requiresEmailVerification: false
       };
     } catch (error: any) {
-      console.log('Sign up error:', error);
+      console.log('useAuth: Sign up error:', error);
       const errorMessage = error?.message || 'Failed to create account. Please try again.';
       return { 
         success: false, 
@@ -136,16 +154,16 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting to sign in user:', email);
+      console.log('useAuth: Attempting to sign in user:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log('Sign in response:', { data, error });
+      console.log('useAuth: Sign in response:', { data, error });
 
       if (error) {
-        console.log('Sign in error:', error);
+        console.log('useAuth: Sign in error:', error);
         
         // Check for specific error types
         if (error.message.toLowerCase().includes('email not confirmed')) {
@@ -169,7 +187,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('Sign in successful');
+      console.log('useAuth: Sign in successful');
       return { 
         success: true, 
         error: null, 
@@ -177,7 +195,7 @@ export const useAuth = () => {
         requiresEmailVerification: false
       };
     } catch (error: any) {
-      console.log('Sign in error:', error);
+      console.log('useAuth: Sign in error:', error);
       const errorMessage = error?.message || 'Failed to sign in. Please try again.';
       return { 
         success: false, 
@@ -190,21 +208,24 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      console.log('Signing out user');
+      console.log('useAuth: Signing out user');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
-      console.log('Sign out successful');
+      console.log('useAuth: Sign out successful');
     } catch (error) {
-      console.log('Sign out error:', error);
+      console.log('useAuth: Sign out error:', error);
     }
   };
 
   const updateUserProfile = async (updates: Partial<User>) => {
-    if (!user) return;
+    if (!user) {
+      console.log('useAuth: Cannot update profile - no user');
+      return;
+    }
 
     try {
-      console.log('Updating user profile:', updates);
+      console.log('useAuth: Updating user profile:', updates);
       const dbUpdates: any = {};
       
       if (updates.skillLevel !== undefined) dbUpdates.skill_level = updates.skillLevel;
@@ -219,9 +240,9 @@ export const useAuth = () => {
 
       if (error) throw error;
       setUser({ ...user, ...updates });
-      console.log('Profile update successful');
+      console.log('useAuth: Profile update successful');
     } catch (error) {
-      console.log('Update profile error:', error);
+      console.log('useAuth: Update profile error:', error);
     }
   };
 

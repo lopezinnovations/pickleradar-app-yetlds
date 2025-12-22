@@ -39,32 +39,46 @@ export const useCourts = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('useCourts: Initializing...');
     fetchCourts();
   }, []);
 
   const fetchCourts = async () => {
+    console.log('useCourts: Fetching courts...');
+    setLoading(true);
+    
     if (!isSupabaseConfigured()) {
-      // Use mock data
+      console.log('useCourts: Supabase not configured, using mock data');
       setCourts(MOCK_COURTS);
       setLoading(false);
       return;
     }
 
     try {
+      console.log('useCourts: Fetching from Supabase...');
       const { data, error } = await supabase
         .from('courts')
         .select('*');
 
-      if (error) throw error;
+      if (error) {
+        console.log('useCourts: Error fetching courts:', error);
+        throw error;
+      }
+      
+      console.log('useCourts: Fetched', data?.length || 0, 'courts');
       
       // Calculate activity levels based on check-ins
       const courtsWithActivity = await Promise.all(
-        data.map(async (court) => {
-          const { count } = await supabase
+        (data || []).map(async (court) => {
+          const { count, error: countError } = await supabase
             .from('check_ins')
             .select('*', { count: 'exact', head: true })
             .eq('court_id', court.id)
             .gte('expires_at', new Date().toISOString());
+
+          if (countError) {
+            console.log('useCourts: Error counting check-ins for court', court.id, ':', countError);
+          }
 
           const currentPlayers = count || 0;
           let activityLevel: 'low' | 'medium' | 'high' = 'low';
@@ -84,12 +98,14 @@ export const useCourts = () => {
         })
       );
 
+      console.log('useCourts: Successfully processed courts with activity levels');
       setCourts(courtsWithActivity);
     } catch (error) {
-      console.log('Error fetching courts:', error);
+      console.log('useCourts: Error in fetchCourts, falling back to mock data:', error);
       setCourts(MOCK_COURTS);
     } finally {
       setLoading(false);
+      console.log('useCourts: Fetch complete');
     }
   };
 
