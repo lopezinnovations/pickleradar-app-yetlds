@@ -7,6 +7,7 @@ export interface Court {
   longitude: number;
   activityLevel: 'low' | 'medium' | 'high';
   currentPlayers: number;
+  averageSkillLevel: number; // 0-3 representing average skill (0 = no players, 1 = Beginner, 2 = Intermediate, 3 = Advanced)
 }
 
 export interface User {
