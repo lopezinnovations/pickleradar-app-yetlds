@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +10,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut, updateUserProfile, loading: authLoading } = useAuth();
-  const { checkInHistory, getUserCheckIn, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
+  const { checkInHistory, getUserCheckIn, checkOut, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
   
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>(
     user?.skillLevel || 'Beginner'
@@ -20,6 +20,7 @@ export default function ProfileScreen() {
   const [locationEnabled, setLocationEnabled] = useState(user?.locationEnabled || false);
   const [currentCheckIn, setCurrentCheckIn] = useState<any>(null);
   const [remainingTime, setRemainingTime] = useState<{ hours: number; minutes: number } | null>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -39,6 +40,9 @@ export default function ProfileScreen() {
       setCurrentCheckIn(checkIn);
       const time = getRemainingTime(checkIn.expires_at);
       setRemainingTime({ hours: time.hours, minutes: time.minutes });
+    } else {
+      setCurrentCheckIn(null);
+      setRemainingTime(null);
     }
   };
 
@@ -48,6 +52,11 @@ export default function ProfileScreen() {
       const updateTime = () => {
         const time = getRemainingTime(currentCheckIn.expires_at);
         setRemainingTime({ hours: time.hours, minutes: time.minutes });
+        
+        // If time has expired, reload check-in status
+        if (time.totalMinutes <= 0) {
+          loadCurrentCheckIn();
+        }
       };
       
       updateTime();
@@ -56,6 +65,39 @@ export default function ProfileScreen() {
       return () => clearInterval(interval);
     }
   }, [currentCheckIn, getRemainingTime]);
+
+  const handleManualCheckOut = () => {
+    if (!currentCheckIn || !user) return;
+
+    Alert.alert(
+      'Check Out',
+      `Are you sure you want to check out from ${currentCheckIn.courts?.name || 'this court'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Check Out',
+          style: 'destructive',
+          onPress: async () => {
+            setCheckingOut(true);
+            try {
+              const result = await checkOut(user.id, currentCheckIn.court_id);
+              if (result.success) {
+                Alert.alert('Success', 'You have been checked out successfully!');
+                await loadCurrentCheckIn();
+              } else {
+                Alert.alert('Error', result.error || 'Failed to check out. Please try again.');
+              }
+            } catch (error) {
+              console.log('ProfileScreen: Manual checkout error:', error);
+              Alert.alert('Error', 'Failed to check out. Please try again.');
+            } finally {
+              setCheckingOut(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleSaveSettings = async () => {
     await updateUserProfile({
@@ -156,7 +198,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {currentCheckIn && (
+        {currentCheckIn && remainingTime && remainingTime.hours >= 0 && remainingTime.minutes >= 0 && (
           <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
             <View style={styles.currentCheckInHeader}>
               <IconSymbol 
@@ -170,20 +212,40 @@ export default function ProfileScreen() {
             <Text style={[commonStyles.text, { marginTop: 8, fontWeight: '600' }]}>
               {currentCheckIn.courts?.name || 'Unknown Court'}
             </Text>
-            {remainingTime && (
-              <View style={styles.remainingTimeContainer}>
-                <IconSymbol 
-                  ios_icon_name="clock.fill" 
-                  android_material_icon_name="schedule" 
-                  size={16} 
-                  color={colors.primary} 
-                />
-                <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
-                  {remainingTime.hours > 0 && `${remainingTime.hours}h `}
-                  {remainingTime.minutes}m remaining
-                </Text>
-              </View>
-            )}
+            <View style={styles.remainingTimeContainer}>
+              <IconSymbol 
+                ios_icon_name="clock.fill" 
+                android_material_icon_name="schedule" 
+                size={16} 
+                color={colors.primary} 
+              />
+              <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
+                {remainingTime.hours > 0 && `${remainingTime.hours}h `}
+                {remainingTime.minutes}m remaining
+              </Text>
+            </View>
+            
+            <TouchableOpacity
+              style={[buttonStyles.secondary, { marginTop: 16, backgroundColor: colors.accent }]}
+              onPress={handleManualCheckOut}
+              disabled={checkingOut}
+            >
+              {checkingOut ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <React.Fragment>
+                  <IconSymbol 
+                    ios_icon_name="xmark.circle.fill" 
+                    android_material_icon_name="cancel" 
+                    size={20} 
+                    color={colors.card} 
+                  />
+                  <Text style={[buttonStyles.text, { marginLeft: 8, color: colors.card }]}>
+                    Check Out Now
+                  </Text>
+                </React.Fragment>
+              )}
+            </TouchableOpacity>
           </View>
         )}
 

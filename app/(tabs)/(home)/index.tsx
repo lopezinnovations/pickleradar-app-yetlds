@@ -1,6 +1,6 @@
 
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Linking } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useCourts } from '@/hooks/useCourts';
@@ -51,6 +51,14 @@ export default function HomeScreen() {
     return 'Advanced';
   };
 
+  const openGoogleMaps = () => {
+    // Open Google Maps with a general search for pickleball courts
+    const url = 'https://www.google.com/maps/search/pickleball+courts';
+    Linking.openURL(url).catch(err => {
+      console.error('Failed to open Google Maps:', err);
+    });
+  };
+
   if (loading) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -84,12 +92,30 @@ export default function HomeScreen() {
             size={48} 
             color={colors.textSecondary} 
           />
-          <Text style={[commonStyles.text, { textAlign: 'center', marginTop: 16 }]}>
-            Map view is not currently supported in Natively.
+          <Text style={[commonStyles.text, { textAlign: 'center', marginTop: 16, fontWeight: '600' }]}>
+            Interactive Map View
           </Text>
           <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 8 }]}>
-            Browse courts below to see activity levels and check in.
+            Native map integration is not currently supported in Natively.
           </Text>
+          <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
+            Browse courts below or open Google Maps to explore locations.
+          </Text>
+          
+          <TouchableOpacity
+            style={styles.googleMapsButton}
+            onPress={openGoogleMaps}
+          >
+            <IconSymbol 
+              ios_icon_name="map.fill" 
+              android_material_icon_name="map" 
+              size={20} 
+              color={colors.card} 
+            />
+            <Text style={styles.googleMapsButtonText}>
+              Open in Google Maps
+            </Text>
+          </TouchableOpacity>
           
           <View style={styles.heatMapLegend}>
             <Text style={[commonStyles.textSecondary, { marginBottom: 8, fontWeight: '600' }]}>
@@ -227,6 +253,21 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.border,
     borderStyle: 'dashed',
+  },
+  googleMapsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+    gap: 8,
+  },
+  googleMapsButtonText: {
+    color: colors.card,
+    fontSize: 16,
+    fontWeight: '600',
   },
   heatMapLegend: {
     marginTop: 20,
