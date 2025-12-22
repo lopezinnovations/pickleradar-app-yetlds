@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '@/utils/supabaseClient';
+import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 import { Court } from '@/types';
 
 // Mock data for when Supabase is not configured

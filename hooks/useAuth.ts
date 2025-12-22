@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '@/utils/supabaseClient';
+import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 import { User } from '@/types';
 
 export const useAuth = () => {
@@ -47,7 +47,15 @@ export const useAuth = () => {
         .single();
 
       if (error) throw error;
-      setUser(data);
+      
+      setUser({
+        id: data.id,
+        email: data.email,
+        skillLevel: data.skill_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
+        privacyOptIn: data.privacy_opt_in || false,
+        notificationsEnabled: data.notifications_enabled || false,
+        locationEnabled: data.location_enabled || false,
+      });
     } catch (error) {
       console.log('Error fetching user profile:', error);
     } finally {
@@ -60,6 +68,9 @@ export const useAuth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: 'https://natively.dev/email-confirmed'
+        }
       });
 
       if (error) throw error;
@@ -71,20 +82,20 @@ export const useAuth = () => {
           .insert([
             {
               id: data.user.id,
-              email: data.user.email,
-              privacyOptIn: false,
-              notificationsEnabled: false,
-              locationEnabled: false,
+              email: data.user.email || email,
+              privacy_opt_in: false,
+              notifications_enabled: false,
+              location_enabled: false,
             },
           ]);
 
         if (profileError) throw profileError;
       }
 
-      return { success: true, error: null };
+      return { success: true, error: null, message: 'Account created! Please check your email to verify your account.' };
     } catch (error: any) {
       console.log('Sign up error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message, message: error.message };
     }
   };
 
@@ -96,10 +107,10 @@ export const useAuth = () => {
       });
 
       if (error) throw error;
-      return { success: true, error: null };
+      return { success: true, error: null, message: 'Successfully signed in!' };
     } catch (error: any) {
       console.log('Sign in error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message, message: error.message };
     }
   };
 
@@ -117,9 +128,16 @@ export const useAuth = () => {
     if (!user) return;
 
     try {
+      const dbUpdates: any = {};
+      
+      if (updates.skillLevel !== undefined) dbUpdates.skill_level = updates.skillLevel;
+      if (updates.privacyOptIn !== undefined) dbUpdates.privacy_opt_in = updates.privacyOptIn;
+      if (updates.notificationsEnabled !== undefined) dbUpdates.notifications_enabled = updates.notificationsEnabled;
+      if (updates.locationEnabled !== undefined) dbUpdates.location_enabled = updates.locationEnabled;
+
       const { error } = await supabase
         .from('users')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', user.id);
 
       if (error) throw error;

@@ -1,30 +1,66 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
+import { useFriends } from '@/hooks/useFriends';
 import { IconSymbol } from '@/components/IconSymbol';
-import { isSupabaseConfigured } from '@/utils/supabaseClient';
 
 export default function FriendsScreen() {
   const { user } = useAuth();
+  const { friends, pendingRequests, loading, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend } = useFriends(user?.id);
   const [friendEmail, setFriendEmail] = useState('');
-  const [friends, setFriends] = useState<any[]>([]);
+  const [sending, setSending] = useState(false);
 
-  const handleAddFriend = () => {
+  const handleAddFriend = async () => {
     if (!friendEmail.trim()) {
-      Alert.alert('Error', 'Please enter a friend&apos;s email');
+      Alert.alert('Error', 'Please enter an email address');
       return;
     }
 
-    if (!isSupabaseConfigured()) {
-      Alert.alert('Supabase Required', 'Please enable Supabase to use friend features');
-      return;
-    }
+    setSending(true);
+    const result = await sendFriendRequest(friendEmail.trim().toLowerCase());
+    setSending(false);
 
-    Alert.alert('Coming Soon', 'Friend requests will be available once Supabase is fully configured');
-    setFriendEmail('');
+    if (result.success) {
+      Alert.alert('Success', 'Friend request sent!');
+      setFriendEmail('');
+    } else {
+      Alert.alert('Error', result.error || 'Failed to send friend request');
+    }
   };
+
+  const handleAcceptRequest = async (friendshipId: string) => {
+    await acceptFriendRequest(friendshipId);
+    Alert.alert('Success', 'Friend request accepted!');
+  };
+
+  const handleRejectRequest = async (friendshipId: string) => {
+    await rejectFriendRequest(friendshipId);
+  };
+
+  const handleRemoveFriend = (friendshipId: string, friendEmail: string) => {
+    Alert.alert(
+      'Remove Friend',
+      `Are you sure you want to remove ${friendEmail} from your friends?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => removeFriend(friendshipId),
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={commonStyles.container}>
@@ -36,16 +72,16 @@ export default function FriendsScreen() {
         <View style={styles.header}>
           <Text style={commonStyles.title}>Friends</Text>
           <Text style={commonStyles.textSecondary}>
-            Connect with friends and see when they&apos;re playing
+            Connect with other pickleball players
           </Text>
         </View>
 
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Add Friend</Text>
-          <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
-            Enter your friend&apos;s email to send a friend request
+          <Text style={[commonStyles.textSecondary, { marginTop: 8, marginBottom: 12 }]}>
+            Enter your friend&apos;s email address
           </Text>
-
+          
           <TextInput
             style={commonStyles.input}
             placeholder="friend@example.com"
@@ -54,77 +90,129 @@ export default function FriendsScreen() {
             onChangeText={setFriendEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
           />
 
           <TouchableOpacity
-            style={buttonStyles.primary}
+            style={[buttonStyles.primary, { marginTop: 12 }]}
             onPress={handleAddFriend}
+            disabled={sending}
           >
-            <Text style={buttonStyles.text}>Send Friend Request</Text>
+            {sending ? (
+              <ActivityIndicator color={colors.card} />
+            ) : (
+              <Text style={buttonStyles.text}>Send Request</Text>
+            )}
           </TouchableOpacity>
         </View>
 
+        {pendingRequests.length > 0 && (
+          <View style={styles.section}>
+            <Text style={commonStyles.subtitle}>Pending Requests</Text>
+            {pendingRequests.map((request, index) => (
+              <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                <View style={styles.friendHeader}>
+                  <View style={styles.friendIcon}>
+                    <IconSymbol 
+                      ios_icon_name="person.fill" 
+                      android_material_icon_name="person" 
+                      size={24} 
+                      color={colors.primary} 
+                    />
+                  </View>
+                  <View style={styles.friendInfo}>
+                    <Text style={commonStyles.subtitle}>{request.friendEmail}</Text>
+                    {request.friendSkillLevel && (
+                      <Text style={commonStyles.textSecondary}>
+                        {request.friendSkillLevel}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.requestActions}>
+                  <TouchableOpacity
+                    style={[buttonStyles.primary, { flex: 1, marginRight: 8 }]}
+                    onPress={() => handleAcceptRequest(request.id)}
+                  >
+                    <Text style={buttonStyles.text}>Accept</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[buttonStyles.secondary, { flex: 1 }]}
+                    onPress={() => handleRejectRequest(request.id)}
+                  >
+                    <Text style={[buttonStyles.text, { color: colors.text }]}>Decline</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
         <View style={styles.section}>
-          <Text style={commonStyles.subtitle}>Your Friends</Text>
+          <Text style={commonStyles.subtitle}>
+            My Friends ({friends.length})
+          </Text>
           
           {friends.length === 0 ? (
-            <View style={styles.emptyState}>
+            <View style={[commonStyles.card, { marginTop: 12, alignItems: 'center', padding: 32 }]}>
               <IconSymbol 
                 ios_icon_name="person.2.slash" 
                 android_material_icon_name="people_outline" 
                 size={48} 
                 color={colors.textSecondary} 
               />
-              <Text style={[commonStyles.text, { textAlign: 'center', marginTop: 16 }]}>
-                No friends yet
-              </Text>
-              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 8 }]}>
-                Add friends to see when they&apos;re playing at courts near you
+              <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
+                No friends yet. Add friends to see when they&apos;re playing!
               </Text>
             </View>
           ) : (
             friends.map((friend, index) => (
-              <View key={index} style={commonStyles.card}>
-                <View style={styles.friendItem}>
-                  <View style={styles.friendAvatar}>
+              <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                <View style={styles.friendHeader}>
+                  <View style={styles.friendIcon}>
                     <IconSymbol 
                       ios_icon_name="person.fill" 
                       android_material_icon_name="person" 
                       size={24} 
-                      color={colors.card} 
+                      color={colors.primary} 
                     />
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.friendName}>{friend.email}</Text>
-                    <Text style={commonStyles.textSecondary}>
-                      {friend.isPlaying ? `Playing at ${friend.courtName}` : 'Not playing'}
-                    </Text>
+                  <View style={styles.friendInfo}>
+                    <Text style={commonStyles.subtitle}>{friend.friendEmail}</Text>
+                    {friend.friendSkillLevel && (
+                      <Text style={commonStyles.textSecondary}>
+                        {friend.friendSkillLevel}
+                      </Text>
+                    )}
+                    {friend.currentCourtName && (
+                      <View style={styles.playingBadge}>
+                        <IconSymbol 
+                          ios_icon_name="location.fill" 
+                          android_material_icon_name="location_on" 
+                          size={14} 
+                          color={colors.accent} 
+                        />
+                        <Text style={styles.playingText}>
+                          Playing at {friend.currentCourtName}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                  {friend.isPlaying && (
-                    <View style={styles.playingIndicator}>
-                      <View style={styles.playingDot} />
-                    </View>
-                  )}
+                  <TouchableOpacity
+                    onPress={() => handleRemoveFriend(friend.id, friend.friendEmail)}
+                  >
+                    <IconSymbol 
+                      ios_icon_name="trash" 
+                      android_material_icon_name="delete" 
+                      size={20} 
+                      color={colors.textSecondary} 
+                    />
+                  </TouchableOpacity>
                 </View>
               </View>
             ))
           )}
-        </View>
-
-        <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
-          <View style={styles.privacyHeader}>
-            <IconSymbol 
-              ios_icon_name="lock.shield.fill" 
-              android_material_icon_name="shield" 
-              size={24} 
-              color={colors.primary} 
-            />
-            <Text style={[commonStyles.subtitle, { marginLeft: 12 }]}>Privacy</Text>
-          </View>
-          <Text style={[commonStyles.textSecondary, { marginTop: 12 }]}>
-            Your location and check-ins are only visible to friends you&apos;ve accepted. 
-            You can manage your privacy settings in your profile.
-          </Text>
         </View>
       </ScrollView>
     </View>
@@ -142,49 +230,39 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 24,
-    alignItems: 'center',
   },
   section: {
     marginTop: 24,
-    marginBottom: 20,
   },
-  emptyState: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 40,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  friendItem: {
+  friendHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  friendAvatar: {
+  friendIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  friendName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
+  friendInfo: {
+    flex: 1,
   },
-  playingIndicator: {
-    marginLeft: 12,
+  requestActions: {
+    flexDirection: 'row',
+    marginTop: 16,
   },
-  playingDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.success,
-  },
-  privacyHeader: {
+  playingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 4,
+  },
+  playingText: {
+    fontSize: 12,
+    color: colors.accent,
+    fontWeight: '600',
+    marginLeft: 4,
   },
 });

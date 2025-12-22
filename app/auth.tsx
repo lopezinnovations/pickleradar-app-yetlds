@@ -40,17 +40,21 @@ export default function AuthScreen() {
     if (isSignUp) {
       const result = await signUp(email, password);
       if (result.success) {
-        Alert.alert('Success', 'Account created! Please check your email to verify your account.');
+        Alert.alert('Success', result.message || 'Account created! Please check your email to verify your account.');
         setIsSignUp(false);
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
       } else {
-        Alert.alert('Error', result.error || 'Failed to create account');
+        Alert.alert('Error', result.message || 'Failed to create account');
       }
     } else {
       const result = await signIn(email, password);
       if (result.success) {
+        Alert.alert('Success', result.message || 'Successfully signed in!');
         router.replace('/(tabs)/(home)/');
       } else {
-        Alert.alert('Error', result.error || 'Failed to sign in');
+        Alert.alert('Error', result.message || 'Failed to sign in');
       }
     }
 

@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
-import { supabase, isSupabaseConfigured } from '@/utils/supabaseClient';
-import { CheckIn } from '@/types';
+import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 
 export const useCheckIn = () => {
   const [loading, setLoading] = useState(false);
