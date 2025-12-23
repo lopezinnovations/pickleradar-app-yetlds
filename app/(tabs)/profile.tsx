@@ -25,6 +25,7 @@ export default function ProfileScreen() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showConsentPrompt, setShowConsentPrompt] = useState(false);
+  const [acceptingConsent, setAcceptingConsent] = useState(false);
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
@@ -91,30 +92,49 @@ export default function ProfileScreen() {
     }
   }, [currentCheckIn?.expires_at]);
 
-  const handleAcceptConsent = () => {
+  const handleAcceptConsent = async () => {
+    setAcceptingConsent(true);
+    console.log('ProfileScreen: Accepting consent...');
+    
+    try {
+      const result = await acceptConsent();
+      console.log('ProfileScreen: Consent acceptance result:', result);
+      
+      if (result.success) {
+        setShowConsentPrompt(false);
+        Alert.alert('Success', 'Thank you for accepting the updated terms!');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to update consent. Please try again.');
+      }
+    } catch (error) {
+      console.log('ProfileScreen: Error accepting consent:', error);
+      Alert.alert('Error', 'Failed to update consent. Please try again.');
+    } finally {
+      setAcceptingConsent(false);
+    }
+  };
+
+  const handleReviewAndAccept = () => {
     Alert.alert(
       'Review Terms',
-      'Please review and accept the updated Privacy Policy and Terms of Service to continue using the app.',
+      'Please review the Privacy Policy and Terms of Service before accepting.',
       [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
         {
           text: 'Review Privacy Policy',
           onPress: () => router.push('/legal/privacy-policy'),
         },
         {
-          text: 'Review Terms of Service',
+          text: 'Review Terms',
           onPress: () => router.push('/legal/terms-of-service'),
         },
         {
-          text: 'Accept',
-          onPress: async () => {
-            const result = await acceptConsent();
-            if (result.success) {
-              setShowConsentPrompt(false);
-              Alert.alert('Success', 'Thank you for accepting the updated terms!');
-            } else {
-              Alert.alert('Error', result.error || 'Failed to update consent. Please try again.');
-            }
-          },
+          text: 'Accept Now',
+          onPress: handleAcceptConsent,
+          style: 'default',
         },
       ]
     );
@@ -295,9 +315,14 @@ export default function ProfileScreen() {
             </Text>
             <TouchableOpacity
               style={[buttonStyles.primary, { marginTop: 16, backgroundColor: colors.card }]}
-              onPress={handleAcceptConsent}
+              onPress={handleReviewAndAccept}
+              disabled={acceptingConsent}
             >
-              <Text style={[buttonStyles.text, { color: colors.accent }]}>Review & Accept</Text>
+              {acceptingConsent ? (
+                <ActivityIndicator color={colors.accent} />
+              ) : (
+                <Text style={[buttonStyles.text, { color: colors.accent }]}>Review & Accept</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -337,12 +362,14 @@ export default function ProfileScreen() {
             {user.email}
           </Text>
           
-          {/* Updated user stats without separator bars */}
+          {/* User stats with separator bars */}
           <View style={styles.userStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{checkInHistory?.length || 0}</Text>
               <Text style={commonStyles.textSecondary}>Check-ins</Text>
             </View>
+            
+            <View style={styles.separator} />
             
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{skillLevel}</Text>
@@ -350,10 +377,13 @@ export default function ProfileScreen() {
             </View>
             
             {duprRating && (
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{duprRating}</Text>
-                <Text style={commonStyles.textSecondary}>DUPR</Text>
-              </View>
+              <React.Fragment>
+                <View style={styles.separator} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{duprRating}</Text>
+                  <Text style={commonStyles.textSecondary}>DUPR</Text>
+                </View>
+              </React.Fragment>
             )}
           </View>
 
@@ -655,13 +685,19 @@ const styles = StyleSheet.create({
     marginTop: 24,
     width: '100%',
     paddingHorizontal: 20,
-    gap: 24,
   },
   statItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     paddingVertical: 4,
+    minWidth: 80,
+  },
+  separator: {
+    width: 1,
+    height: 40,
+    backgroundColor: colors.border,
+    marginHorizontal: 8,
   },
   statValue: {
     fontSize: 24,
