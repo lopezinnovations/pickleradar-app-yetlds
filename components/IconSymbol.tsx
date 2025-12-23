@@ -19,7 +19,7 @@ export function IconSymbol({
   const iconMap: { [key: string]: string } = {
     'home': '🏠',
     'map': '📍',
-    'map.fill': '📍',
+    'map.fill': '🗺️',
     'map-pin': '📍',
     'map.circle.fill': '🗺️',
     'people': '👥',
@@ -33,6 +33,8 @@ export function IconSymbol({
     'location_on': '📍',
     'checkmark.circle.fill': '✅',
     'check_circle': '✅',
+    'checkmark': '✓',
+    'check': '✓',
     'chevron.right': '›',
     'chevron.left': '‹',
     'chevron_right': '›',
@@ -55,6 +57,16 @@ export function IconSymbol({
     'account_circle': '👤',
     'info.circle.fill': 'ℹ️',
     'info': 'ℹ️',
+    'clock.fill': '⏰',
+    'schedule': '⏰',
+    'xmark.circle.fill': '❌',
+    'cancel': '❌',
+    'chart.bar.fill': '📊',
+    'bar_chart': '📊',
+    'line.3.horizontal.decrease.circle': '⚙️',
+    'filter_list': '⚙️',
+    'magnifyingglass': '🔍',
+    'search': '🔍',
   };
 
   const iconName = ios_icon_name || android_material_icon_name || 'home';

@@ -10,7 +10,6 @@ export const useAuth = () => {
   const hasInitialized = useRef(false);
 
   useEffect(() => {
-    // Only initialize once
     if (hasInitialized.current) {
       return;
     }
@@ -27,7 +26,6 @@ export const useAuth = () => {
       return;
     }
 
-    // Check current session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.log('useAuth: Error getting session:', error);
@@ -42,7 +40,6 @@ export const useAuth = () => {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('useAuth: Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
       if (session?.user) {
@@ -70,7 +67,6 @@ export const useAuth = () => {
       if (error) {
         console.log('useAuth: Error fetching user profile:', error);
         
-        // If user profile doesn't exist, create it
         if (error.code === 'PGRST116') {
           console.log('useAuth: User profile not found, creating new profile...');
           const { data: newProfile, error: createError } = await supabase
@@ -82,6 +78,7 @@ export const useAuth = () => {
                 privacy_opt_in: false,
                 notifications_enabled: false,
                 location_enabled: false,
+                location_permission_requested: false,
               },
             ])
             .select()
@@ -100,6 +97,11 @@ export const useAuth = () => {
             privacyOptIn: newProfile.privacy_opt_in || false,
             notificationsEnabled: newProfile.notifications_enabled || false,
             locationEnabled: newProfile.location_enabled || false,
+            latitude: newProfile.latitude,
+            longitude: newProfile.longitude,
+            zipCode: newProfile.zip_code,
+            duprRating: newProfile.dupr_rating,
+            locationPermissionRequested: newProfile.location_permission_requested || false,
           });
         } else {
           throw error;
@@ -113,6 +115,11 @@ export const useAuth = () => {
           privacyOptIn: data.privacy_opt_in || false,
           notificationsEnabled: data.notifications_enabled || false,
           locationEnabled: data.location_enabled || false,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          zipCode: data.zip_code,
+          duprRating: data.dupr_rating,
+          locationPermissionRequested: data.location_permission_requested || false,
         });
       }
     } catch (error) {
@@ -141,7 +148,6 @@ export const useAuth = () => {
       console.log('useAuth: Sign up response:', data);
 
       if (data.user) {
-        // Create user profile
         console.log('useAuth: Creating user profile...');
         const { error: profileError } = await supabase
           .from('users')
@@ -152,12 +158,12 @@ export const useAuth = () => {
               privacy_opt_in: false,
               notifications_enabled: false,
               location_enabled: false,
+              location_permission_requested: false,
             },
           ]);
 
         if (profileError) {
           console.log('useAuth: Profile creation error:', profileError);
-          // Don't throw error if profile already exists
           if (profileError.code !== '23505') {
             throw profileError;
           }
@@ -165,7 +171,6 @@ export const useAuth = () => {
 
         console.log('useAuth: User profile created successfully');
 
-        // Check if email confirmation is required
         if (!data.session) {
           console.log('useAuth: Email verification required');
           return { 
@@ -209,7 +214,6 @@ export const useAuth = () => {
       if (error) {
         console.log('useAuth: Sign in error:', error);
         
-        // Check for specific error types
         if (error.message.toLowerCase().includes('email not confirmed')) {
           return { 
             success: false, 
@@ -276,6 +280,11 @@ export const useAuth = () => {
       if (updates.privacyOptIn !== undefined) dbUpdates.privacy_opt_in = updates.privacyOptIn;
       if (updates.notificationsEnabled !== undefined) dbUpdates.notifications_enabled = updates.notificationsEnabled;
       if (updates.locationEnabled !== undefined) dbUpdates.location_enabled = updates.locationEnabled;
+      if (updates.latitude !== undefined) dbUpdates.latitude = updates.latitude;
+      if (updates.longitude !== undefined) dbUpdates.longitude = updates.longitude;
+      if (updates.zipCode !== undefined) dbUpdates.zip_code = updates.zipCode;
+      if (updates.duprRating !== undefined) dbUpdates.dupr_rating = updates.duprRating;
+      if (updates.locationPermissionRequested !== undefined) dbUpdates.location_permission_requested = updates.locationPermissionRequested;
 
       const { error } = await supabase
         .from('users')

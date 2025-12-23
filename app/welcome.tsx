@@ -28,21 +28,21 @@ export default function WelcomeScreen() {
         <View style={styles.featuresContainer}>
           <View style={styles.featureItem}>
             <View style={styles.bulletPoint}>
-              <Text style={styles.bulletText}>•</Text>
+              <Text style={styles.bulletText}>🏓</Text>
             </View>
             <Text style={styles.featureText}>Live court activity maps</Text>
           </View>
 
           <View style={styles.featureItem}>
             <View style={styles.bulletPoint}>
-              <Text style={styles.bulletText}>•</Text>
+              <Text style={styles.bulletText}>🏓</Text>
             </View>
             <Text style={styles.featureText}>See where your friends are playing</Text>
           </View>
 
           <View style={styles.featureItem}>
             <View style={styles.bulletPoint}>
-              <Text style={styles.bulletText}>•</Text>
+              <Text style={styles.bulletText}>🏓</Text>
             </View>
             <Text style={styles.featureText}>Skill level info for better matchups</Text>
           </View>
@@ -101,8 +101,6 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     fontSize: 28,
-    fontWeight: '700',
-    color: colors.primary,
   },
   featureText: {
     fontSize: 17,

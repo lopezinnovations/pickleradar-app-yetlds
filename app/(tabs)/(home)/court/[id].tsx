@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useCourts } from '@/hooks/useCourts';
@@ -10,7 +10,7 @@ import { useFriends } from '@/hooks/useFriends';
 import { IconSymbol } from '@/components/IconSymbol';
 import { SkillLevelBars } from '@/components/SkillLevelBars';
 
-const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180]; // Duration options in minutes
+const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180];
 
 export default function CourtDetailScreen() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function CourtDetailScreen() {
   const { friends } = useFriends(user?.id);
   
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
-  const [selectedDuration, setSelectedDuration] = useState(90); // Default 90 minutes (1.5 hours)
+  const [selectedDuration, setSelectedDuration] = useState(90);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [currentCheckIn, setCurrentCheckIn] = useState<any>(null);
   const [isLoadingCourt, setIsLoadingCourt] = useState(true);
@@ -30,11 +30,8 @@ export default function CourtDetailScreen() {
   const hasCheckedInitialCheckIn = useRef(false);
 
   const court = courts.find(c => c.id === id);
-
-  // Get friends playing at this court
   const friendsAtCourt = friends.filter(friend => friend.currentCourtId === id);
 
-  // Refresh court data when screen is focused
   useFocusEffect(
     useCallback(() => {
       console.log('CourtDetailScreen: Screen focused, refreshing court data');
@@ -42,14 +39,12 @@ export default function CourtDetailScreen() {
     }, [refetch])
   );
 
-  // Set loading to false once courts are loaded
   useEffect(() => {
     if (courts.length > 0) {
       setIsLoadingCourt(false);
     }
   }, [courts.length]);
 
-  // Check current check-in only once when user and court are available
   useEffect(() => {
     if (user && court && !hasCheckedInitialCheckIn.current) {
       hasCheckedInitialCheckIn.current = true;
@@ -57,7 +52,6 @@ export default function CourtDetailScreen() {
     }
   }, [user?.id, court?.id]);
 
-  // Update remaining time every minute
   useEffect(() => {
     if (currentCheckIn?.expires_at) {
       const updateTime = () => {
@@ -66,7 +60,7 @@ export default function CourtDetailScreen() {
       };
       
       updateTime();
-      const interval = setInterval(updateTime, 60000); // Update every minute
+      const interval = setInterval(updateTime, 60000);
       
       return () => clearInterval(interval);
     }
@@ -133,6 +127,15 @@ export default function CourtDetailScreen() {
     }
   };
 
+  const openMapDirections = () => {
+    if (!court) return;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
+    Linking.openURL(url).catch(err => {
+      console.error('Failed to open map:', err);
+      Alert.alert('Error', 'Failed to open map application');
+    });
+  };
+
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -145,7 +148,6 @@ export default function CourtDetailScreen() {
     }
   };
 
-  // Show loading state while courts are being fetched
   if (isLoadingCourt) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -155,7 +157,6 @@ export default function CourtDetailScreen() {
     );
   }
 
-  // Show error state if court is not found after loading
   if (!court) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }]}>
@@ -210,7 +211,22 @@ export default function CourtDetailScreen() {
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <Text style={commonStyles.title}>{court.name}</Text>
+          <View style={styles.headerTop}>
+            <View style={{ flex: 1 }}>
+              <Text style={commonStyles.title}>{court.name}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.mapIconButton}
+              onPress={openMapDirections}
+            >
+              <IconSymbol 
+                ios_icon_name="map.fill" 
+                android_material_icon_name="map" 
+                size={28} 
+                color={colors.primary} 
+              />
+            </TouchableOpacity>
+          </View>
           <View style={styles.addressContainer}>
             <IconSymbol 
               ios_icon_name="location.fill" 
@@ -222,6 +238,11 @@ export default function CourtDetailScreen() {
               {court.address}
             </Text>
           </View>
+          {court.distance !== undefined && (
+            <Text style={[commonStyles.textSecondary, { marginTop: 8, fontWeight: '600' }]}>
+              📍 {court.distance} miles away
+            </Text>
+          )}
         </View>
 
         <View style={commonStyles.card}>
@@ -472,10 +493,24 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 24,
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  mapIconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.highlight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
   addressContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 8,
   },
   activityHeader: {
     flexDirection: 'row',

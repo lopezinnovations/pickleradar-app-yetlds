@@ -7,8 +7,9 @@ export interface Court {
   longitude: number;
   activityLevel: 'low' | 'medium' | 'high';
   currentPlayers: number;
-  averageSkillLevel: number; // 0-3 representing average skill (0 = no players, 1 = Beginner, 2 = Intermediate, 3 = Advanced)
-  friendsPlayingCount: number; // Number of friends currently checked in at this court
+  averageSkillLevel: number;
+  friendsPlayingCount: number;
+  distance?: number; // Distance in miles from user's location
 }
 
 export interface User {
@@ -18,6 +19,11 @@ export interface User {
   privacyOptIn: boolean;
   notificationsEnabled: boolean;
   locationEnabled: boolean;
+  latitude?: number;
+  longitude?: number;
+  zipCode?: string;
+  duprRating?: number;
+  locationPermissionRequested?: boolean;
 }
 
 export interface CheckIn {
@@ -49,4 +55,13 @@ export interface FriendWithDetails extends Friend {
     minutes: number;
     totalMinutes: number;
   };
+}
+
+export type SortOption = 'active-high' | 'active-low' | 'skill-high' | 'skill-low' | 'distance';
+
+export interface FilterOptions {
+  maxDistance?: number; // in miles
+  friendsOnly?: boolean;
+  minSkillLevel?: number;
+  maxSkillLevel?: number;
 }

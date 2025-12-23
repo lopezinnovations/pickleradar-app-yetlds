@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,6 +13,7 @@ export default function ProfileScreen() {
   const { checkInHistory, getUserCheckIn, checkOut, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
   
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
+  const [duprRating, setDuprRating] = useState('');
   const [privacyOptIn, setPrivacyOptIn] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
@@ -23,11 +24,11 @@ export default function ProfileScreen() {
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
 
-  // Load user data only once when user changes
   useEffect(() => {
     if (user && !hasLoadedUserData.current) {
       console.log('ProfileScreen: User data loaded:', user);
       setSkillLevel(user.skillLevel || 'Beginner');
+      setDuprRating(user.duprRating ? user.duprRating.toString() : '');
       setPrivacyOptIn(user.privacyOptIn);
       setNotificationsEnabled(user.notificationsEnabled);
       setLocationEnabled(user.locationEnabled);
@@ -37,7 +38,6 @@ export default function ProfileScreen() {
     }
   }, [user?.id]);
 
-  // Load current check-in only once when user changes
   useEffect(() => {
     if (user && !hasLoadedCheckIn.current) {
       loadCurrentCheckIn();
@@ -62,14 +62,12 @@ export default function ProfileScreen() {
     }
   };
 
-  // Update remaining time every minute
   useEffect(() => {
     if (currentCheckIn?.expires_at) {
       const updateTime = () => {
         const time = getRemainingTime(currentCheckIn.expires_at);
         setRemainingTime({ hours: time.hours, minutes: time.minutes });
         
-        // If time has expired, reload check-in status
         if (time.totalMinutes <= 0) {
           hasLoadedCheckIn.current = false;
           loadCurrentCheckIn();
@@ -77,7 +75,7 @@ export default function ProfileScreen() {
       };
       
       updateTime();
-      const interval = setInterval(updateTime, 60000); // Update every minute
+      const interval = setInterval(updateTime, 60000);
       
       return () => clearInterval(interval);
     }
@@ -118,8 +116,16 @@ export default function ProfileScreen() {
   };
 
   const handleSaveSettings = async () => {
+    const duprValue = duprRating.trim() ? parseFloat(duprRating) : undefined;
+    
+    if (duprValue !== undefined && (isNaN(duprValue) || duprValue < 0 || duprValue > 8.0)) {
+      Alert.alert('Invalid DUPR Rating', 'DUPR rating must be between 0.0 and 8.0');
+      return;
+    }
+
     await updateUserProfile({
       skillLevel,
+      duprRating: duprValue,
       privacyOptIn,
       notificationsEnabled,
       locationEnabled,
@@ -145,7 +151,6 @@ export default function ProfileScreen() {
     );
   };
 
-  // Show loading state while checking authentication
   if (authLoading) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -155,7 +160,6 @@ export default function ProfileScreen() {
     );
   }
 
-  // Show login prompt if not authenticated
   if (!user) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
@@ -183,7 +187,6 @@ export default function ProfileScreen() {
     );
   }
 
-  // Show user profile
   return (
     <View style={commonStyles.container}>
       <ScrollView 
@@ -213,6 +216,15 @@ export default function ProfileScreen() {
               <Text style={styles.statValue}>{skillLevel}</Text>
               <Text style={commonStyles.textSecondary}>Skill Level</Text>
             </View>
+            {duprRating && (
+              <React.Fragment>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{duprRating}</Text>
+                  <Text style={commonStyles.textSecondary}>DUPR</Text>
+                </View>
+              </React.Fragment>
+            )}
           </View>
         </View>
 
@@ -268,8 +280,12 @@ export default function ProfileScreen() {
         )}
 
         <View style={commonStyles.card}>
-          <Text style={commonStyles.subtitle}>Skill Level</Text>
-          <Text style={[commonStyles.textSecondary, { marginTop: 4, marginBottom: 12 }]}>
+          <Text style={commonStyles.subtitle}>Player Information</Text>
+          
+          <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, fontWeight: '600' }]}>
+            Skill Level
+          </Text>
+          <Text style={[commonStyles.textSecondary, { marginBottom: 12 }]}>
             Select your pickleball skill level
           </Text>
           
@@ -294,6 +310,22 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             ))}
           </View>
+
+          <Text style={[commonStyles.text, { marginTop: 20, marginBottom: 8, fontWeight: '600' }]}>
+            DUPR Rating (Optional)
+          </Text>
+          <Text style={[commonStyles.textSecondary, { marginBottom: 12 }]}>
+            Enter your DUPR rating (0.0 - 8.0)
+          </Text>
+          <TextInput
+            style={commonStyles.input}
+            placeholder="e.g., 3.5"
+            placeholderTextColor={colors.textSecondary}
+            value={duprRating}
+            onChangeText={setDuprRating}
+            keyboardType="decimal-pad"
+            maxLength={4}
+          />
         </View>
 
         <View style={commonStyles.card}>
