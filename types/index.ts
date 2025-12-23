@@ -3,6 +3,8 @@ export interface Court {
   id: string;
   name: string;
   address: string;
+  city?: string;
+  zipCode?: string;
   latitude: number;
   longitude: number;
   activityLevel: 'low' | 'medium' | 'high';
@@ -68,4 +70,21 @@ export interface FilterOptions {
   maxDistance?: number; // in miles
   friendsOnly?: boolean;
   skillLevels?: Array<'Beginner' | 'Intermediate' | 'Advanced'>; // Changed from min/max to array of selected levels
+}
+
+export interface UserSubmittedCourt {
+  id?: string;
+  user_id: string;
+  name: string;
+  address: string;
+  city?: string;
+  zip_code?: string;
+  latitude?: number;
+  longitude?: number;
+  photo_url?: string;
+  skill_level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  dupr_rating?: number;
+  status?: 'pending' | 'approved' | 'rejected';
+  created_at?: string;
+  updated_at?: string;
 }

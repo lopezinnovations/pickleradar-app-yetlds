@@ -66,29 +66,106 @@ export type Database = {
       courts: {
         Row: {
           address: string
+          city: string | null
+          zip_code: string | null
           created_at: string
           id: string
           latitude: number
           longitude: number
           name: string
+          description: string | null
+          open_time: string | null
+          close_time: string | null
+          google_place_id: string | null
         }
         Insert: {
           address: string
+          city?: string | null
+          zip_code?: string | null
           created_at?: string
           id?: string
           latitude: number
           longitude: number
           name: string
+          description?: string | null
+          open_time?: string | null
+          close_time?: string | null
+          google_place_id?: string | null
         }
         Update: {
           address?: string
+          city?: string | null
+          zip_code?: string | null
           created_at?: string
           id?: string
           latitude?: number
           longitude?: number
           name?: string
+          description?: string | null
+          open_time?: string | null
+          close_time?: string | null
+          google_place_id?: string | null
         }
         Relationships: []
+      }
+      user_submitted_courts: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          address: string
+          city: string | null
+          zip_code: string | null
+          latitude: number | null
+          longitude: number | null
+          photo_url: string | null
+          skill_level: string | null
+          dupr_rating: number | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          address: string
+          city?: string | null
+          zip_code?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string | null
+          skill_level?: string | null
+          dupr_rating?: number | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          address?: string
+          city?: string | null
+          zip_code?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string | null
+          skill_level?: string | null
+          dupr_rating?: number | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_submitted_courts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       friends: {
         Row: {
@@ -142,6 +219,11 @@ export type Database = {
           privacy_opt_in: boolean | null
           skill_level: string | null
           updated_at: string
+          latitude: number | null
+          longitude: number | null
+          zip_code: string | null
+          dupr_rating: number | null
+          location_permission_requested: boolean | null
         }
         Insert: {
           created_at?: string
@@ -152,6 +234,11 @@ export type Database = {
           privacy_opt_in?: boolean | null
           skill_level?: string | null
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          zip_code?: string | null
+          dupr_rating?: number | null
+          location_permission_requested?: boolean | null
         }
         Update: {
           created_at?: string
@@ -162,6 +249,11 @@ export type Database = {
           privacy_opt_in?: boolean | null
           skill_level?: string | null
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          zip_code?: string | null
+          dupr_rating?: number | null
+          location_permission_requested?: boolean | null
         }
         Relationships: []
       }

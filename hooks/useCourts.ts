@@ -155,6 +155,8 @@ export const useCourts = (userId?: string) => {
             id: court.id,
             name: court.name,
             address: court.address,
+            city: court.city,
+            zipCode: court.zip_code,
             latitude: court.latitude,
             longitude: court.longitude,
             activityLevel,

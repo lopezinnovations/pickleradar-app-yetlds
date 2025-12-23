@@ -65,8 +65,16 @@ export function IconSymbol({
     'bar_chart': '📊',
     'line.3.horizontal.decrease.circle': '⚙️',
     'filter_list': '⚙️',
+    'slider.horizontal.2': '⚙',
+    'tune': '⚙',
     'magnifyingglass': '🔍',
     'search': '🔍',
+    'plus.circle.fill': '➕',
+    'add_circle': '➕',
+    'camera.fill': '📷',
+    'photo_camera': '📷',
+    'chevron.down': '⌄',
+    'expand_more': '⌄',
   };
 
   const iconName = ios_icon_name || android_material_icon_name || 'home';
