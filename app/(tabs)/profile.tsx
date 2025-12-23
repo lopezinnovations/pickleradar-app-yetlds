@@ -266,14 +266,12 @@ export default function ProfileScreen() {
             {user.email}
           </Text>
           
-          {/* Updated user stats with flex layout and self-stretching dividers */}
+          {/* Updated user stats without separator bars */}
           <View style={styles.userStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{checkInHistory?.length || 0}</Text>
               <Text style={commonStyles.textSecondary}>Check-ins</Text>
             </View>
-            
-            <View style={styles.statDivider} />
             
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{skillLevel}</Text>
@@ -281,13 +279,10 @@ export default function ProfileScreen() {
             </View>
             
             {duprRating && (
-              <React.Fragment>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{duprRating}</Text>
-                  <Text style={commonStyles.textSecondary}>DUPR</Text>
-                </View>
-              </React.Fragment>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{duprRating}</Text>
+                <Text style={commonStyles.textSecondary}>DUPR</Text>
+              </View>
             )}
           </View>
 
@@ -559,17 +554,16 @@ const styles = StyleSheet.create({
   },
   userStats: {
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
     width: '100%',
     paddingHorizontal: 20,
-    minHeight: 60,
+    gap: 24,
   },
   statItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -578,12 +572,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
     marginBottom: 4,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: colors.border,
-    alignSelf: 'stretch',
-    marginVertical: 4,
   },
   skillLevelBarContainer: {
     width: '80%',
