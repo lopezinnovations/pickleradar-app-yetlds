@@ -114,32 +114,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleReviewAndAccept = () => {
-    Alert.alert(
-      'Review Terms',
-      'Please review the Privacy Policy and Terms of Service before accepting.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Review Privacy Policy',
-          onPress: () => router.push('/legal/privacy-policy'),
-        },
-        {
-          text: 'Review Terms',
-          onPress: () => router.push('/legal/terms-of-service'),
-        },
-        {
-          text: 'Accept Now',
-          onPress: handleAcceptConsent,
-          style: 'default',
-        },
-      ]
-    );
-  };
-
   const handlePickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -298,7 +272,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {showConsentPrompt && (
-          <View style={[commonStyles.card, { backgroundColor: colors.accent, marginBottom: 16 }]}>
+          <View style={[commonStyles.card, { backgroundColor: colors.accent, marginBottom: 16, borderWidth: 2, borderColor: colors.primary }]}>
             <View style={styles.consentPromptHeader}>
               <IconSymbol 
                 ios_icon_name="exclamationmark.triangle.fill" 
@@ -306,22 +280,65 @@ export default function ProfileScreen() {
                 size={24} 
                 color={colors.card} 
               />
-              <Text style={[commonStyles.subtitle, { marginLeft: 12, color: colors.card }]}>
+              <Text style={[commonStyles.subtitle, { marginLeft: 12, color: colors.card, flex: 1 }]}>
                 Action Required
               </Text>
             </View>
-            <Text style={[commonStyles.text, { marginTop: 12, color: colors.card }]}>
+            <Text style={[commonStyles.text, { marginTop: 12, color: colors.card, lineHeight: 22 }]}>
               Our Privacy Policy and Terms of Service have been updated. Please review and accept to continue using the app.
             </Text>
+            
+            <View style={styles.consentButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.consentButton, { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.card }]}
+                onPress={() => router.push('/legal/privacy-policy')}
+              >
+                <IconSymbol 
+                  ios_icon_name="doc.text.fill" 
+                  android_material_icon_name="description" 
+                  size={18} 
+                  color={colors.accent} 
+                />
+                <Text style={[styles.consentButtonText, { color: colors.accent }]}>
+                  Privacy Policy
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.consentButton, { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.card }]}
+                onPress={() => router.push('/legal/terms-of-service')}
+              >
+                <IconSymbol 
+                  ios_icon_name="doc.text.fill" 
+                  android_material_icon_name="description" 
+                  size={18} 
+                  color={colors.accent} 
+                />
+                <Text style={[styles.consentButtonText, { color: colors.accent }]}>
+                  Terms of Service
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
               style={[buttonStyles.primary, { marginTop: 16, backgroundColor: colors.card }]}
-              onPress={handleReviewAndAccept}
+              onPress={handleAcceptConsent}
               disabled={acceptingConsent}
             >
               {acceptingConsent ? (
                 <ActivityIndicator color={colors.accent} />
               ) : (
-                <Text style={[buttonStyles.text, { color: colors.accent }]}>Review & Accept</Text>
+                <React.Fragment>
+                  <IconSymbol 
+                    ios_icon_name="checkmark.circle.fill" 
+                    android_material_icon_name="check_circle" 
+                    size={20} 
+                    color={colors.accent} 
+                  />
+                  <Text style={[buttonStyles.text, { color: colors.accent, marginLeft: 8 }]}>
+                    I Accept the Terms
+                  </Text>
+                </React.Fragment>
               )}
             </TouchableOpacity>
           </View>
@@ -712,6 +729,25 @@ const styles = StyleSheet.create({
   consentPromptHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  consentButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  consentButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  consentButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   consentStatusHeader: {
     flexDirection: 'row',
