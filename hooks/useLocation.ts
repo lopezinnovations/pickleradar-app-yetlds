@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './useAuth';
 import { requestLocationPermission, geocodeZipCode } from '@/utils/locationUtils';
@@ -8,14 +8,7 @@ export const useLocation = () => {
   const { user, updateUserProfile } = useAuth();
   const [requestingPermission, setRequestingPermission] = useState(false);
 
-  // Request location permission on first login
-  useEffect(() => {
-    if (user && !user.locationPermissionRequested && !user.latitude && !user.longitude) {
-      requestLocationOnFirstLogin();
-    }
-  }, [user?.id]);
-
-  const requestLocationOnFirstLogin = async () => {
+  const requestLocationOnFirstLogin = useCallback(async () => {
     if (!user) return;
 
     Alert.alert(
@@ -36,7 +29,14 @@ export const useLocation = () => {
         },
       ]
     );
-  };
+  }, [user, updateUserProfile]);
+
+  // Request location permission on first login
+  useEffect(() => {
+    if (user && !user.locationPermissionRequested && !user.latitude && !user.longitude) {
+      requestLocationOnFirstLogin();
+    }
+  }, [user, requestLocationOnFirstLogin]);
 
   const requestLocation = async () => {
     if (!user) return;

@@ -45,12 +45,27 @@ export default function CourtDetailScreen() {
     }
   }, [courts.length]);
 
+  const checkCurrentCheckIn = useCallback(async () => {
+    if (!user || !court) return;
+    const checkInData = await getUserCheckIn(user.id);
+    if (checkInData && checkInData.court_id === court.id) {
+      setIsCheckedIn(true);
+      setCurrentCheckIn(checkInData);
+      const time = getRemainingTime(checkInData.expires_at);
+      setRemainingTime({ hours: time.hours, minutes: time.minutes });
+    } else {
+      setIsCheckedIn(false);
+      setCurrentCheckIn(null);
+      setRemainingTime(null);
+    }
+  }, [user, court, getUserCheckIn, getRemainingTime]);
+
   useEffect(() => {
     if (user && court && !hasCheckedInitialCheckIn.current) {
       hasCheckedInitialCheckIn.current = true;
       checkCurrentCheckIn();
     }
-  }, [user?.id, court?.id]);
+  }, [user, court, checkCurrentCheckIn]);
 
   useEffect(() => {
     if (currentCheckIn?.expires_at) {
@@ -64,22 +79,7 @@ export default function CourtDetailScreen() {
       
       return () => clearInterval(interval);
     }
-  }, [currentCheckIn?.expires_at]);
-
-  const checkCurrentCheckIn = async () => {
-    if (!user || !court) return;
-    const checkInData = await getUserCheckIn(user.id);
-    if (checkInData && checkInData.court_id === court.id) {
-      setIsCheckedIn(true);
-      setCurrentCheckIn(checkInData);
-      const time = getRemainingTime(checkInData.expires_at);
-      setRemainingTime({ hours: time.hours, minutes: time.minutes });
-    } else {
-      setIsCheckedIn(false);
-      setCurrentCheckIn(null);
-      setRemainingTime(null);
-    }
-  };
+  }, [currentCheckIn?.expires_at, getRemainingTime]);
 
   const handleCheckIn = async () => {
     if (!user || !court) {
@@ -188,7 +188,7 @@ export default function CourtDetailScreen() {
     }
   };
 
-  const skillLevels: Array<'Beginner' | 'Intermediate' | 'Advanced'> = ['Beginner', 'Intermediate', 'Advanced'];
+  const skillLevels: ('Beginner' | 'Intermediate' | 'Advanced')[] = ['Beginner', 'Intermediate', 'Advanced'];
 
   return (
     <View style={commonStyles.container}>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator, TextInput, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
@@ -47,20 +47,9 @@ export default function ProfileScreen() {
     } else if (!user) {
       hasLoadedUserData.current = false;
     }
-  }, [user?.id]);
+  }, [user, needsConsentUpdate]);
 
-  useEffect(() => {
-    if (user && !hasLoadedCheckIn.current) {
-      loadCurrentCheckIn();
-      hasLoadedCheckIn.current = true;
-    } else if (!user) {
-      hasLoadedCheckIn.current = false;
-      setCurrentCheckIn(null);
-      setRemainingTime(null);
-    }
-  }, [user?.id]);
-
-  const loadCurrentCheckIn = async () => {
+  const loadCurrentCheckIn = useCallback(async () => {
     if (!user) return;
     const checkIn = await getUserCheckIn(user.id);
     if (checkIn) {
@@ -71,7 +60,18 @@ export default function ProfileScreen() {
       setCurrentCheckIn(null);
       setRemainingTime(null);
     }
-  };
+  }, [user, getUserCheckIn, getRemainingTime]);
+
+  useEffect(() => {
+    if (user && !hasLoadedCheckIn.current) {
+      loadCurrentCheckIn();
+      hasLoadedCheckIn.current = true;
+    } else if (!user) {
+      hasLoadedCheckIn.current = false;
+      setCurrentCheckIn(null);
+      setRemainingTime(null);
+    }
+  }, [user, loadCurrentCheckIn]);
 
   useEffect(() => {
     if (currentCheckIn?.expires_at) {
@@ -90,7 +90,7 @@ export default function ProfileScreen() {
       
       return () => clearInterval(interval);
     }
-  }, [currentCheckIn?.expires_at]);
+  }, [currentCheckIn?.expires_at, getRemainingTime, loadCurrentCheckIn]);
 
   const handleAcceptConsent = async () => {
     setAcceptingConsent(true);

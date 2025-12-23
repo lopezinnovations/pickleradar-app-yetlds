@@ -120,7 +120,7 @@ export const useFriends = (userId: string | undefined) => {
       let friendUser = null;
       
       // Check if it looks like a phone number (contains digits and possibly +, -, (, ), spaces)
-      const isPhone = /[\d\+\-\(\)\s]/.test(friendIdentifier) && friendIdentifier.replace(/[\D]/g, '').length >= 10;
+      const isPhone = /[\d+\-() ]/.test(friendIdentifier) && friendIdentifier.replace(/[\D]/g, '').length >= 10;
       
       if (isPhone) {
         // Clean phone number

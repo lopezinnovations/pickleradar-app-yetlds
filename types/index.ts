@@ -76,7 +76,7 @@ export type SortOption = 'active-high' | 'active-low' | 'skill-high' | 'skill-lo
 export interface FilterOptions {
   maxDistance?: number; // in miles
   friendsOnly?: boolean;
-  skillLevels?: Array<'Beginner' | 'Intermediate' | 'Advanced'>; // Changed from min/max to array of selected levels
+  skillLevels?: ('Beginner' | 'Intermediate' | 'Advanced')[]; // Changed from Array<T> to T[]
 }
 
 export interface UserSubmittedCourt {
