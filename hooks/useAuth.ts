@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 import { User } from '@/types';
 
+const CURRENT_TERMS_VERSION = 'v1.0';
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,8 @@ export const useAuth = () => {
                 notifications_enabled: false,
                 location_enabled: false,
                 location_permission_requested: false,
+                terms_accepted: false,
+                privacy_accepted: false,
               },
             ])
             .select()
@@ -103,6 +107,10 @@ export const useAuth = () => {
             duprRating: newProfile.dupr_rating,
             locationPermissionRequested: newProfile.location_permission_requested || false,
             profilePictureUrl: newProfile.profile_picture_url,
+            termsAccepted: newProfile.terms_accepted || false,
+            privacyAccepted: newProfile.privacy_accepted || false,
+            acceptedAt: newProfile.accepted_at,
+            acceptedVersion: newProfile.accepted_version,
           });
         } else {
           throw error;
@@ -122,6 +130,10 @@ export const useAuth = () => {
           duprRating: data.dupr_rating,
           locationPermissionRequested: data.location_permission_requested || false,
           profilePictureUrl: data.profile_picture_url,
+          termsAccepted: data.terms_accepted || false,
+          privacyAccepted: data.privacy_accepted || false,
+          acceptedAt: data.accepted_at,
+          acceptedVersion: data.accepted_version,
         });
       }
     } catch (error) {
@@ -131,9 +143,19 @@ export const useAuth = () => {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, consentAccepted: boolean = false) => {
     try {
       console.log('useAuth: Attempting to sign up user:', email);
+      
+      if (!consentAccepted) {
+        return {
+          success: false,
+          error: 'Consent required',
+          message: 'You must accept the Privacy Policy and Terms of Service to create an account.',
+          requiresEmailVerification: false
+        };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -150,7 +172,9 @@ export const useAuth = () => {
       console.log('useAuth: Sign up response:', data);
 
       if (data.user) {
-        console.log('useAuth: Creating user profile...');
+        console.log('useAuth: Creating user profile with consent...');
+        const now = new Date().toISOString();
+        
         const { error: profileError } = await supabase
           .from('users')
           .insert([
@@ -161,6 +185,10 @@ export const useAuth = () => {
               notifications_enabled: false,
               location_enabled: false,
               location_permission_requested: false,
+              terms_accepted: true,
+              privacy_accepted: true,
+              accepted_at: now,
+              accepted_version: CURRENT_TERMS_VERSION,
             },
           ]);
 
@@ -171,7 +199,7 @@ export const useAuth = () => {
           }
         }
 
-        console.log('useAuth: User profile created successfully');
+        console.log('useAuth: User profile created successfully with consent');
 
         if (!data.session) {
           console.log('useAuth: Email verification required');
@@ -288,6 +316,10 @@ export const useAuth = () => {
       if (updates.duprRating !== undefined) dbUpdates.dupr_rating = updates.duprRating;
       if (updates.locationPermissionRequested !== undefined) dbUpdates.location_permission_requested = updates.locationPermissionRequested;
       if (updates.profilePictureUrl !== undefined) dbUpdates.profile_picture_url = updates.profilePictureUrl;
+      if (updates.termsAccepted !== undefined) dbUpdates.terms_accepted = updates.termsAccepted;
+      if (updates.privacyAccepted !== undefined) dbUpdates.privacy_accepted = updates.privacyAccepted;
+      if (updates.acceptedAt !== undefined) dbUpdates.accepted_at = updates.acceptedAt;
+      if (updates.acceptedVersion !== undefined) dbUpdates.accepted_version = updates.acceptedVersion;
 
       const { error } = await supabase
         .from('users')
@@ -348,6 +380,33 @@ export const useAuth = () => {
     }
   };
 
+  const needsConsentUpdate = (): boolean => {
+    if (!user) return false;
+    if (!user.termsAccepted || !user.privacyAccepted) return true;
+    if (user.acceptedVersion !== CURRENT_TERMS_VERSION) return true;
+    return false;
+  };
+
+  const acceptConsent = async (): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'No user logged in' };
+    }
+
+    try {
+      const now = new Date().toISOString();
+      await updateUserProfile({
+        termsAccepted: true,
+        privacyAccepted: true,
+        acceptedAt: now,
+        acceptedVersion: CURRENT_TERMS_VERSION,
+      });
+      return { success: true };
+    } catch (error: any) {
+      console.log('useAuth: Accept consent error:', error);
+      return { success: false, error: error.message || 'Failed to update consent' };
+    }
+  };
+
   return {
     user,
     loading,
@@ -357,5 +416,8 @@ export const useAuth = () => {
     signOut,
     updateUserProfile,
     uploadProfilePicture,
+    needsConsentUpdate,
+    acceptConsent,
+    currentTermsVersion: CURRENT_TERMS_VERSION,
   };
 };

@@ -32,6 +32,10 @@ export interface User {
   duprRating?: number;
   locationPermissionRequested?: boolean;
   profilePictureUrl?: string;
+  termsAccepted?: boolean;
+  privacyAccepted?: boolean;
+  acceptedAt?: string;
+  acceptedVersion?: string;
 }
 
 export interface CheckIn {

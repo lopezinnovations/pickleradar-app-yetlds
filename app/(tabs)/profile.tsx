@@ -7,11 +7,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCheckIn } from '@/hooks/useCheckIn';
 import { IconSymbol } from '@/components/IconSymbol';
 import { SkillLevelBars } from '@/components/SkillLevelBars';
+import { LegalFooter } from '@/components/LegalFooter';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, signOut, updateUserProfile, uploadProfilePicture, loading: authLoading } = useAuth();
+  const { user, signOut, updateUserProfile, uploadProfilePicture, loading: authLoading, needsConsentUpdate, acceptConsent } = useAuth();
   const { checkInHistory, getUserCheckIn, checkOut, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
   
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const [remainingTime, setRemainingTime] = useState<{ hours: number; minutes: number } | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showConsentPrompt, setShowConsentPrompt] = useState(false);
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
@@ -36,6 +38,11 @@ export default function ProfileScreen() {
       setNotificationsEnabled(user.notificationsEnabled);
       setLocationEnabled(user.locationEnabled);
       hasLoadedUserData.current = true;
+      
+      // Check if consent needs to be updated
+      if (needsConsentUpdate()) {
+        setShowConsentPrompt(true);
+      }
     } else if (!user) {
       hasLoadedUserData.current = false;
     }
@@ -83,6 +90,35 @@ export default function ProfileScreen() {
       return () => clearInterval(interval);
     }
   }, [currentCheckIn?.expires_at]);
+
+  const handleAcceptConsent = () => {
+    Alert.alert(
+      'Review Terms',
+      'Please review and accept the updated Privacy Policy and Terms of Service to continue using the app.',
+      [
+        {
+          text: 'Review Privacy Policy',
+          onPress: () => router.push('/legal/privacy-policy'),
+        },
+        {
+          text: 'Review Terms of Service',
+          onPress: () => router.push('/legal/terms-of-service'),
+        },
+        {
+          text: 'Accept',
+          onPress: async () => {
+            const result = await acceptConsent();
+            if (result.success) {
+              setShowConsentPrompt(false);
+              Alert.alert('Success', 'Thank you for accepting the updated terms!');
+            } else {
+              Alert.alert('Error', result.error || 'Failed to update consent. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handlePickImage = async () => {
     try {
@@ -188,6 +224,16 @@ export default function ProfileScreen() {
     );
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   if (authLoading) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -231,6 +277,31 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {showConsentPrompt && (
+          <View style={[commonStyles.card, { backgroundColor: colors.accent, marginBottom: 16 }]}>
+            <View style={styles.consentPromptHeader}>
+              <IconSymbol 
+                ios_icon_name="exclamationmark.triangle.fill" 
+                android_material_icon_name="warning" 
+                size={24} 
+                color={colors.card} 
+              />
+              <Text style={[commonStyles.subtitle, { marginLeft: 12, color: colors.card }]}>
+                Action Required
+              </Text>
+            </View>
+            <Text style={[commonStyles.text, { marginTop: 12, color: colors.card }]}>
+              Our Privacy Policy and Terms of Service have been updated. Please review and accept to continue using the app.
+            </Text>
+            <TouchableOpacity
+              style={[buttonStyles.primary, { marginTop: 16, backgroundColor: colors.card }]}
+              onPress={handleAcceptConsent}
+            >
+              <Text style={[buttonStyles.text, { color: colors.accent }]}>Review & Accept</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.avatarContainer}
@@ -296,6 +367,29 @@ export default function ProfileScreen() {
             />
           </View>
         </View>
+
+        {/* Legal Consent Status */}
+        {user.termsAccepted && user.privacyAccepted && user.acceptedAt && (
+          <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
+            <View style={styles.consentStatusHeader}>
+              <IconSymbol 
+                ios_icon_name="checkmark.shield.fill" 
+                android_material_icon_name="verified_user" 
+                size={20} 
+                color={colors.success} 
+              />
+              <Text style={[commonStyles.text, { marginLeft: 8, fontWeight: '600' }]}>
+                Legal Compliance
+              </Text>
+            </View>
+            <Text style={[commonStyles.textSecondary, { marginTop: 8, fontSize: 13 }]}>
+              Terms accepted on {formatDate(user.acceptedAt)}
+            </Text>
+            <Text style={[commonStyles.textSecondary, { marginTop: 4, fontSize: 13 }]}>
+              Version: {user.acceptedVersion || 'v1.0'}
+            </Text>
+          </View>
+        )}
 
         {currentCheckIn && remainingTime && remainingTime.hours >= 0 && remainingTime.minutes >= 0 && (
           <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
@@ -504,6 +598,8 @@ export default function ProfileScreen() {
         >
           <Text style={[buttonStyles.text, { color: colors.accent }]}>Sign Out</Text>
         </TouchableOpacity>
+
+        <LegalFooter />
       </ScrollView>
     </View>
   );
@@ -576,6 +672,14 @@ const styles = StyleSheet.create({
   skillLevelBarContainer: {
     width: '80%',
     marginTop: 16,
+  },
+  consentPromptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  consentStatusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   currentCheckInHeader: {
     flexDirection: 'row',

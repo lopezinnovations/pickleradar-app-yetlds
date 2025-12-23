@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { LegalFooter } from '@/components/LegalFooter';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -56,6 +57,8 @@ export default function WelcomeScreen() {
             <Text style={buttonStyles.text}>Get Started</Text>
           </TouchableOpacity>
         </View>
+
+        <LegalFooter />
       </ScrollView>
     </View>
   );
@@ -111,5 +114,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: '100%',
+    marginBottom: 32,
   },
 });

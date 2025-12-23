@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
+import { LegalFooter } from '@/components/LegalFooter';
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
@@ -32,6 +34,11 @@ export default function AuthScreen() {
       return;
     }
 
+    if (isSignUp && !consentAccepted) {
+      Alert.alert('Consent Required', 'You must agree to the Privacy Policy and Terms of Service to create an account.');
+      return;
+    }
+
     if (!isConfigured) {
       Alert.alert(
         'Supabase Required',
@@ -44,7 +51,7 @@ export default function AuthScreen() {
 
     try {
       if (isSignUp) {
-        const result = await signUp(email, password);
+        const result = await signUp(email, password, consentAccepted);
         
         if (result.success) {
           if (result.requiresEmailVerification) {
@@ -58,6 +65,7 @@ export default function AuthScreen() {
                     setIsSignUp(false);
                     setPassword('');
                     setConfirmPassword('');
+                    setConsentAccepted(false);
                   }
                 }
               ]
@@ -157,28 +165,77 @@ export default function AuthScreen() {
           />
 
           {isSignUp && (
-            <TextInput
-              style={commonStyles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor={colors.textSecondary}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              editable={!loading}
-            />
+            <React.Fragment>
+              <TextInput
+                style={commonStyles.input}
+                placeholder="Confirm Password"
+                placeholderTextColor={colors.textSecondary}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!loading}
+              />
+
+              <View style={styles.consentContainer}>
+                <TouchableOpacity
+                  style={styles.checkboxContainer}
+                  onPress={() => setConsentAccepted(!consentAccepted)}
+                  disabled={loading}
+                >
+                  <View style={[styles.checkbox, consentAccepted && styles.checkboxChecked]}>
+                    {consentAccepted && (
+                      <IconSymbol 
+                        ios_icon_name="checkmark" 
+                        android_material_icon_name="check" 
+                        size={16} 
+                        color={colors.card} 
+                      />
+                    )}
+                  </View>
+                  <View style={styles.consentTextContainer}>
+                    <Text style={styles.consentText}>
+                      I agree to the{' '}
+                      <Text 
+                        style={styles.consentLink}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          router.push('/legal/privacy-policy');
+                        }}
+                      >
+                        Privacy Policy
+                      </Text>
+                      {' '}and{' '}
+                      <Text 
+                        style={styles.consentLink}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          router.push('/legal/terms-of-service');
+                        }}
+                      >
+                        Terms of Service
+                      </Text>
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </React.Fragment>
           )}
 
           <TouchableOpacity
-            style={[buttonStyles.primary, { marginTop: 8 }, loading && { opacity: 0.6 }]}
+            style={[
+              buttonStyles.primary, 
+              { marginTop: 8 }, 
+              (loading || (isSignUp && !consentAccepted)) && { opacity: 0.6 }
+            ]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || (isSignUp && !consentAccepted)}
           >
             {loading ? (
               <ActivityIndicator color={colors.card} />
             ) : (
               <Text style={buttonStyles.text}>
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+                {isSignUp ? 'Create Account' : 'Sign In'}
               </Text>
             )}
           </TouchableOpacity>
@@ -189,6 +246,7 @@ export default function AuthScreen() {
               setIsSignUp(!isSignUp);
               setPassword('');
               setConfirmPassword('');
+              setConsentAccepted(false);
             }}
             disabled={loading}
           >
@@ -236,6 +294,8 @@ export default function AuthScreen() {
             </View>
           </View>
         )}
+
+        <LegalFooter />
       </ScrollView>
     </View>
   );
@@ -272,6 +332,43 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+  },
+  consentContainer: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  consentTextContainer: {
+    flex: 1,
+  },
+  consentText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.text,
+  },
+  consentLink: {
+    color: colors.primary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   switchButton: {
     marginTop: 20,
