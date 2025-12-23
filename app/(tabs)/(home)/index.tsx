@@ -19,9 +19,9 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { courts, loading, refetch } = useCourts(user?.id);
-  const { hasLocation, userLocation } = useLocation();
+  const { hasLocation, userLocation, requestLocation } = useLocation();
   
-  const [sortBy, setSortBy] = useState<SortOption>('active-high');
+  const [sortBy, setSortBy] = useState<SortOption>('distance');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,7 +92,7 @@ export default function HomeScreen() {
       });
     }
 
-    // Apply sorting
+    // Apply sorting - default to distance if location is available
     switch (sortBy) {
       case 'active-high':
         processed.sort((a, b) => b.currentPlayers - a.currentPlayers);
@@ -158,11 +158,28 @@ export default function HomeScreen() {
     }
   };
 
+  const handleRequestLocation = () => {
+    Alert.alert(
+      'Enable Location',
+      'Allow PickleRadar to access your location to find nearby courts.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Enable Location', 
+          onPress: () => requestLocation()
+        }
+      ]
+    );
+  };
+
   // Show empty state if no courts and no search query
   const showEmptyState = !loading && courts.length === 0 && !searchQuery.trim();
   
   // Show no results if search/filter returns nothing
   const showNoResults = !loading && processedCourts.length === 0 && (searchQuery.trim() || Object.keys(filters).length > 0);
+
+  // Show location prompt if no location permission
+  const showLocationPrompt = !loading && !hasLocation && courts.length === 0 && !searchQuery.trim();
 
   if (loading) {
     return (
@@ -219,8 +236,38 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Empty State */}
-        {showEmptyState && (
+        {/* Location Prompt - shown when no location permission and no courts */}
+        {showLocationPrompt && (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateCard}>
+              <IconSymbol 
+                ios_icon_name="location.fill" 
+                android_material_icon_name="location_on" 
+                size={48} 
+                color={colors.textSecondary} 
+              />
+              <Text style={styles.emptyStateTitle}>Enable Location Services</Text>
+              <Text style={styles.emptyStateText}>
+                Allow location access to find nearby courts, or search by ZIP code, city, or court name.
+              </Text>
+              <TouchableOpacity
+                style={styles.addCourtButton}
+                onPress={handleRequestLocation}
+              >
+                <IconSymbol 
+                  ios_icon_name="location.fill" 
+                  android_material_icon_name="location_on" 
+                  size={20} 
+                  color={colors.card} 
+                />
+                <Text style={styles.addCourtButtonText}>Enable Location</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Empty State - shown when courts exist but none match location/search */}
+        {showEmptyState && !showLocationPrompt && (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateCard}>
               <IconSymbol 
@@ -250,7 +297,7 @@ export default function HomeScreen() {
         )}
 
         {/* Controls - only show if we have courts or search query */}
-        {!showEmptyState && (
+        {!showEmptyState && !showLocationPrompt && (
           <>
             <View style={styles.controlsContainer}>
               <View style={styles.controlRow}>
@@ -272,8 +319,8 @@ export default function HomeScreen() {
                   onPress={() => setShowFilters(!showFilters)}
                 >
                   <IconSymbol 
-                    ios_icon_name="slider.horizontal.2" 
-                    android_material_icon_name="tune" 
+                    ios_icon_name="line.3.horizontal.decrease.circle" 
+                    android_material_icon_name="filter_list" 
                     size={20} 
                     color={colors.primary} 
                   />
@@ -299,6 +346,16 @@ export default function HomeScreen() {
                 <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>Sort by:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={styles.sortButtons}>
+                    {userLocation && (
+                      <TouchableOpacity
+                        style={[styles.sortButton, sortBy === 'distance' && styles.sortButtonActive]}
+                        onPress={() => setSortBy('distance')}
+                      >
+                        <Text style={[styles.sortButtonText, sortBy === 'distance' && styles.sortButtonTextActive]}>
+                          Nearest
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                       style={[styles.sortButton, sortBy === 'active-high' && styles.sortButtonActive]}
                       onPress={() => setSortBy('active-high')}
@@ -331,16 +388,6 @@ export default function HomeScreen() {
                         Skill: Low
                       </Text>
                     </TouchableOpacity>
-                    {userLocation && (
-                      <TouchableOpacity
-                        style={[styles.sortButton, sortBy === 'distance' && styles.sortButtonActive]}
-                        onPress={() => setSortBy('distance')}
-                      >
-                        <Text style={[styles.sortButtonText, sortBy === 'distance' && styles.sortButtonTextActive]}>
-                          Nearest
-                        </Text>
-                      </TouchableOpacity>
-                    )}
                   </View>
                 </ScrollView>
               </View>
