@@ -9,22 +9,22 @@ import { IconSymbol } from '@/components/IconSymbol';
 export default function FriendsScreen() {
   const { user } = useAuth();
   const { friends, pendingRequests, loading, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend } = useFriends(user?.id);
-  const [friendEmail, setFriendEmail] = useState('');
+  const [friendIdentifier, setFriendIdentifier] = useState('');
   const [sending, setSending] = useState(false);
 
   const handleAddFriend = async () => {
-    if (!friendEmail.trim()) {
-      Alert.alert('Error', 'Please enter an email address');
+    if (!friendIdentifier.trim()) {
+      Alert.alert('Error', 'Please enter a phone number or email address');
       return;
     }
 
     setSending(true);
-    const result = await sendFriendRequest(friendEmail.trim().toLowerCase());
+    const result = await sendFriendRequest(friendIdentifier.trim().toLowerCase());
     setSending(false);
 
     if (result.success) {
       Alert.alert('Success', 'Friend request sent!');
-      setFriendEmail('');
+      setFriendIdentifier('');
     } else {
       Alert.alert('Error', result.error || 'Failed to send friend request');
     }
@@ -39,10 +39,10 @@ export default function FriendsScreen() {
     await rejectFriendRequest(friendshipId);
   };
 
-  const handleRemoveFriend = (friendshipId: string, friendEmail: string) => {
+  const handleRemoveFriend = (friendshipId: string, friendIdentifier: string) => {
     Alert.alert(
       'Remove Friend',
-      `Are you sure you want to remove ${friendEmail} from your friends?`,
+      `Are you sure you want to remove ${friendIdentifier} from your friends?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -79,16 +79,15 @@ export default function FriendsScreen() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Add Friend</Text>
           <Text style={[commonStyles.textSecondary, { marginTop: 8, marginBottom: 12 }]}>
-            Enter your friend&apos;s email address
+            Enter your friend&apos;s phone number or email address
           </Text>
           
           <TextInput
             style={commonStyles.input}
-            placeholder="friend@example.com"
+            placeholder="+1 (555) 123-4567 or friend@example.com"
             placeholderTextColor={colors.textSecondary}
-            value={friendEmail}
-            onChangeText={setFriendEmail}
-            keyboardType="email-address"
+            value={friendIdentifier}
+            onChangeText={setFriendIdentifier}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -121,7 +120,7 @@ export default function FriendsScreen() {
                     />
                   </View>
                   <View style={styles.friendInfo}>
-                    <Text style={commonStyles.subtitle}>{request.friendEmail}</Text>
+                    <Text style={commonStyles.subtitle}>{request.friendPhone || request.friendEmail}</Text>
                     {request.friendSkillLevel && (
                       <Text style={commonStyles.textSecondary}>
                         {request.friendSkillLevel}
@@ -179,7 +178,7 @@ export default function FriendsScreen() {
                     />
                   </View>
                   <View style={styles.friendInfo}>
-                    <Text style={commonStyles.subtitle}>{friend.friendEmail}</Text>
+                    <Text style={commonStyles.subtitle}>{friend.friendPhone || friend.friendEmail}</Text>
                     {friend.friendSkillLevel && (
                       <Text style={commonStyles.textSecondary}>
                         {friend.friendSkillLevel}
@@ -216,7 +215,7 @@ export default function FriendsScreen() {
                     )}
                   </View>
                   <TouchableOpacity
-                    onPress={() => handleRemoveFriend(friend.id, friend.friendEmail)}
+                    onPress={() => handleRemoveFriend(friend.id, friend.friendPhone || friend.friendEmail || 'this friend')}
                   >
                     <IconSymbol 
                       ios_icon_name="trash" 

@@ -212,7 +212,8 @@ export type Database = {
       users: {
         Row: {
           created_at: string
-          email: string
+          email: string | null
+          phone: string | null
           id: string
           location_enabled: boolean | null
           notifications_enabled: boolean | null
@@ -224,10 +225,16 @@ export type Database = {
           zip_code: string | null
           dupr_rating: number | null
           location_permission_requested: boolean | null
+          profile_picture_url: string | null
+          terms_accepted: boolean | null
+          privacy_accepted: boolean | null
+          accepted_at: string | null
+          accepted_version: string | null
         }
         Insert: {
           created_at?: string
-          email: string
+          email?: string | null
+          phone?: string | null
           id: string
           location_enabled?: boolean | null
           notifications_enabled?: boolean | null
@@ -239,10 +246,16 @@ export type Database = {
           zip_code?: string | null
           dupr_rating?: number | null
           location_permission_requested?: boolean | null
+          profile_picture_url?: string | null
+          terms_accepted?: boolean | null
+          privacy_accepted?: boolean | null
+          accepted_at?: string | null
+          accepted_version?: string | null
         }
         Update: {
           created_at?: string
-          email?: string
+          email?: string | null
+          phone?: string | null
           id?: string
           location_enabled?: boolean | null
           notifications_enabled?: boolean | null
@@ -254,6 +267,11 @@ export type Database = {
           zip_code?: string | null
           dupr_rating?: number | null
           location_permission_requested?: boolean | null
+          profile_picture_url?: string | null
+          terms_accepted?: boolean | null
+          privacy_accepted?: boolean | null
+          accepted_at?: string | null
+          accepted_version?: string | null
         }
         Relationships: []
       }

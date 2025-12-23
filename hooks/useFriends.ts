@@ -29,7 +29,7 @@ export const useFriends = (userId: string | undefined) => {
         .from('friends')
         .select(`
           *,
-          friend:users!friends_friend_id_fkey(id, email, skill_level)
+          friend:users!friends_friend_id_fkey(id, email, phone, skill_level)
         `)
         .eq('user_id', userId)
         .eq('status', 'accepted');
@@ -40,7 +40,7 @@ export const useFriends = (userId: string | undefined) => {
         .from('friends')
         .select(`
           *,
-          requester:users!friends_user_id_fkey(id, email, skill_level)
+          requester:users!friends_user_id_fkey(id, email, phone, skill_level)
         `)
         .eq('friend_id', userId)
         .eq('status', 'pending');
@@ -70,6 +70,7 @@ export const useFriends = (userId: string | undefined) => {
             status: friendship.status,
             createdAt: friendship.created_at,
             friendEmail: friendData.email,
+            friendPhone: friendData.phone,
             friendSkillLevel: friendData.skill_level,
             currentCourtId: checkIn?.court_id,
             currentCourtName: checkIn?.courts?.name,
@@ -87,6 +88,7 @@ export const useFriends = (userId: string | undefined) => {
           status: friendship.status,
           createdAt: friendship.created_at,
           friendEmail: requesterData.email,
+          friendPhone: requesterData.phone,
           friendSkillLevel: requesterData.skill_level,
         };
       });
@@ -108,19 +110,46 @@ export const useFriends = (userId: string | undefined) => {
     }
   }, [userId, fetchFriends]);
 
-  const sendFriendRequest = async (friendEmail: string) => {
+  const sendFriendRequest = async (friendIdentifier: string) => {
     if (!userId || !isSupabaseConfigured()) {
       return { success: false, error: 'Not configured' };
     }
 
     try {
-      const { data: friendUser, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', friendEmail)
-        .single();
+      // Try to find user by phone or email
+      let friendUser = null;
+      
+      // Check if it looks like a phone number (contains digits and possibly +, -, (, ), spaces)
+      const isPhone = /[\d\+\-\(\)\s]/.test(friendIdentifier) && friendIdentifier.replace(/[\D]/g, '').length >= 10;
+      
+      if (isPhone) {
+        // Clean phone number
+        const cleanPhone = friendIdentifier.replace(/\D/g, '');
+        const formattedPhone = cleanPhone.length === 10 ? `+1${cleanPhone}` : `+${cleanPhone}`;
+        
+        const { data, error } = await supabase
+          .from('users')
+          .select('id')
+          .eq('phone', formattedPhone)
+          .single();
+        
+        if (!error && data) {
+          friendUser = data;
+        }
+      } else {
+        // Try email
+        const { data, error } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', friendIdentifier)
+          .single();
+        
+        if (!error && data) {
+          friendUser = data;
+        }
+      }
 
-      if (userError || !friendUser) {
+      if (!friendUser) {
         return { success: false, error: 'User not found' };
       }
 

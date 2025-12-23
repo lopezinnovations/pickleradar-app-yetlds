@@ -21,7 +21,8 @@ export interface Court {
 
 export interface User {
   id: string;
-  email: string;
+  phone?: string;
+  email?: string;
   skillLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
   privacyOptIn: boolean;
   notificationsEnabled: boolean;
@@ -58,7 +59,8 @@ export interface Friend {
 }
 
 export interface FriendWithDetails extends Friend {
-  friendEmail: string;
+  friendEmail?: string;
+  friendPhone?: string;
   friendSkillLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
   currentCourtId?: string;
   currentCourtName?: string;

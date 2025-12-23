@@ -35,7 +35,7 @@ export const useAuth = () => {
       } else {
         console.log('useAuth: Current session:', session ? 'Active' : 'None');
         if (session?.user) {
-          fetchUserProfile(session.user.id, session.user.email || '');
+          fetchUserProfile(session.user.id, session.user.phone || '', session.user.email || '');
         } else {
           setLoading(false);
         }
@@ -45,7 +45,7 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('useAuth: Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
       if (session?.user) {
-        fetchUserProfile(session.user.id, session.user.email || '');
+        fetchUserProfile(session.user.id, session.user.phone || '', session.user.email || '');
       } else {
         setUser(null);
       }
@@ -57,7 +57,7 @@ export const useAuth = () => {
     };
   }, []);
 
-  const fetchUserProfile = async (userId: string, email: string) => {
+  const fetchUserProfile = async (userId: string, phone: string, email: string) => {
     console.log('useAuth: Fetching user profile for:', userId);
     try {
       const { data, error } = await supabase
@@ -76,7 +76,8 @@ export const useAuth = () => {
             .insert([
               {
                 id: userId,
-                email: email,
+                phone: phone || null,
+                email: email || null,
                 privacy_opt_in: false,
                 notifications_enabled: false,
                 location_enabled: false,
@@ -96,6 +97,7 @@ export const useAuth = () => {
           console.log('useAuth: User profile created successfully');
           setUser({
             id: newProfile.id,
+            phone: newProfile.phone,
             email: newProfile.email,
             skillLevel: newProfile.skill_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
             privacyOptIn: newProfile.privacy_opt_in || false,
@@ -119,6 +121,7 @@ export const useAuth = () => {
         console.log('useAuth: User profile fetched successfully');
         setUser({
           id: data.id,
+          phone: data.phone,
           email: data.email,
           skillLevel: data.skill_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
           privacyOptIn: data.privacy_opt_in || false,
@@ -143,6 +146,103 @@ export const useAuth = () => {
     }
   };
 
+  const signInWithPhone = async (phone: string, isSignUp: boolean = false) => {
+    try {
+      console.log('useAuth: Sending OTP to phone:', phone, 'isSignUp:', isSignUp);
+      
+      const { data, error } = await supabase.auth.signInWithOtp({
+        phone: phone,
+        options: {
+          shouldCreateUser: isSignUp,
+        }
+      });
+
+      if (error) {
+        console.log('useAuth: OTP send error:', error);
+        throw error;
+      }
+
+      console.log('useAuth: OTP sent successfully');
+      return { 
+        success: true, 
+        error: null, 
+        message: 'Verification code sent successfully!'
+      };
+    } catch (error: any) {
+      console.log('useAuth: Send OTP error:', error);
+      const errorMessage = error?.message || 'Failed to send verification code. Please try again.';
+      return { 
+        success: false, 
+        error: errorMessage, 
+        message: errorMessage
+      };
+    }
+  };
+
+  const verifyOtp = async (phone: string, token: string, isSignUp: boolean = false, consentAccepted: boolean = false) => {
+    try {
+      console.log('useAuth: Verifying OTP for phone:', phone);
+      
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: phone,
+        token: token,
+        type: 'sms'
+      });
+
+      if (error) {
+        console.log('useAuth: OTP verification error:', error);
+        throw error;
+      }
+
+      console.log('useAuth: OTP verified successfully');
+
+      // If this is a sign up, update the user profile with consent
+      if (isSignUp && data.user && consentAccepted) {
+        console.log('useAuth: Updating user profile with consent...');
+        const now = new Date().toISOString();
+        
+        const { error: profileError } = await supabase
+          .from('users')
+          .upsert({
+            id: data.user.id,
+            phone: phone,
+            email: data.user.email || null,
+            privacy_opt_in: false,
+            notifications_enabled: false,
+            location_enabled: false,
+            location_permission_requested: false,
+            terms_accepted: true,
+            privacy_accepted: true,
+            accepted_at: now,
+            accepted_version: CURRENT_TERMS_VERSION,
+          }, {
+            onConflict: 'id'
+          });
+
+        if (profileError) {
+          console.log('useAuth: Profile update error:', profileError);
+        } else {
+          console.log('useAuth: User profile updated successfully with consent');
+        }
+      }
+
+      return { 
+        success: true, 
+        error: null, 
+        message: isSignUp ? 'Account created successfully!' : 'Successfully signed in!'
+      };
+    } catch (error: any) {
+      console.log('useAuth: Verify OTP error:', error);
+      const errorMessage = error?.message || 'Invalid verification code. Please try again.';
+      return { 
+        success: false, 
+        error: errorMessage, 
+        message: errorMessage
+      };
+    }
+  };
+
+  // Legacy email methods - kept for backward compatibility but not used
   const signUp = async (email: string, password: string, consentAccepted: boolean = false) => {
     try {
       console.log('useAuth: Attempting to sign up user:', email);
@@ -181,6 +281,7 @@ export const useAuth = () => {
             {
               id: data.user.id,
               email: data.user.email || email,
+              phone: null,
               privacy_opt_in: false,
               notifications_enabled: false,
               location_enabled: false,
@@ -306,6 +407,8 @@ export const useAuth = () => {
       console.log('useAuth: Updating user profile:', updates);
       const dbUpdates: any = {};
       
+      if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+      if (updates.email !== undefined) dbUpdates.email = updates.email;
       if (updates.skillLevel !== undefined) dbUpdates.skill_level = updates.skillLevel;
       if (updates.privacyOptIn !== undefined) dbUpdates.privacy_opt_in = updates.privacyOptIn;
       if (updates.notificationsEnabled !== undefined) dbUpdates.notifications_enabled = updates.notificationsEnabled;
@@ -411,6 +514,8 @@ export const useAuth = () => {
     user,
     loading,
     isConfigured,
+    signInWithPhone,
+    verifyOtp,
     signUp,
     signIn,
     signOut,

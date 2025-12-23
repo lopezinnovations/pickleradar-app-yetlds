@@ -27,24 +27,18 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.featuresContainer}>
-          <View style={styles.featureItem}>
-            <View style={styles.bulletPoint}>
-              <Text style={styles.bulletText}>🏓</Text>
-            </View>
+          <View style={styles.featureCard}>
+            <Text style={styles.featureEmoji}>🗺️</Text>
             <Text style={styles.featureText}>Live court activity maps</Text>
           </View>
 
-          <View style={styles.featureItem}>
-            <View style={styles.bulletPoint}>
-              <Text style={styles.bulletText}>🏓</Text>
-            </View>
+          <View style={styles.featureCard}>
+            <Text style={styles.featureEmoji}>👥</Text>
             <Text style={styles.featureText}>See where your friends are playing</Text>
           </View>
 
-          <View style={styles.featureItem}>
-            <View style={styles.bulletPoint}>
-              <Text style={styles.bulletText}>🏓</Text>
-            </View>
+          <View style={styles.featureCard}>
+            <Text style={styles.featureEmoji}>⭐</Text>
             <Text style={styles.featureText}>Skill level info for better matchups</Text>
           </View>
         </View>
@@ -90,26 +84,36 @@ const styles = StyleSheet.create({
   },
   featuresContainer: {
     marginBottom: 48,
-    paddingHorizontal: 8,
-  },
-  featureItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  bulletPoint: {
-    width: 32,
+  featureCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    width: '100%',
+    maxWidth: 400,
     alignItems: 'center',
-    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  bulletText: {
-    fontSize: 28,
+  featureEmoji: {
+    fontSize: 40,
+    marginBottom: 12,
   },
   featureText: {
     fontSize: 17,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.text,
-    flex: 1,
+    textAlign: 'center',
     lineHeight: 24,
   },
   buttonContainer: {

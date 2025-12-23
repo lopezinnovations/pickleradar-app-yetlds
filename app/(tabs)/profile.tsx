@@ -376,7 +376,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
           <Text style={[commonStyles.title, { color: colors.primary, fontSize: 22 }]}>
-            {user.email}
+            {user.phone || user.email || 'User'}
           </Text>
           
           {/* User stats with separator bars */}
