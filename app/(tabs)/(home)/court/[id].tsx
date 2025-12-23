@@ -168,7 +168,7 @@ export default function CourtDetailScreen() {
         />
         <Text style={[commonStyles.title, { marginTop: 24, textAlign: 'center' }]}>Court Not Found</Text>
         <Text style={[commonStyles.textSecondary, { marginTop: 12, textAlign: 'center' }]}>
-          The court you're looking for could not be found. It may have been removed or the ID is incorrect.
+          The court you&apos;re looking for could not be found. It may have been removed or the ID is incorrect.
         </Text>
         <TouchableOpacity 
           style={[buttonStyles.primary, { marginTop: 32 }]}
@@ -240,7 +240,7 @@ export default function CourtDetailScreen() {
           </View>
           {court.distance !== undefined && (
             <Text style={[commonStyles.textSecondary, { marginTop: 8, fontWeight: '600' }]}>
-              📍 {court.distance} miles away
+              📍 {court.distance.toFixed(1)} miles away
             </Text>
           )}
         </View>
@@ -314,6 +314,25 @@ export default function CourtDetailScreen() {
                       {court.averageSkillLevel.toFixed(1)} / 3.0
                     </Text>
                   </View>
+                </View>
+              </View>
+            )}
+
+            {court.averageDupr !== undefined && (
+              <View style={styles.statRow}>
+                <View style={[styles.statIcon, { backgroundColor: colors.accent + '20' }]}>
+                  <IconSymbol 
+                    ios_icon_name="chart.line.uptrend.xyaxis" 
+                    android_material_icon_name="trending_up" 
+                    size={24} 
+                    color={colors.accent} 
+                  />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={commonStyles.textSecondary}>Average DUPR Rating</Text>
+                  <Text style={[commonStyles.text, styles.statValue, { color: colors.accent }]}>
+                    {court.averageDupr.toFixed(2)}
+                  </Text>
                 </View>
               </View>
             )}
@@ -461,9 +480,39 @@ export default function CourtDetailScreen() {
 
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>About This Court</Text>
-          <Text style={[commonStyles.textSecondary, { marginTop: 8 }]}>
-            This is a public pickleball court. Check in to let others know you&apos;re playing and see who else is here!
-          </Text>
+          
+          {court.description && (
+            <Text style={[commonStyles.text, { marginTop: 12, lineHeight: 22 }]}>
+              {court.description}
+            </Text>
+          )}
+
+          {(court.openTime || court.closeTime) && (
+            <View style={styles.hoursContainer}>
+              <View style={styles.hoursRow}>
+                <IconSymbol 
+                  ios_icon_name="clock.fill" 
+                  android_material_icon_name="schedule" 
+                  size={20} 
+                  color={colors.primary} 
+                />
+                <Text style={[commonStyles.text, { marginLeft: 8, fontWeight: '600' }]}>
+                  Hours
+                </Text>
+              </View>
+              {court.openTime && court.closeTime && (
+                <Text style={[commonStyles.textSecondary, { marginTop: 8 }]}>
+                  Open: {court.openTime} - {court.closeTime}
+                </Text>
+              )}
+            </View>
+          )}
+
+          {!court.description && !court.openTime && !court.closeTime && (
+            <Text style={[commonStyles.textSecondary, { marginTop: 8 }]}>
+              This is a public pickleball court. Check in to let others know you&apos;re playing and see who else is here!
+            </Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -642,5 +691,15 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: colors.card,
     borderRadius: 12,
+  },
+  hoursContainer: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: colors.highlight,
+    borderRadius: 12,
+  },
+  hoursRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

@@ -11,6 +11,9 @@ import { SkillLevelBars } from '@/components/SkillLevelBars';
 import { SortOption, FilterOptions } from '@/types';
 import { calculateDistance } from '@/utils/locationUtils';
 
+const INITIAL_DISPLAY_COUNT = 10;
+const LOAD_MORE_COUNT = 10;
+
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -22,6 +25,8 @@ export default function HomeScreen() {
   const [filters, setFilters] = useState<FilterOptions>({});
   const [zipCodeInput, setZipCodeInput] = useState('');
   const [searchingZip, setSearchingZip] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,27 +52,40 @@ export default function HomeScreen() {
       return { ...court, distance };
     });
 
-    // Apply filters
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      processed = processed.filter(court => 
+        court.name.toLowerCase().includes(query) ||
+        court.address.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply distance filter
     if (filters.maxDistance !== undefined && userLocation) {
       processed = processed.filter(court => 
         court.distance !== undefined && court.distance <= filters.maxDistance!
       );
     }
 
+    // Apply friends only filter
     if (filters.friendsOnly) {
       processed = processed.filter(court => court.friendsPlayingCount > 0);
     }
 
-    if (filters.minSkillLevel !== undefined) {
-      processed = processed.filter(court => 
-        court.currentPlayers > 0 && court.averageSkillLevel >= filters.minSkillLevel!
-      );
-    }
-
-    if (filters.maxSkillLevel !== undefined) {
-      processed = processed.filter(court => 
-        court.currentPlayers > 0 && court.averageSkillLevel <= filters.maxSkillLevel!
-      );
+    // Apply skill level filter (new implementation)
+    if (filters.skillLevels && filters.skillLevels.length > 0) {
+      processed = processed.filter(court => {
+        if (court.currentPlayers === 0) return false;
+        
+        const avgSkill = court.averageSkillLevel;
+        return filters.skillLevels!.some(level => {
+          if (level === 'Beginner') return avgSkill <= 1.5;
+          if (level === 'Intermediate') return avgSkill > 1.5 && avgSkill <= 2.5;
+          if (level === 'Advanced') return avgSkill > 2.5;
+          return false;
+        });
+      });
     }
 
     // Apply sorting
@@ -96,7 +114,14 @@ export default function HomeScreen() {
     }
 
     return processed;
-  }, [courts, sortBy, filters, userLocation]);
+  }, [courts, sortBy, filters, userLocation, searchQuery]);
+
+  const displayedCourts = processedCourts.slice(0, displayCount);
+  const hasMoreCourts = displayCount < processedCourts.length;
+
+  const handleLoadMore = () => {
+    setDisplayCount(prev => prev + LOAD_MORE_COUNT);
+  };
 
   const handleZipCodeSearch = async () => {
     if (!zipCodeInput.trim()) {
@@ -124,33 +149,28 @@ export default function HomeScreen() {
     });
   };
 
-  const getActivityColor = (level: 'low' | 'medium' | 'high') => {
-    switch (level) {
-      case 'high':
-        return colors.orange;
-      case 'medium':
-        return colors.accent;
-      case 'low':
-        return colors.success;
-    }
-  };
-
-  const getActivityLabel = (level: 'low' | 'medium' | 'high') => {
-    switch (level) {
-      case 'high':
-        return 'High Activity';
-      case 'medium':
-        return 'Medium Activity';
-      case 'low':
-        return 'Low Activity';
-    }
-  };
-
   const getSkillLevelLabel = (averageSkillLevel: number) => {
     if (averageSkillLevel === 0) return 'No data';
     if (averageSkillLevel <= 1.5) return 'Beginner';
     if (averageSkillLevel <= 2.5) return 'Intermediate';
     return 'Advanced';
+  };
+
+  const toggleSkillLevelFilter = (level: 'Beginner' | 'Intermediate' | 'Advanced') => {
+    const currentLevels = filters.skillLevels || [];
+    const isSelected = currentLevels.includes(level);
+    
+    if (isSelected) {
+      setFilters({
+        ...filters,
+        skillLevels: currentLevels.filter(l => l !== level),
+      });
+    } else {
+      setFilters({
+        ...filters,
+        skillLevels: [...currentLevels, level],
+      });
+    }
   };
 
   if (loading) {
@@ -226,6 +246,34 @@ export default function HomeScreen() {
           </View>
         )}
 
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <IconSymbol 
+              ios_icon_name="magnifyingglass" 
+              android_material_icon_name="search" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search courts by name..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <IconSymbol 
+                  ios_icon_name="xmark.circle.fill" 
+                  android_material_icon_name="cancel" 
+                  size={20} 
+                  color={colors.textSecondary} 
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
         <View style={styles.controlsContainer}>
           <View style={styles.controlRow}>
             <TouchableOpacity
@@ -246,8 +294,8 @@ export default function HomeScreen() {
               onPress={() => setShowFilters(!showFilters)}
             >
               <IconSymbol 
-                ios_icon_name="line.3.horizontal.decrease.circle" 
-                android_material_icon_name="filter_list" 
+                ios_icon_name="slider.horizontal.2" 
+                android_material_icon_name="tune" 
                 size={20} 
                 color={colors.primary} 
               />
@@ -313,9 +361,9 @@ export default function HomeScreen() {
               
               {userLocation && (
                 <View style={styles.filterSection}>
-                  <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>Max Distance:</Text>
+                  <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>Distance Radius:</Text>
                   <View style={styles.filterButtons}>
-                    {[2, 5, 10, 20].map((distance, index) => (
+                    {[2, 5, 10, 20, 50].map((distance, index) => (
                       <TouchableOpacity
                         key={index}
                         style={[
@@ -356,58 +404,34 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.filterSection}>
-                <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>Skill Level Range:</Text>
-                <View style={styles.skillRangeContainer}>
-                  <View style={styles.skillRangeInput}>
-                    <Text style={commonStyles.textSecondary}>Min:</Text>
-                    <View style={styles.skillButtons}>
-                      {[1, 2, 3].map((level, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={[
-                            styles.skillButton,
-                            filters.minSkillLevel === level && styles.skillButtonActive,
-                          ]}
-                          onPress={() => setFilters({ ...filters, minSkillLevel: filters.minSkillLevel === level ? undefined : level })}
-                        >
-                          <Text style={[
-                            styles.skillButtonText,
-                            filters.minSkillLevel === level && styles.skillButtonTextActive,
-                          ]}>
-                            {level}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                  <View style={styles.skillRangeInput}>
-                    <Text style={commonStyles.textSecondary}>Max:</Text>
-                    <View style={styles.skillButtons}>
-                      {[1, 2, 3].map((level, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={[
-                            styles.skillButton,
-                            filters.maxSkillLevel === level && styles.skillButtonActive,
-                          ]}
-                          onPress={() => setFilters({ ...filters, maxSkillLevel: filters.maxSkillLevel === level ? undefined : level })}
-                        >
-                          <Text style={[
-                            styles.skillButtonText,
-                            filters.maxSkillLevel === level && styles.skillButtonTextActive,
-                          ]}>
-                            {level}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
+                <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>Skill Level:</Text>
+                <View style={styles.skillLevelFilters}>
+                  {(['Beginner', 'Intermediate', 'Advanced'] as const).map((level, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.skillLevelFilterButton,
+                        filters.skillLevels?.includes(level) && styles.skillLevelFilterButtonActive,
+                      ]}
+                      onPress={() => toggleSkillLevelFilter(level)}
+                    >
+                      <Text style={[
+                        styles.skillLevelFilterText,
+                        filters.skillLevels?.includes(level) && styles.skillLevelFilterTextActive,
+                      ]}>
+                        {level}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
 
               <TouchableOpacity
                 style={styles.clearFiltersButton}
-                onPress={() => setFilters({})}
+                onPress={() => {
+                  setFilters({});
+                  setDisplayCount(INITIAL_DISPLAY_COUNT);
+                }}
               >
                 <Text style={styles.clearFiltersText}>Clear All Filters</Text>
               </TouchableOpacity>
@@ -419,6 +443,7 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <Text style={commonStyles.subtitle}>
               {processedCourts.length} {processedCourts.length === 1 ? 'Court' : 'Courts'}
+              {displayedCourts.length < processedCourts.length && ` (showing ${displayedCourts.length})`}
             </Text>
             <TouchableOpacity onPress={refetch}>
               <IconSymbol 
@@ -430,97 +455,128 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {processedCourts.length === 0 ? (
+          {displayedCourts.length === 0 ? (
             <View style={commonStyles.card}>
               <Text style={[commonStyles.text, { textAlign: 'center' }]}>
                 No courts found matching your filters. Try adjusting your search criteria.
               </Text>
             </View>
           ) : (
-            processedCourts.map((court, index) => (
-              <TouchableOpacity
-                key={index}
-                style={commonStyles.card}
-                onPress={() => router.push(`/(tabs)/(home)/court/${court.id}`)}
-              >
-                <View style={styles.courtHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.courtName}>{court.name}</Text>
-                    <Text style={commonStyles.textSecondary}>{court.address}</Text>
-                    {court.distance !== undefined && (
-                      <Text style={[commonStyles.textSecondary, { marginTop: 4, fontWeight: '600' }]}>
-                        📍 {court.distance} miles away
-                      </Text>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={styles.courtMapIcon}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
-                      Linking.openURL(url);
-                    }}
-                  >
-                    <IconSymbol 
-                      ios_icon_name="map.fill" 
-                      android_material_icon_name="map" 
-                      size={24} 
-                      color={colors.primary} 
-                    />
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.courtFooter}>
-                  <View style={styles.playerInfoContainer}>
-                    <View style={styles.playerCount}>
-                      <IconSymbol 
-                        ios_icon_name="person.2.fill" 
-                        android_material_icon_name="people" 
-                        size={16} 
-                        color={colors.textSecondary} 
-                      />
-                      <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
-                        {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
-                      </Text>
+            <>
+              {displayedCourts.map((court, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={commonStyles.card}
+                  onPress={() => router.push(`/(tabs)/(home)/court/${court.id}`)}
+                >
+                  <View style={styles.courtHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.courtName}>{court.name}</Text>
+                      <Text style={commonStyles.textSecondary}>{court.address}</Text>
+                      {court.distance !== undefined && (
+                        <Text style={[commonStyles.textSecondary, { marginTop: 4, fontWeight: '600' }]}>
+                          📍 {court.distance.toFixed(1)} miles away
+                        </Text>
+                      )}
                     </View>
-
-                    {court.friendsPlayingCount > 0 && (
-                      <View style={styles.friendsCount}>
+                    <TouchableOpacity
+                      style={styles.courtMapIcon}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
+                        Linking.openURL(url);
+                      }}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="map.fill" 
+                        android_material_icon_name="map" 
+                        size={24} 
+                        color={colors.primary} 
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.courtFooter}>
+                    <View style={styles.playerInfoContainer}>
+                      <View style={styles.playerCount}>
                         <IconSymbol 
                           ios_icon_name="person.2.fill" 
                           android_material_icon_name="people" 
                           size={16} 
-                          color={colors.accent} 
+                          color={colors.textSecondary} 
                         />
-                        <Text style={[commonStyles.textSecondary, { marginLeft: 6, color: colors.accent, fontWeight: '600' }]}>
-                          {court.friendsPlayingCount} {court.friendsPlayingCount === 1 ? 'friend' : 'friends'}
+                        <Text style={[commonStyles.textSecondary, { marginLeft: 6 }]}>
+                          {court.currentPlayers} {court.currentPlayers === 1 ? 'player' : 'players'}
                         </Text>
                       </View>
-                    )}
+
+                      {court.friendsPlayingCount > 0 && (
+                        <View style={styles.friendsCount}>
+                          <IconSymbol 
+                            ios_icon_name="person.2.fill" 
+                            android_material_icon_name="people" 
+                            size={16} 
+                            color={colors.accent} 
+                          />
+                          <Text style={[commonStyles.textSecondary, { marginLeft: 6, color: colors.accent, fontWeight: '600' }]}>
+                            {court.friendsPlayingCount} {court.friendsPlayingCount === 1 ? 'friend' : 'friends'}
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {court.currentPlayers > 0 && (
+                        <View style={styles.skillLevelContainer}>
+                          <SkillLevelBars 
+                            averageSkillLevel={court.averageSkillLevel} 
+                            size={16}
+                            color={colors.primary}
+                          />
+                          <Text style={[commonStyles.textSecondary, { fontSize: 12, marginLeft: 6 }]}>
+                            {getSkillLevelLabel(court.averageSkillLevel)}
+                          </Text>
+                        </View>
+                      )}
+
+                      {court.averageDupr !== undefined && (
+                        <View style={styles.duprContainer}>
+                          <IconSymbol 
+                            ios_icon_name="chart.bar.fill" 
+                            android_material_icon_name="bar_chart" 
+                            size={16} 
+                            color={colors.accent} 
+                          />
+                          <Text style={[commonStyles.textSecondary, { marginLeft: 6, fontWeight: '600', color: colors.accent }]}>
+                            DUPR: {court.averageDupr.toFixed(1)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     
-                    {court.currentPlayers > 0 && (
-                      <View style={styles.skillLevelContainer}>
-                        <SkillLevelBars 
-                          averageSkillLevel={court.averageSkillLevel} 
-                          size={16}
-                          color={colors.primary}
-                        />
-                        <Text style={[commonStyles.textSecondary, { fontSize: 12, marginLeft: 6 }]}>
-                          {getSkillLevelLabel(court.averageSkillLevel)}
-                        </Text>
-                      </View>
-                    )}
+                    <IconSymbol 
+                      ios_icon_name="chevron.right" 
+                      android_material_icon_name="chevron_right" 
+                      size={20} 
+                      color={colors.textSecondary} 
+                    />
                   </View>
-                  
+                </TouchableOpacity>
+              ))}
+
+              {hasMoreCourts && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={handleLoadMore}
+                >
+                  <Text style={styles.loadMoreText}>Load More Courts</Text>
                   <IconSymbol 
-                    ios_icon_name="chevron.right" 
-                    android_material_icon_name="chevron_right" 
+                    ios_icon_name="chevron.down" 
+                    android_material_icon_name="expand_more" 
                     size={20} 
-                    color={colors.textSecondary} 
+                    color={colors.primary} 
                   />
-                </View>
-              </TouchableOpacity>
-            ))
+                </TouchableOpacity>
+              )}
+            </>
           )}
         </View>
       </ScrollView>
@@ -571,6 +627,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.text,
   },
   controlsContainer: {
     marginBottom: 24,
@@ -694,39 +769,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  skillRangeContainer: {
-    gap: 12,
-  },
-  skillRangeInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  skillButtons: {
+  skillLevelFilters: {
     flexDirection: 'row',
     gap: 8,
-    flex: 1,
   },
-  skillButton: {
+  skillLevelFilterButton: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: colors.highlight,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
   },
-  skillButtonActive: {
+  skillLevelFilterButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  skillButtonText: {
+  skillLevelFilterText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
   },
-  skillButtonTextActive: {
+  skillLevelFilterTextActive: {
     color: colors.card,
   },
   clearFiltersButton: {
@@ -783,7 +849,7 @@ const styles = StyleSheet.create({
   playerInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     flexWrap: 'wrap',
     flex: 1,
   },
@@ -798,5 +864,27 @@ const styles = StyleSheet.create({
   skillLevelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  duprContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 12,
+    gap: 8,
+  },
+  loadMoreText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });

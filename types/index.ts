@@ -10,6 +10,11 @@ export interface Court {
   averageSkillLevel: number;
   friendsPlayingCount: number;
   distance?: number; // Distance in miles from user's location
+  description?: string; // Google Maps description
+  openTime?: string; // Court open time
+  closeTime?: string; // Court close time
+  googlePlaceId?: string; // Google Place ID
+  averageDupr?: number; // Average DUPR of checked-in players
 }
 
 export interface User {
@@ -62,6 +67,5 @@ export type SortOption = 'active-high' | 'active-low' | 'skill-high' | 'skill-lo
 export interface FilterOptions {
   maxDistance?: number; // in miles
   friendsOnly?: boolean;
-  minSkillLevel?: number;
-  maxSkillLevel?: number;
+  skillLevels?: Array<'Beginner' | 'Intermediate' | 'Advanced'>; // Changed from min/max to array of selected levels
 }

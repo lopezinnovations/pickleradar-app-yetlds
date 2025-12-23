@@ -15,6 +15,9 @@ const MOCK_COURTS: Court[] = [
     currentPlayers: 8,
     averageSkillLevel: 3.5,
     friendsPlayingCount: 0,
+    description: 'Beautiful outdoor courts in the heart of Central Park',
+    openTime: '6:00 AM',
+    closeTime: '10:00 PM',
   },
   {
     id: '2',
@@ -26,6 +29,9 @@ const MOCK_COURTS: Court[] = [
     currentPlayers: 4,
     averageSkillLevel: 2.5,
     friendsPlayingCount: 0,
+    description: 'Indoor and outdoor courts with great river views',
+    openTime: '7:00 AM',
+    closeTime: '9:00 PM',
   },
   {
     id: '3',
@@ -98,9 +104,14 @@ export const useCourts = (userId?: string) => {
       
       const courtsWithActivity = await Promise.all(
         (data || []).map(async (court) => {
+          // Fetch check-ins with user data to get DUPR ratings
           const { data: checkIns, error: checkInsError } = await supabase
             .from('check_ins')
-            .select('skill_level, user_id')
+            .select(`
+              skill_level, 
+              user_id,
+              users!inner(dupr_rating)
+            `)
             .eq('court_id', court.id)
             .gte('expires_at', new Date().toISOString());
 
@@ -114,12 +125,26 @@ export const useCourts = (userId?: string) => {
           const friendsPlaying = checkIns?.filter(checkIn => friendIds.includes(checkIn.user_id)) || [];
           const friendsPlayingCount = friendsPlaying.length;
           
+          // Calculate average skill level
           let averageSkillLevel = 0;
           if (currentPlayers > 0 && checkIns) {
             const skillSum = checkIns.reduce((sum, checkIn) => {
               return sum + skillLevelToNumber(checkIn.skill_level);
             }, 0);
             averageSkillLevel = skillSum / currentPlayers;
+          }
+
+          // Calculate average DUPR if data exists
+          let averageDupr: number | undefined;
+          if (checkIns && checkIns.length > 0) {
+            const duprRatings = checkIns
+              .map(checkIn => checkIn.users?.dupr_rating)
+              .filter((rating): rating is number => rating !== null && rating !== undefined);
+            
+            if (duprRatings.length > 0) {
+              const duprSum = duprRatings.reduce((sum, rating) => sum + rating, 0);
+              averageDupr = duprSum / duprRatings.length;
+            }
           }
 
           let activityLevel: 'low' | 'medium' | 'high' = 'low';
@@ -136,11 +161,16 @@ export const useCourts = (userId?: string) => {
             currentPlayers,
             averageSkillLevel,
             friendsPlayingCount,
+            description: court.description,
+            openTime: court.open_time,
+            closeTime: court.close_time,
+            googlePlaceId: court.google_place_id,
+            averageDupr,
           };
         })
       );
 
-      console.log('useCourts: Successfully processed courts with activity levels, skill averages, and friend counts');
+      console.log('useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data');
       setCourts(courtsWithActivity);
     } catch (error) {
       console.log('useCourts: Error in fetchCourts, falling back to mock data:', error);
