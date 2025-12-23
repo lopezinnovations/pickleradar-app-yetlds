@@ -6,6 +6,7 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { useCheckIn } from '@/hooks/useCheckIn';
 import { IconSymbol } from '@/components/IconSymbol';
+import { SkillLevelBars } from '@/components/SkillLevelBars';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
@@ -85,7 +86,6 @@ export default function ProfileScreen() {
 
   const handlePickImage = async () => {
     try {
-      // Request permission
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
@@ -93,7 +93,6 @@ export default function ProfileScreen() {
         return;
       }
 
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -244,6 +243,7 @@ export default function ProfileScreen() {
               <Image 
                 source={{ uri: user.profilePictureUrl }} 
                 style={styles.avatarImage}
+                resizeMode="cover"
               />
             ) : (
               <IconSymbol 
@@ -265,16 +265,21 @@ export default function ProfileScreen() {
           <Text style={[commonStyles.title, { color: colors.primary, fontSize: 22 }]}>
             {user.email}
           </Text>
+          
+          {/* Updated user stats with flex layout */}
           <View style={styles.userStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{checkInHistory?.length || 0}</Text>
               <Text style={commonStyles.textSecondary}>Check-ins</Text>
             </View>
+            
             <View style={styles.statDivider} />
+            
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{skillLevel}</Text>
               <Text style={commonStyles.textSecondary}>Skill Level</Text>
             </View>
+            
             {duprRating && (
               <React.Fragment>
                 <View style={styles.statDivider} />
@@ -284,6 +289,16 @@ export default function ProfileScreen() {
                 </View>
               </React.Fragment>
             )}
+          </View>
+
+          {/* Skill level progress bar */}
+          <View style={styles.skillLevelBarContainer}>
+            <SkillLevelBars 
+              averageSkillLevel={0}
+              skillLevel={skillLevel}
+              size={12}
+              color={colors.primary}
+            />
           </View>
         </View>
 
@@ -514,42 +529,46 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginBottom: 16,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: colors.primary,
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 48,
   },
   editIconContainer: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.card,
   },
   userStats: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 24,
-    paddingHorizontal: 32,
+    width: '100%',
+    paddingHorizontal: 20,
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
+    paddingHorizontal: 8,
   },
   statValue: {
     fontSize: 24,
@@ -559,9 +578,12 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 40,
+    height: 48,
     backgroundColor: colors.border,
-    marginHorizontal: 20,
+  },
+  skillLevelBarContainer: {
+    width: '80%',
+    marginTop: 16,
   },
   currentCheckInHeader: {
     flexDirection: 'row',
