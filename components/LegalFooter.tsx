@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
+import { BrandingFooter } from './BrandingFooter';
 
 export function LegalFooter() {
   const router = useRouter();
@@ -30,6 +31,8 @@ export function LegalFooter() {
       <Text style={styles.copyright}>
         © 2025 PickleRadar. All rights reserved.
       </Text>
+      
+      <BrandingFooter />
     </View>
   );
 }

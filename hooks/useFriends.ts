@@ -6,6 +6,7 @@ import { Friend, FriendWithDetails } from '@/types';
 export const useFriends = (userId: string | undefined) => {
   const [friends, setFriends] = useState<FriendWithDetails[]>([]);
   const [pendingRequests, setPendingRequests] = useState<FriendWithDetails[]>([]);
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getRemainingTime = (expiresAt: string): { hours: number; minutes: number; totalMinutes: number } => {
@@ -18,6 +19,52 @@ export const useFriends = (userId: string | undefined) => {
     return { hours, minutes, totalMinutes };
   };
 
+  const fetchActiveUsers = useCallback(async () => {
+    if (!userId || !isSupabaseConfigured()) {
+      return;
+    }
+
+    try {
+      // Get all users who are currently checked in
+      const { data: checkIns, error: checkInsError } = await supabase
+        .from('check_ins')
+        .select('user_id, users!inner(id, first_name, last_name, pickleballer_nickname, experience_level, dupr_rating)')
+        .gte('expires_at', new Date().toISOString())
+        .neq('user_id', userId); // Exclude current user
+
+      if (checkInsError) throw checkInsError;
+
+      // Get existing friend relationships
+      const { data: existingFriends, error: friendsError } = await supabase
+        .from('friends')
+        .select('friend_id, user_id')
+        .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+
+      if (friendsError) throw friendsError;
+
+      // Create a set of friend IDs for quick lookup
+      const friendIds = new Set(
+        existingFriends?.flatMap(f => [f.user_id, f.friend_id]).filter(id => id !== userId) || []
+      );
+
+      // Filter out users who are already friends or have pending requests
+      const activeUsersData = (checkIns || [])
+        .map((checkIn: any) => checkIn.users)
+        .filter((user: any) => user && !friendIds.has(user.id))
+        .reduce((unique: any[], user: any) => {
+          // Remove duplicates
+          if (!unique.find(u => u.id === user.id)) {
+            unique.push(user);
+          }
+          return unique;
+        }, []);
+
+      setActiveUsers(activeUsersData);
+    } catch (error) {
+      console.log('Error fetching active users:', error);
+    }
+  }, [userId]);
+
   const fetchFriends = useCallback(async () => {
     if (!userId || !isSupabaseConfigured()) {
       setLoading(false);
@@ -29,7 +76,7 @@ export const useFriends = (userId: string | undefined) => {
         .from('friends')
         .select(`
           *,
-          friend:users!friends_friend_id_fkey(id, email, phone, skill_level)
+          friend:users!friends_friend_id_fkey(id, email, phone, first_name, last_name, pickleballer_nickname, skill_level, experience_level, dupr_rating)
         `)
         .eq('user_id', userId)
         .eq('status', 'accepted');
@@ -40,7 +87,7 @@ export const useFriends = (userId: string | undefined) => {
         .from('friends')
         .select(`
           *,
-          requester:users!friends_user_id_fkey(id, email, phone, skill_level)
+          requester:users!friends_user_id_fkey(id, email, phone, first_name, last_name, pickleballer_nickname, skill_level, experience_level, dupr_rating)
         `)
         .eq('friend_id', userId)
         .eq('status', 'pending');
@@ -71,7 +118,12 @@ export const useFriends = (userId: string | undefined) => {
             createdAt: friendship.created_at,
             friendEmail: friendData.email,
             friendPhone: friendData.phone,
+            friendFirstName: friendData.first_name,
+            friendLastName: friendData.last_name,
+            friendNickname: friendData.pickleballer_nickname,
             friendSkillLevel: friendData.skill_level,
+            friendExperienceLevel: friendData.experience_level,
+            friendDuprRating: friendData.dupr_rating,
             currentCourtId: checkIn?.court_id,
             currentCourtName: checkIn?.courts?.name,
             remainingTime,
@@ -89,18 +141,26 @@ export const useFriends = (userId: string | undefined) => {
           createdAt: friendship.created_at,
           friendEmail: requesterData.email,
           friendPhone: requesterData.phone,
+          friendFirstName: requesterData.first_name,
+          friendLastName: requesterData.last_name,
+          friendNickname: requesterData.pickleballer_nickname,
           friendSkillLevel: requesterData.skill_level,
+          friendExperienceLevel: requesterData.experience_level,
+          friendDuprRating: requesterData.dupr_rating,
         };
       });
 
       setFriends(friendsWithDetails);
       setPendingRequests(pendingWithDetails);
+      
+      // Also fetch active users
+      await fetchActiveUsers();
     } catch (error) {
       console.log('Error fetching friends:', error);
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, fetchActiveUsers]);
 
   useEffect(() => {
     if (userId && isSupabaseConfigured()) {
@@ -187,6 +247,46 @@ export const useFriends = (userId: string | undefined) => {
     }
   };
 
+  const sendFriendRequestById = async (friendId: string) => {
+    if (!userId || !isSupabaseConfigured()) {
+      return { success: false, error: 'Not configured' };
+    }
+
+    try {
+      if (friendId === userId) {
+        return { success: false, error: 'Cannot add yourself as a friend' };
+      }
+
+      const { data: existing } = await supabase
+        .from('friends')
+        .select('*')
+        .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`)
+        .single();
+
+      if (existing) {
+        return { success: false, error: 'Friend request already exists' };
+      }
+
+      const { error } = await supabase
+        .from('friends')
+        .insert([
+          {
+            user_id: userId,
+            friend_id: friendId,
+            status: 'pending',
+          },
+        ]);
+
+      if (error) throw error;
+
+      await fetchFriends();
+      return { success: true, error: null };
+    } catch (error: any) {
+      console.log('Error sending friend request:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const acceptFriendRequest = async (friendshipId: string) => {
     if (!isSupabaseConfigured()) return;
 
@@ -241,8 +341,10 @@ export const useFriends = (userId: string | undefined) => {
   return {
     friends,
     pendingRequests,
+    activeUsers,
     loading,
     sendFriendRequest,
+    sendFriendRequestById,
     acceptFriendRequest,
     rejectFriendRequest,
     removeFriend,

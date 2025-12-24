@@ -116,7 +116,11 @@ export const useAuth = () => {
             id: newProfile.id,
             email: newProfile.email,
             phone: newProfile.phone,
+            firstName: newProfile.first_name,
+            lastName: newProfile.last_name,
+            pickleballerNickname: newProfile.pickleballer_nickname,
             skillLevel: newProfile.skill_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
+            experienceLevel: newProfile.experience_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
             privacyOptIn: newProfile.privacy_opt_in || false,
             notificationsEnabled: newProfile.notifications_enabled || false,
             locationEnabled: newProfile.location_enabled || false,
@@ -140,7 +144,11 @@ export const useAuth = () => {
           id: data.id,
           email: data.email,
           phone: data.phone,
+          firstName: data.first_name,
+          lastName: data.last_name,
+          pickleballerNickname: data.pickleballer_nickname,
           skillLevel: data.skill_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
+          experienceLevel: data.experience_level as 'Beginner' | 'Intermediate' | 'Advanced' | undefined,
           privacyOptIn: data.privacy_opt_in || false,
           notificationsEnabled: data.notifications_enabled || false,
           locationEnabled: data.location_enabled || false,
@@ -169,7 +177,16 @@ export const useAuth = () => {
     }
   };
 
-  const signUp = async (email: string, password: string, consentAccepted: boolean = false) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    consentAccepted: boolean = false,
+    firstName?: string,
+    lastName?: string,
+    pickleballerNickname?: string,
+    experienceLevel?: 'Beginner' | 'Intermediate' | 'Advanced',
+    duprRating?: number
+  ) => {
     try {
       console.log('useAuth: Signing up with email:', email);
       
@@ -218,7 +235,7 @@ export const useAuth = () => {
           if (data?.user) {
             console.log('useAuth: User created despite email error, creating profile...');
             
-            // Create user profile with consent
+            // Create user profile with consent and new fields
             const now = new Date().toISOString();
             
             const { error: profileError } = await supabase
@@ -228,6 +245,11 @@ export const useAuth = () => {
                   id: data.user.id,
                   email: data.user.email || email,
                   phone: null,
+                  first_name: firstName,
+                  last_name: lastName,
+                  pickleballer_nickname: pickleballerNickname,
+                  experience_level: experienceLevel,
+                  dupr_rating: duprRating,
                   privacy_opt_in: false,
                   notifications_enabled: false,
                   location_enabled: false,
@@ -257,7 +279,7 @@ export const useAuth = () => {
 
       console.log('useAuth: Sign up successful:', data);
 
-      // Create user profile with consent
+      // Create user profile with consent and new fields
       if (data.user) {
         const now = new Date().toISOString();
         
@@ -268,6 +290,11 @@ export const useAuth = () => {
               id: data.user.id,
               email: data.user.email || email,
               phone: null,
+              first_name: firstName,
+              last_name: lastName,
+              pickleballer_nickname: pickleballerNickname,
+              experience_level: experienceLevel,
+              dupr_rating: duprRating,
               privacy_opt_in: false,
               notifications_enabled: false,
               location_enabled: false,
@@ -283,7 +310,7 @@ export const useAuth = () => {
           console.log('useAuth: Profile creation error:', profileError);
           // Don't throw error, just log it - user is still created
         } else {
-          console.log('useAuth: User profile created successfully with consent');
+          console.log('useAuth: User profile created successfully with consent and profile fields');
         }
       }
       
@@ -427,7 +454,11 @@ export const useAuth = () => {
       
       if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
       if (updates.email !== undefined) dbUpdates.email = updates.email;
+      if (updates.firstName !== undefined) dbUpdates.first_name = updates.firstName;
+      if (updates.lastName !== undefined) dbUpdates.last_name = updates.lastName;
+      if (updates.pickleballerNickname !== undefined) dbUpdates.pickleballer_nickname = updates.pickleballerNickname;
       if (updates.skillLevel !== undefined) dbUpdates.skill_level = updates.skillLevel;
+      if (updates.experienceLevel !== undefined) dbUpdates.experience_level = updates.experienceLevel;
       if (updates.privacyOptIn !== undefined) dbUpdates.privacy_opt_in = updates.privacyOptIn;
       if (updates.notificationsEnabled !== undefined) dbUpdates.notifications_enabled = updates.notificationsEnabled;
       if (updates.locationEnabled !== undefined) dbUpdates.location_enabled = updates.locationEnabled;

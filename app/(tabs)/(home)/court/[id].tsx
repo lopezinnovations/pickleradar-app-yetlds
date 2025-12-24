@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFriends } from '@/hooks/useFriends';
 import { IconSymbol } from '@/components/IconSymbol';
 import { SkillLevelBars } from '@/components/SkillLevelBars';
+import { BrandingFooter } from '@/components/BrandingFooter';
 
 const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180];
 
@@ -31,6 +32,20 @@ export default function CourtDetailScreen() {
 
   const court = courts.find(c => c.id === id);
   const friendsAtCourt = friends.filter(friend => friend.currentCourtId === id);
+
+  const formatUserName = (firstName?: string, lastName?: string, nickname?: string) => {
+    if (firstName && lastName) {
+      const displayName = `${firstName} ${lastName.charAt(0)}.`;
+      if (nickname) {
+        return `${displayName} (${nickname})`;
+      }
+      return displayName;
+    }
+    if (nickname) {
+      return nickname;
+    }
+    return 'Friend';
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -342,27 +357,47 @@ export default function CourtDetailScreen() {
         {friendsAtCourt.length > 0 && (
           <View style={commonStyles.card}>
             <Text style={commonStyles.subtitle}>Friends at This Court</Text>
-            {friendsAtCourt.map((friend, index) => (
-              <View key={index} style={styles.friendItem}>
-                <View style={styles.friendIcon}>
-                  <IconSymbol 
-                    ios_icon_name="person.fill" 
-                    android_material_icon_name="person" 
-                    size={20} 
-                    color={colors.primary} 
-                  />
+            {friendsAtCourt.map((friend, index) => {
+              const displayName = formatUserName(
+                friend.friendFirstName,
+                friend.friendLastName,
+                friend.friendNickname
+              );
+              
+              return (
+                <View key={index} style={styles.friendItem}>
+                  <View style={styles.friendIcon}>
+                    <IconSymbol 
+                      ios_icon_name="person.fill" 
+                      android_material_icon_name="person" 
+                      size={20} 
+                      color={colors.primary} 
+                    />
+                  </View>
+                  <View style={styles.friendInfo}>
+                    <Text style={commonStyles.text}>{displayName}</Text>
+                    <View style={styles.friendDetails}>
+                      {friend.friendExperienceLevel && (
+                        <Text style={commonStyles.textSecondary}>
+                          {friend.friendExperienceLevel}
+                        </Text>
+                      )}
+                      {friend.friendDuprRating && (
+                        <Text style={commonStyles.textSecondary}>
+                          {friend.friendExperienceLevel && ' • '}DUPR: {friend.friendDuprRating}
+                        </Text>
+                      )}
+                    </View>
+                    {friend.remainingTime && (
+                      <Text style={[commonStyles.textSecondary, { fontSize: 12, marginTop: 4 }]}>
+                        {friend.remainingTime.hours > 0 && `${friend.remainingTime.hours}h `}
+                        {friend.remainingTime.minutes}m remaining
+                      </Text>
+                    )}
+                  </View>
                 </View>
-                <View style={styles.friendInfo}>
-                  <Text style={commonStyles.text}>{friend.friendEmail}</Text>
-                  {friend.remainingTime && (
-                    <Text style={commonStyles.textSecondary}>
-                      {friend.remainingTime.hours > 0 && `${friend.remainingTime.hours}h `}
-                      {friend.remainingTime.minutes}m remaining
-                    </Text>
-                  )}
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 
@@ -514,6 +549,8 @@ export default function CourtDetailScreen() {
             </Text>
           )}
         </View>
+
+        <BrandingFooter />
       </ScrollView>
     </View>
   );
@@ -608,7 +645,7 @@ const styles = StyleSheet.create({
   },
   friendItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingTop: 12,
     marginTop: 12,
     borderTopWidth: 1,
@@ -625,6 +662,10 @@ const styles = StyleSheet.create({
   },
   friendInfo: {
     flex: 1,
+  },
+  friendDetails: {
+    flexDirection: 'row',
+    marginTop: 4,
   },
   skillLevelButtons: {
     flexDirection: 'row',

@@ -14,6 +14,11 @@ export default function AuthScreen() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [pickleballerNickname, setPickleballerNickname] = useState('');
+  const [duprRating, setDuprRating] = useState('');
+  const [experienceLevel, setExperienceLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -66,6 +71,29 @@ export default function AuthScreen() {
       return;
     }
 
+    if (!firstName.trim()) {
+      Alert.alert('Error', 'Please enter your first name');
+      return;
+    }
+
+    if (!lastName.trim()) {
+      Alert.alert('Error', 'Please enter your last name');
+      return;
+    }
+
+    if (!pickleballerNickname.trim()) {
+      Alert.alert('Error', 'Please enter your pickleballer nickname');
+      return;
+    }
+
+    if (duprRating.trim()) {
+      const duprValue = parseFloat(duprRating);
+      if (isNaN(duprValue) || duprValue < 0 || duprValue > 8.0) {
+        Alert.alert('Error', 'DUPR rating must be between 0.0 and 8.0');
+        return;
+      }
+    }
+
     if (!consentAccepted) {
       Alert.alert('Consent Required', 'You must agree to the Privacy Policy and Terms of Service to continue.');
       return;
@@ -84,12 +112,26 @@ export default function AuthScreen() {
     try {
       console.log('AuthScreen: Signing up with email:', email);
       
-      const result = await signUp(email, password, consentAccepted);
+      const result = await signUp(
+        email, 
+        password, 
+        consentAccepted,
+        firstName,
+        lastName,
+        pickleballerNickname,
+        experienceLevel,
+        duprRating.trim() ? parseFloat(duprRating) : undefined
+      );
       
       if (result.success) {
         // Clear form
         setEmail('');
         setPassword('');
+        setFirstName('');
+        setLastName('');
+        setPickleballerNickname('');
+        setDuprRating('');
+        setExperienceLevel('Beginner');
         setConsentAccepted(false);
         // Redirect to home immediately
         router.replace('/(tabs)/(home)/');
@@ -241,6 +283,11 @@ export default function AuthScreen() {
     setIsForgotPassword(false);
     setEmail('');
     setPassword('');
+    setFirstName('');
+    setLastName('');
+    setPickleballerNickname('');
+    setDuprRating('');
+    setExperienceLevel('Beginner');
     setConsentAccepted(false);
   };
 
@@ -250,6 +297,8 @@ export default function AuthScreen() {
     setPassword('');
     setConsentAccepted(false);
   };
+
+  const experienceLevels: ('Beginner' | 'Intermediate' | 'Advanced')[] = ['Beginner', 'Intermediate', 'Advanced'];
 
   return (
     <View style={commonStyles.container}>
@@ -291,6 +340,82 @@ export default function AuthScreen() {
         </View>
 
         <View style={styles.form}>
+          {isSignUp && (
+            <React.Fragment>
+              <Text style={styles.label}>First Name</Text>
+              <TextInput
+                style={commonStyles.input}
+                placeholder="John"
+                placeholderTextColor={colors.textSecondary}
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+                autoCorrect={false}
+                editable={!loading}
+              />
+
+              <Text style={styles.label}>Last Name</Text>
+              <TextInput
+                style={commonStyles.input}
+                placeholder="Doe"
+                placeholderTextColor={colors.textSecondary}
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+                autoCorrect={false}
+                editable={!loading}
+              />
+
+              <Text style={styles.label}>Pickleballer Nickname</Text>
+              <TextInput
+                style={commonStyles.input}
+                placeholder="The Dink Master"
+                placeholderTextColor={colors.textSecondary}
+                value={pickleballerNickname}
+                onChangeText={setPickleballerNickname}
+                autoCapitalize="words"
+                autoCorrect={false}
+                editable={!loading}
+              />
+
+              <Text style={styles.label}>DUPR Rating (Optional)</Text>
+              <TextInput
+                style={commonStyles.input}
+                placeholder="e.g., 3.5"
+                placeholderTextColor={colors.textSecondary}
+                value={duprRating}
+                onChangeText={setDuprRating}
+                keyboardType="decimal-pad"
+                maxLength={4}
+                editable={!loading}
+              />
+
+              <Text style={styles.label}>Experience Level</Text>
+              <View style={styles.experienceLevelContainer}>
+                {experienceLevels.map((level, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.experienceLevelButton,
+                      experienceLevel === level && styles.experienceLevelButtonActive,
+                    ]}
+                    onPress={() => setExperienceLevel(level)}
+                    disabled={loading}
+                  >
+                    <Text
+                      style={[
+                        styles.experienceLevelText,
+                        experienceLevel === level && styles.experienceLevelTextActive,
+                      ]}
+                    >
+                      {level}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </React.Fragment>
+          )}
+
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={commonStyles.input}
@@ -305,7 +430,7 @@ export default function AuthScreen() {
           />
 
           {!isForgotPassword && (
-            <>
+            <React.Fragment>
               <Text style={styles.label}>Password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
@@ -332,7 +457,7 @@ export default function AuthScreen() {
                   />
                 </TouchableOpacity>
               </View>
-            </>
+            </React.Fragment>
           )}
 
           {isSignUp && (
@@ -510,6 +635,33 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
     marginTop: 12,
+  },
+  experienceLevelContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  experienceLevelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+  },
+  experienceLevelButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  experienceLevelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  experienceLevelTextActive: {
+    color: colors.card,
   },
   passwordContainer: {
     position: 'relative',

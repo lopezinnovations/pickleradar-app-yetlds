@@ -23,7 +23,11 @@ export interface User {
   id: string;
   phone?: string;
   email?: string;
+  firstName?: string;
+  lastName?: string;
+  pickleballerNickname?: string;
   skillLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
+  experienceLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
   privacyOptIn: boolean;
   notificationsEnabled: boolean;
   locationEnabled: boolean;
@@ -61,7 +65,12 @@ export interface Friend {
 export interface FriendWithDetails extends Friend {
   friendEmail?: string;
   friendPhone?: string;
+  friendFirstName?: string;
+  friendLastName?: string;
+  friendNickname?: string;
   friendSkillLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
+  friendExperienceLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
+  friendDuprRating?: number;
   currentCourtId?: string;
   currentCourtName?: string;
   remainingTime?: {
@@ -69,6 +78,17 @@ export interface FriendWithDetails extends Friend {
     minutes: number;
     totalMinutes: number;
   };
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  type: 'friend_request' | 'friend_accepted' | 'friend_checkin' | 'friend_checkout' | 'checkin_confirmation' | 'auto_checkout';
+  data?: Record<string, any>;
+  read: boolean;
+  createdAt: string;
 }
 
 export type SortOption = 'active-high' | 'active-low' | 'skill-high' | 'skill-low' | 'distance';

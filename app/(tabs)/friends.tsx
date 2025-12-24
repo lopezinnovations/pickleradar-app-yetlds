@@ -5,12 +5,27 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { useFriends } from '@/hooks/useFriends';
 import { IconSymbol } from '@/components/IconSymbol';
+import { BrandingFooter } from '@/components/BrandingFooter';
 
 export default function FriendsScreen() {
   const { user } = useAuth();
-  const { friends, pendingRequests, loading, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend } = useFriends(user?.id);
+  const { friends, pendingRequests, activeUsers, loading, sendFriendRequest, sendFriendRequestById, acceptFriendRequest, rejectFriendRequest, removeFriend } = useFriends(user?.id);
   const [friendIdentifier, setFriendIdentifier] = useState('');
   const [sending, setSending] = useState(false);
+
+  const formatUserName = (firstName?: string, lastName?: string, nickname?: string, email?: string, phone?: string) => {
+    if (firstName && lastName) {
+      const displayName = `${firstName} ${lastName.charAt(0)}.`;
+      if (nickname) {
+        return `${displayName} (${nickname})`;
+      }
+      return displayName;
+    }
+    if (nickname) {
+      return nickname;
+    }
+    return email || phone || 'Unknown User';
+  };
 
   const handleAddFriend = async () => {
     if (!friendIdentifier.trim()) {
@@ -30,6 +45,16 @@ export default function FriendsScreen() {
     }
   };
 
+  const handleAddFriendById = async (friendId: string, friendName: string) => {
+    const result = await sendFriendRequestById(friendId);
+    
+    if (result.success) {
+      Alert.alert('Success', `Friend request sent to ${friendName}!`);
+    } else {
+      Alert.alert('Error', result.error || 'Failed to send friend request');
+    }
+  };
+
   const handleAcceptRequest = async (friendshipId: string) => {
     await acceptFriendRequest(friendshipId);
     Alert.alert('Success', 'Friend request accepted!');
@@ -39,10 +64,10 @@ export default function FriendsScreen() {
     await rejectFriendRequest(friendshipId);
   };
 
-  const handleRemoveFriend = (friendshipId: string, friendIdentifier: string) => {
+  const handleRemoveFriend = (friendshipId: string, friendName: string) => {
     Alert.alert(
       'Remove Friend',
-      `Are you sure you want to remove ${friendIdentifier} from your friends?`,
+      `Are you sure you want to remove ${friendName} from your friends?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -105,46 +130,108 @@ export default function FriendsScreen() {
           </TouchableOpacity>
         </View>
 
+        {activeUsers.length > 0 && (
+          <View style={styles.section}>
+            <Text style={commonStyles.subtitle}>Active Users ({activeUsers.length})</Text>
+            <Text style={[commonStyles.textSecondary, { marginTop: 4, marginBottom: 12 }]}>
+              Players currently checked in at courts
+            </Text>
+            {activeUsers.map((activeUser, index) => {
+              const displayName = formatUserName(
+                activeUser.first_name,
+                activeUser.last_name,
+                activeUser.pickleballer_nickname
+              );
+              
+              return (
+                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                  <View style={styles.friendHeader}>
+                    <View style={styles.friendIcon}>
+                      <IconSymbol 
+                        ios_icon_name="person.fill" 
+                        android_material_icon_name="person" 
+                        size={24} 
+                        color={colors.primary} 
+                      />
+                    </View>
+                    <View style={styles.friendInfo}>
+                      <Text style={commonStyles.subtitle}>{displayName}</Text>
+                      {activeUser.experience_level && (
+                        <Text style={commonStyles.textSecondary}>
+                          {activeUser.experience_level}
+                          {activeUser.dupr_rating && ` • DUPR: ${activeUser.dupr_rating}`}
+                        </Text>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      onPress={() => handleAddFriendById(activeUser.id, displayName)}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="plus.circle.fill" 
+                        android_material_icon_name="add_circle" 
+                        size={32} 
+                        color={colors.primary} 
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {pendingRequests.length > 0 && (
           <View style={styles.section}>
-            <Text style={commonStyles.subtitle}>Pending Requests</Text>
-            {pendingRequests.map((request, index) => (
-              <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
-                <View style={styles.friendHeader}>
-                  <View style={styles.friendIcon}>
-                    <IconSymbol 
-                      ios_icon_name="person.fill" 
-                      android_material_icon_name="person" 
-                      size={24} 
-                      color={colors.primary} 
-                    />
+            <Text style={commonStyles.subtitle}>Pending Requests ({pendingRequests.length})</Text>
+            {pendingRequests.map((request, index) => {
+              const displayName = formatUserName(
+                request.friendFirstName,
+                request.friendLastName,
+                request.friendNickname,
+                request.friendEmail,
+                request.friendPhone
+              );
+              
+              return (
+                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                  <View style={styles.friendHeader}>
+                    <View style={styles.friendIcon}>
+                      <IconSymbol 
+                        ios_icon_name="person.fill" 
+                        android_material_icon_name="person" 
+                        size={24} 
+                        color={colors.primary} 
+                      />
+                    </View>
+                    <View style={styles.friendInfo}>
+                      <Text style={commonStyles.subtitle}>{displayName}</Text>
+                      {request.friendExperienceLevel && (
+                        <Text style={commonStyles.textSecondary}>
+                          {request.friendExperienceLevel}
+                          {request.friendDuprRating && ` • DUPR: ${request.friendDuprRating}`}
+                        </Text>
+                      )}
+                    </View>
                   </View>
-                  <View style={styles.friendInfo}>
-                    <Text style={commonStyles.subtitle}>{request.friendPhone || request.friendEmail}</Text>
-                    {request.friendSkillLevel && (
-                      <Text style={commonStyles.textSecondary}>
-                        {request.friendSkillLevel}
-                      </Text>
-                    )}
-                  </View>
-                </View>
 
-                <View style={styles.requestActions}>
-                  <TouchableOpacity
-                    style={[buttonStyles.primary, { flex: 1, marginRight: 8 }]}
-                    onPress={() => handleAcceptRequest(request.id)}
-                  >
-                    <Text style={buttonStyles.text}>Accept</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[buttonStyles.secondary, { flex: 1 }]}
-                    onPress={() => handleRejectRequest(request.id)}
-                  >
-                    <Text style={[buttonStyles.text, { color: colors.text }]}>Decline</Text>
-                  </TouchableOpacity>
+                  <View style={styles.requestActions}>
+                    <TouchableOpacity
+                      style={[buttonStyles.primary, { flex: 1, marginRight: 8 }]}
+                      onPress={() => handleAcceptRequest(request.id)}
+                    >
+                      <Text style={buttonStyles.text}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[buttonStyles.secondary, { flex: 1 }]}
+                      onPress={() => handleRejectRequest(request.id)}
+                    >
+                      <Text style={[buttonStyles.text, { color: colors.text }]}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 
@@ -166,69 +253,82 @@ export default function FriendsScreen() {
               </Text>
             </View>
           ) : (
-            friends.map((friend, index) => (
-              <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
-                <View style={styles.friendHeader}>
-                  <View style={styles.friendIcon}>
-                    <IconSymbol 
-                      ios_icon_name="person.fill" 
-                      android_material_icon_name="person" 
-                      size={24} 
-                      color={colors.primary} 
-                    />
-                  </View>
-                  <View style={styles.friendInfo}>
-                    <Text style={commonStyles.subtitle}>{friend.friendPhone || friend.friendEmail}</Text>
-                    {friend.friendSkillLevel && (
-                      <Text style={commonStyles.textSecondary}>
-                        {friend.friendSkillLevel}
-                      </Text>
-                    )}
-                    {friend.currentCourtName && (
-                      <View style={styles.playingContainer}>
-                        <View style={styles.playingBadge}>
-                          <IconSymbol 
-                            ios_icon_name="location.fill" 
-                            android_material_icon_name="location_on" 
-                            size={14} 
-                            color={colors.accent} 
-                          />
-                          <Text style={styles.playingText}>
-                            Playing at {friend.currentCourtName}
-                          </Text>
-                        </View>
-                        {friend.remainingTime && (
-                          <View style={styles.timeContainer}>
+            friends.map((friend, index) => {
+              const displayName = formatUserName(
+                friend.friendFirstName,
+                friend.friendLastName,
+                friend.friendNickname,
+                friend.friendEmail,
+                friend.friendPhone
+              );
+              
+              return (
+                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                  <View style={styles.friendHeader}>
+                    <View style={styles.friendIcon}>
+                      <IconSymbol 
+                        ios_icon_name="person.fill" 
+                        android_material_icon_name="person" 
+                        size={24} 
+                        color={colors.primary} 
+                      />
+                    </View>
+                    <View style={styles.friendInfo}>
+                      <Text style={commonStyles.subtitle}>{displayName}</Text>
+                      {friend.friendExperienceLevel && (
+                        <Text style={commonStyles.textSecondary}>
+                          {friend.friendExperienceLevel}
+                          {friend.friendDuprRating && ` • DUPR: ${friend.friendDuprRating}`}
+                        </Text>
+                      )}
+                      {friend.currentCourtName && (
+                        <View style={styles.playingContainer}>
+                          <View style={styles.playingBadge}>
                             <IconSymbol 
-                              ios_icon_name="clock.fill" 
-                              android_material_icon_name="schedule" 
+                              ios_icon_name="location.fill" 
+                              android_material_icon_name="location_on" 
                               size={14} 
-                              color={colors.primary} 
+                              color={colors.accent} 
                             />
-                            <Text style={styles.timeText}>
-                              {friend.remainingTime.hours > 0 && `${friend.remainingTime.hours}h `}
-                              {friend.remainingTime.minutes}m left
+                            <Text style={styles.playingText}>
+                              Playing at {friend.currentCourtName}
                             </Text>
                           </View>
-                        )}
-                      </View>
-                    )}
+                          {friend.remainingTime && (
+                            <View style={styles.timeContainer}>
+                              <IconSymbol 
+                                ios_icon_name="clock.fill" 
+                                android_material_icon_name="schedule" 
+                                size={14} 
+                                color={colors.primary} 
+                              />
+                              <Text style={styles.timeText}>
+                                {friend.remainingTime.hours > 0 && `${friend.remainingTime.hours}h `}
+                                {friend.remainingTime.minutes}m left
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveFriend(friend.id, displayName)}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="trash" 
+                        android_material_icon_name="delete" 
+                        size={20} 
+                        color={colors.textSecondary} 
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveFriend(friend.id, friend.friendPhone || friend.friendEmail || 'this friend')}
-                  >
-                    <IconSymbol 
-                      ios_icon_name="trash" 
-                      android_material_icon_name="delete" 
-                      size={20} 
-                      color={colors.textSecondary} 
-                    />
-                  </TouchableOpacity>
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
+
+        <BrandingFooter />
       </ScrollView>
     </View>
   );
@@ -264,6 +364,9 @@ const styles = StyleSheet.create({
   },
   friendInfo: {
     flex: 1,
+  },
+  addButton: {
+    padding: 4,
   },
   requestActions: {
     flexDirection: 'row',

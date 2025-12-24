@@ -209,16 +209,61 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          body: string
+          type: string
+          data: Json | null
+          read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          body: string
+          type: string
+          data?: Json | null
+          read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          body?: string
+          type?: string
+          data?: Json | null
+          read?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       users: {
         Row: {
           created_at: string
           email: string | null
           phone: string | null
           id: string
+          first_name: string | null
+          last_name: string | null
+          pickleballer_nickname: string | null
           location_enabled: boolean | null
           notifications_enabled: boolean | null
           privacy_opt_in: boolean | null
           skill_level: string | null
+          experience_level: string | null
           updated_at: string
           latitude: number | null
           longitude: number | null
@@ -236,10 +281,14 @@ export type Database = {
           email?: string | null
           phone?: string | null
           id: string
+          first_name?: string | null
+          last_name?: string | null
+          pickleballer_nickname?: string | null
           location_enabled?: boolean | null
           notifications_enabled?: boolean | null
           privacy_opt_in?: boolean | null
           skill_level?: string | null
+          experience_level?: string | null
           updated_at?: string
           latitude?: number | null
           longitude?: number | null
@@ -257,10 +306,14 @@ export type Database = {
           email?: string | null
           phone?: string | null
           id?: string
+          first_name?: string | null
+          last_name?: string | null
+          pickleballer_nickname?: string | null
           location_enabled?: boolean | null
           notifications_enabled?: boolean | null
           privacy_opt_in?: boolean | null
           skill_level?: string | null
+          experience_level?: string | null
           updated_at?: string
           latitude?: number | null
           longitude?: number | null
