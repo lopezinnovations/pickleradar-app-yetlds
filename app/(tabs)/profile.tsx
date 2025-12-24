@@ -15,6 +15,9 @@ export default function ProfileScreen() {
   const { user, signOut, updateUserProfile, uploadProfilePicture, loading: authLoading, needsConsentUpdate, acceptConsent } = useAuth();
   const { checkInHistory, getUserCheckIn, checkOut, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
   
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [pickleballerNickname, setPickleballerNickname] = useState('');
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
   const [duprRating, setDuprRating] = useState('');
   const [privacyOptIn, setPrivacyOptIn] = useState(false);
@@ -26,6 +29,7 @@ export default function ProfileScreen() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showConsentPrompt, setShowConsentPrompt] = useState(false);
   const [acceptingConsent, setAcceptingConsent] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
@@ -33,6 +37,9 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (user && !hasLoadedUserData.current) {
       console.log('ProfileScreen: User data loaded:', user);
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setPickleballerNickname(user.pickleballerNickname || '');
       setSkillLevel(user.skillLevel || 'Beginner');
       setDuprRating(user.duprRating ? user.duprRating.toString() : '');
       setPrivacyOptIn(user.privacyOptIn);
@@ -182,7 +189,18 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleSaveSettings = async () => {
+  const handleSaveProfile = async () => {
+    // Validate inputs
+    if (!firstName.trim()) {
+      Alert.alert('Validation Error', 'First name is required');
+      return;
+    }
+    
+    if (!lastName.trim()) {
+      Alert.alert('Validation Error', 'Last name is required');
+      return;
+    }
+
     const duprValue = duprRating.trim() ? parseFloat(duprRating) : undefined;
     
     if (duprValue !== undefined && (isNaN(duprValue) || duprValue < 0 || duprValue > 8.0)) {
@@ -191,31 +209,18 @@ export default function ProfileScreen() {
     }
 
     await updateUserProfile({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      pickleballerNickname: pickleballerNickname.trim() || undefined,
       skillLevel,
       duprRating: duprValue,
       privacyOptIn,
       notificationsEnabled,
       locationEnabled,
     });
-    Alert.alert('Success', 'Settings saved successfully!');
-  };
-
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/welcome');
-          },
-        },
-      ]
-    );
+    
+    setIsEditing(false);
+    Alert.alert('Success', 'Profile updated successfully!');
   };
 
   const formatDate = (dateString?: string) => {
@@ -376,8 +381,15 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
           <Text style={[commonStyles.title, { color: colors.primary, fontSize: 22 }]}>
-            {user.phone || user.email || 'User'}
+            {user.firstName && user.lastName 
+              ? `${user.firstName} ${user.lastName}` 
+              : user.phone || user.email || 'User'}
           </Text>
+          {user.pickleballerNickname && (
+            <Text style={[commonStyles.textSecondary, { fontSize: 16, marginTop: 4 }]}>
+              &quot;{user.pickleballerNickname}&quot;
+            </Text>
+          )}
           
           {/* User stats with separator bars */}
           <View style={styles.userStats}>
@@ -490,6 +502,61 @@ export default function ProfileScreen() {
         )}
 
         <View style={commonStyles.card}>
+          <View style={styles.sectionHeader}>
+            <Text style={commonStyles.subtitle}>Profile Information</Text>
+            {!isEditing && (
+              <TouchableOpacity onPress={() => setIsEditing(true)}>
+                <IconSymbol 
+                  ios_icon_name="pencil.circle.fill" 
+                  android_material_icon_name="edit" 
+                  size={24} 
+                  color={colors.primary} 
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, fontWeight: '600' }]}>
+            First Name *
+          </Text>
+          <TextInput
+            style={[commonStyles.input, !isEditing && styles.inputDisabled]}
+            placeholder="Enter your first name"
+            placeholderTextColor={colors.textSecondary}
+            value={firstName}
+            onChangeText={setFirstName}
+            editable={isEditing}
+          />
+
+          <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, fontWeight: '600' }]}>
+            Last Name *
+          </Text>
+          <TextInput
+            style={[commonStyles.input, !isEditing && styles.inputDisabled]}
+            placeholder="Enter your last name"
+            placeholderTextColor={colors.textSecondary}
+            value={lastName}
+            onChangeText={setLastName}
+            editable={isEditing}
+          />
+
+          <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, fontWeight: '600' }]}>
+            Pickleballer Nickname (Optional)
+          </Text>
+          <Text style={[commonStyles.textSecondary, { marginBottom: 12 }]}>
+            Your fun pickleball nickname
+          </Text>
+          <TextInput
+            style={[commonStyles.input, !isEditing && styles.inputDisabled]}
+            placeholder="e.g., Dink Master, Ace, Smash King"
+            placeholderTextColor={colors.textSecondary}
+            value={pickleballerNickname}
+            onChangeText={setPickleballerNickname}
+            editable={isEditing}
+          />
+        </View>
+
+        <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Player Information</Text>
           
           <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, fontWeight: '600' }]}>
@@ -506,8 +573,10 @@ export default function ProfileScreen() {
                 style={[
                   styles.skillLevelButton,
                   skillLevel === level && styles.skillLevelButtonActive,
+                  !isEditing && styles.buttonDisabled,
                 ]}
-                onPress={() => setSkillLevel(level)}
+                onPress={() => isEditing && setSkillLevel(level)}
+                disabled={!isEditing}
               >
                 <Text
                   style={[
@@ -528,13 +597,14 @@ export default function ProfileScreen() {
             Enter your DUPR rating (0.0 - 8.0)
           </Text>
           <TextInput
-            style={commonStyles.input}
+            style={[commonStyles.input, !isEditing && styles.inputDisabled]}
             placeholder="e.g., 3.5"
             placeholderTextColor={colors.textSecondary}
             value={duprRating}
             onChangeText={setDuprRating}
             keyboardType="decimal-pad"
             maxLength={4}
+            editable={isEditing}
           />
         </View>
 
@@ -553,6 +623,7 @@ export default function ProfileScreen() {
               onValueChange={setPrivacyOptIn}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={colors.card}
+              disabled={!isEditing}
             />
           </View>
 
@@ -568,6 +639,7 @@ export default function ProfileScreen() {
               onValueChange={setNotificationsEnabled}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={colors.card}
+              disabled={!isEditing}
             />
           </View>
 
@@ -583,6 +655,7 @@ export default function ProfileScreen() {
               onValueChange={setLocationEnabled}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={colors.card}
+              disabled={!isEditing}
             />
           </View>
         </View>
@@ -632,19 +705,47 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        <TouchableOpacity
-          style={buttonStyles.primary}
-          onPress={handleSaveSettings}
-        >
-          <Text style={buttonStyles.text}>Save Settings</Text>
-        </TouchableOpacity>
+        {isEditing ? (
+          <React.Fragment>
+            <TouchableOpacity
+              style={buttonStyles.primary}
+              onPress={handleSaveProfile}
+            >
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check_circle" 
+                size={20} 
+                color={colors.card} 
+              />
+              <Text style={[buttonStyles.text, { marginLeft: 8 }]}>Save Changes</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[buttonStyles.secondary, { marginTop: 12 }]}
-          onPress={handleSignOut}
-        >
-          <Text style={[buttonStyles.text, { color: colors.accent }]}>Sign Out</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={[buttonStyles.secondary, { marginTop: 12 }]}
+              onPress={() => {
+                // Reset to original values
+                setFirstName(user.firstName || '');
+                setLastName(user.lastName || '');
+                setPickleballerNickname(user.pickleballerNickname || '');
+                setSkillLevel(user.skillLevel || 'Beginner');
+                setDuprRating(user.duprRating ? user.duprRating.toString() : '');
+                setPrivacyOptIn(user.privacyOptIn);
+                setNotificationsEnabled(user.notificationsEnabled);
+                setLocationEnabled(user.locationEnabled);
+                setIsEditing(false);
+              }}
+            >
+              <Text style={[buttonStyles.text, { color: colors.text }]}>Cancel</Text>
+            </TouchableOpacity>
+          </React.Fragment>
+        ) : (
+          <TouchableOpacity
+            style={[buttonStyles.secondary, { marginTop: 12 }]}
+            onPress={handleSignOut}
+          >
+            <Text style={[buttonStyles.text, { color: colors.accent }]}>Sign Out</Text>
+          </TouchableOpacity>
+        )}
 
         <LegalFooter />
       </ScrollView>
@@ -762,6 +863,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inputDisabled: {
+    backgroundColor: colors.highlight,
+    opacity: 0.7,
+  },
   skillLevelContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -779,6 +889,9 @@ const styles = StyleSheet.create({
   skillLevelButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   skillLevelText: {
     fontSize: 14,
