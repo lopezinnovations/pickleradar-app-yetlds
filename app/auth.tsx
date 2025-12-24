@@ -10,12 +10,12 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { sendOtp, verifyOtp, isConfigured } = useAuth();
+  const { signUp, signIn, isConfigured } = useAuth();
   
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otpCode, setOtpCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
 
   // Clear any existing sessions on mount to ensure clean state
@@ -23,8 +23,8 @@ export default function AuthScreen() {
     const clearOldSessions = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && !session.user.phone) {
-          console.log('AuthScreen: Clearing old non-phone session');
+        if (session && session.user.phone) {
+          console.log('AuthScreen: Clearing old phone session');
           await supabase.auth.signOut();
         }
       } catch (error) {
@@ -34,39 +34,33 @@ export default function AuthScreen() {
     clearOldSessions();
   }, []);
 
-  const formatPhoneNumber = (text: string) => {
-    // Remove all non-numeric characters
-    const cleaned = text.replace(/\D/g, '');
-    
-    // Format as (XXX) XXX-XXXX
-    if (cleaned.length <= 3) {
-      return cleaned;
-    } else if (cleaned.length <= 6) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-    } else {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-    }
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
-  const getCleanPhoneNumber = (formatted: string) => {
-    // Remove all non-numeric characters and add +1 prefix
-    const cleaned = formatted.replace(/\D/g, '');
-    return `+1${cleaned}`;
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
   };
 
-  const validatePhoneNumber = (phone: string) => {
-    const cleaned = phone.replace(/\D/g, '');
-    return cleaned.length === 10;
-  };
-
-  const handleSendOtp = async () => {
-    if (!phoneNumber.trim()) {
-      Alert.alert('Error', 'Please enter your phone number');
+  const handleSignUp = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email address');
       return;
     }
 
-    if (!validatePhoneNumber(phoneNumber)) {
-      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Error', 'Please enter a password');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -86,63 +80,76 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      const cleanPhone = getCleanPhoneNumber(phoneNumber);
-      console.log('AuthScreen: Sending OTP to:', cleanPhone);
+      console.log('AuthScreen: Signing up with email:', email);
       
-      const result = await sendOtp(cleanPhone);
+      const result = await signUp(email, password, consentAccepted);
       
       if (result.success) {
-        setOtpSent(true);
         Alert.alert(
-          'Verification Code Sent',
-          'Please check your phone for the verification code.',
+          'Check Your Email',
+          'We sent you a verification link. Please check your email and click the link to verify your account before signing in.',
           [{ text: 'OK' }]
         );
+        // Clear form
+        setEmail('');
+        setPassword('');
+        setConsentAccepted(false);
+        // Switch to sign in mode
+        setIsSignUp(false);
       } else {
-        console.log('AuthScreen: Send OTP failed:', result.message);
-        Alert.alert('Error', result.message || 'Failed to send verification code. Please try again.');
+        console.log('AuthScreen: Sign up failed:', result.message);
+        Alert.alert('Sign Up Failed', result.message || 'Failed to create account. Please try again.');
       }
     } catch (error: any) {
-      console.log('AuthScreen: Send OTP error:', error);
+      console.log('AuthScreen: Sign up error:', error);
       Alert.alert('Error', error?.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (!otpCode.trim()) {
-      Alert.alert('Error', 'Please enter the verification code');
+  const handleSignIn = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email address');
       return;
     }
 
-    if (otpCode.length !== 6) {
-      Alert.alert('Error', 'Verification code must be 6 digits');
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Error', 'Please enter your password');
+      return;
+    }
+
+    if (!isConfigured) {
+      Alert.alert(
+        'Supabase Required',
+        'Please enable Supabase by pressing the Supabase button in Natively and connecting to a project to use authentication features.'
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      const cleanPhone = getCleanPhoneNumber(phoneNumber);
-      console.log('AuthScreen: Verifying OTP for:', cleanPhone);
-      console.log('AuthScreen: OTP code:', otpCode);
+      console.log('AuthScreen: Signing in with email:', email);
       
-      const result = await verifyOtp(cleanPhone, otpCode, consentAccepted);
+      const result = await signIn(email, password);
       
       if (result.success) {
         Alert.alert(
           'Success',
-          'Phone number verified. Welcome to PickleRadar.',
+          'Welcome to PickleRadar!',
           [
             {
               text: 'OK',
               onPress: () => {
                 // Clear form
-                setPhoneNumber('');
-                setOtpCode('');
-                setOtpSent(false);
-                setConsentAccepted(false);
+                setEmail('');
+                setPassword('');
                 // Redirect to home
                 router.replace('/(tabs)/(home)/');
               },
@@ -150,11 +157,11 @@ export default function AuthScreen() {
           ]
         );
       } else {
-        console.log('AuthScreen: Verify OTP failed:', result.message);
-        Alert.alert('Verification Failed', result.message || 'Invalid or expired verification code. Please try again.');
+        console.log('AuthScreen: Sign in failed:', result.message);
+        Alert.alert('Sign In Failed', result.message || 'Invalid email or password. Please try again.');
       }
     } catch (error: any) {
-      console.log('AuthScreen: Verify OTP error:', error);
+      console.log('AuthScreen: Sign in error:', error);
       Alert.alert('Error', error?.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -162,18 +169,14 @@ export default function AuthScreen() {
   };
 
   const handleBack = () => {
-    if (otpSent) {
-      // Go back to phone number entry
-      setOtpSent(false);
-      setOtpCode('');
-    } else {
-      router.back();
-    }
+    router.back();
   };
 
-  const handleResendOtp = async () => {
-    setOtpCode('');
-    await handleSendOtp();
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setEmail('');
+    setPassword('');
+    setConsentAccepted(false);
   };
 
   return (
@@ -204,140 +207,120 @@ export default function AuthScreen() {
             resizeMode="contain"
           />
           <Text style={[commonStyles.title, { color: colors.primary }]}>
-            {otpSent ? 'Verify Your Phone' : 'Welcome to PickleRadar'}
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
           </Text>
           <Text style={commonStyles.textSecondary}>
-            {otpSent 
-              ? 'Enter the 6-digit code sent to your phone' 
-              : 'Sign in with your phone number'}
+            {isSignUp 
+              ? 'Sign up to start finding pickleball courts' 
+              : 'Sign in to continue'}
           </Text>
         </View>
 
         <View style={styles.form}>
-          {!otpSent ? (
-            <>
-              <Text style={styles.label}>Phone Number</Text>
-              <TextInput
-                style={commonStyles.input}
-                placeholder="(555) 123-4567"
-                placeholderTextColor={colors.textSecondary}
-                value={phoneNumber}
-                onChangeText={(text) => setPhoneNumber(formatPhoneNumber(text))}
-                keyboardType="phone-pad"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                maxLength={14}
-              />
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={commonStyles.input}
+            placeholder="your@email.com"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
 
-              <View style={styles.consentContainer}>
-                <TouchableOpacity
-                  style={styles.checkboxContainer}
-                  onPress={() => setConsentAccepted(!consentAccepted)}
-                  disabled={loading}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.checkbox, consentAccepted && styles.checkboxChecked]}>
-                    {consentAccepted && (
-                      <IconSymbol 
-                        ios_icon_name="checkmark" 
-                        android_material_icon_name="check" 
-                        size={16} 
-                        color={colors.card} 
-                      />
-                    )}
-                  </View>
-                  <View style={styles.consentTextContainer}>
-                    <Text style={styles.consentText}>
-                      I agree to the{' '}
-                      <Text 
-                        style={styles.consentLink}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          router.push('/legal/privacy-policy');
-                        }}
-                      >
-                        Privacy Policy
-                      </Text>
-                      {' '}and{' '}
-                      <Text 
-                        style={styles.consentLink}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          router.push('/legal/terms-of-service');
-                        }}
-                      >
-                        Terms of Service
-                      </Text>
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={commonStyles.input}
+            placeholder={isSignUp ? 'At least 6 characters' : 'Enter your password'}
+            placeholderTextColor={colors.textSecondary}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
 
+          {isSignUp && (
+            <View style={styles.consentContainer}>
               <TouchableOpacity
-                style={[
-                  buttonStyles.primary, 
-                  { marginTop: 8 }, 
-                  (loading || !consentAccepted) && { opacity: 0.6 }
-                ]}
-                onPress={handleSendOtp}
-                disabled={loading || !consentAccepted}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <ActivityIndicator color={colors.card} />
-                ) : (
-                  <Text style={buttonStyles.text}>Send Verification Code</Text>
-                )}
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={styles.label}>Verification Code</Text>
-              <TextInput
-                style={[commonStyles.input, styles.otpInput]}
-                placeholder="000000"
-                placeholderTextColor={colors.textSecondary}
-                value={otpCode}
-                onChangeText={setOtpCode}
-                keyboardType="number-pad"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                maxLength={6}
-                autoFocus
-              />
-
-              <TouchableOpacity
-                style={[
-                  buttonStyles.primary, 
-                  { marginTop: 8 }, 
-                  loading && { opacity: 0.6 }
-                ]}
-                onPress={handleVerifyOtp}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <ActivityIndicator color={colors.card} />
-                ) : (
-                  <Text style={buttonStyles.text}>Verify Code</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.resendButton}
-                onPress={handleResendOtp}
+                style={styles.checkboxContainer}
+                onPress={() => setConsentAccepted(!consentAccepted)}
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <Text style={styles.resendText}>
-                  Didn&apos;t receive the code?{' '}
-                  <Text style={styles.resendLink}>Resend</Text>
-                </Text>
+                <View style={[styles.checkbox, consentAccepted && styles.checkboxChecked]}>
+                  {consentAccepted && (
+                    <IconSymbol 
+                      ios_icon_name="checkmark" 
+                      android_material_icon_name="check" 
+                      size={16} 
+                      color={colors.card} 
+                    />
+                  )}
+                </View>
+                <View style={styles.consentTextContainer}>
+                  <Text style={styles.consentText}>
+                    I agree to the{' '}
+                    <Text 
+                      style={styles.consentLink}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        router.push('/legal/privacy-policy');
+                      }}
+                    >
+                      Privacy Policy
+                    </Text>
+                    {' '}and{' '}
+                    <Text 
+                      style={styles.consentLink}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        router.push('/legal/terms-of-service');
+                      }}
+                    >
+                      Terms of Service
+                    </Text>
+                  </Text>
+                </View>
               </TouchableOpacity>
-            </>
+            </View>
           )}
+
+          <TouchableOpacity
+            style={[
+              buttonStyles.primary, 
+              { marginTop: 8 }, 
+              (loading || (isSignUp && !consentAccepted)) && { opacity: 0.6 }
+            ]}
+            onPress={isSignUp ? handleSignUp : handleSignIn}
+            disabled={loading || (isSignUp && !consentAccepted)}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.card} />
+            ) : (
+              <Text style={buttonStyles.text}>
+                {isSignUp ? 'Sign Up' : 'Sign In'}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={toggleMode}
+            disabled={loading}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.toggleText}>
+              {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+              <Text style={styles.toggleLink}>
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </Text>
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {!isConfigured && (
@@ -403,11 +386,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
-  },
-  otpInput: {
-    fontSize: 24,
-    letterSpacing: 8,
-    textAlign: 'center',
+    marginTop: 12,
   },
   consentContainer: {
     marginTop: 16,
@@ -446,15 +425,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
-  resendButton: {
+  toggleButton: {
     marginTop: 20,
     alignItems: 'center',
   },
-  resendText: {
+  toggleText: {
     fontSize: 14,
     color: colors.textSecondary,
   },
-  resendLink: {
+  toggleLink: {
     color: colors.primary,
     fontWeight: '600',
   },
