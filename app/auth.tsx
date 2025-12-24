@@ -10,12 +10,13 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { signUp, signIn, isConfigured } = useAuth();
+  const { signUp, signIn, resetPassword, isConfigured } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -86,31 +87,15 @@ export default function AuthScreen() {
       const result = await signUp(email, password, consentAccepted);
       
       if (result.success) {
-        Alert.alert(
-          'Check Your Email',
-          result.message || 'We sent you a verification link. Please check your email and click the link to verify your account before signing in.',
-          [{ text: 'OK' }]
-        );
         // Clear form
         setEmail('');
         setPassword('');
         setConsentAccepted(false);
-        // Switch to sign in mode
-        setIsSignUp(false);
+        // Redirect to home immediately
+        router.replace('/(tabs)/(home)/');
       } else {
         console.log('AuthScreen: Sign up failed:', result.message);
-        
-        // Special handling for email configuration issues
-        if (result.message?.includes('email verification is currently unavailable') || 
-            result.message?.includes('Email service is not configured')) {
-          Alert.alert(
-            'Email Configuration Issue',
-            result.message + '\n\nNote: This is a server configuration issue. The administrator needs to either:\n\n1. Configure SMTP settings in Supabase\n2. Disable email confirmation in Authentication settings',
-            [{ text: 'OK' }]
-          );
-        } else {
-          Alert.alert('Sign Up Failed', result.message || 'Failed to create account. Please try again.');
-        }
+        Alert.alert('Sign Up Failed', result.message || 'Failed to create account. Please try again.');
       }
     } catch (error: any) {
       console.log('AuthScreen: Sign up error:', error);
@@ -152,28 +137,70 @@ export default function AuthScreen() {
       const result = await signIn(email, password);
       
       if (result.success) {
+        // Clear form
+        setEmail('');
+        setPassword('');
+        // Redirect to home immediately without showing success message
+        router.replace('/(tabs)/(home)/');
+      } else {
+        console.log('AuthScreen: Sign in failed:', result.message);
+        // Show generic error message
+        Alert.alert('Sign In Failed', 'Incorrect email or password. Please try again.');
+      }
+    } catch (error: any) {
+      console.log('AuthScreen: Sign in error:', error);
+      Alert.alert('Sign In Failed', 'Incorrect email or password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email address');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (!isConfigured) {
+      Alert.alert(
+        'Supabase Required',
+        'Please enable Supabase by pressing the Supabase button in Natively and connecting to a project to use authentication features.'
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      console.log('AuthScreen: Requesting password reset for:', email);
+      
+      const result = await resetPassword(email);
+      
+      if (result.success) {
         Alert.alert(
-          'Success',
-          'Welcome to PickleRadar!',
+          'Check Your Email',
+          'Password reset instructions have been sent to your email address.',
           [
             {
               text: 'OK',
               onPress: () => {
-                // Clear form
+                setIsForgotPassword(false);
                 setEmail('');
-                setPassword('');
-                // Redirect to home
-                router.replace('/(tabs)/(home)/');
               },
             },
           ]
         );
       } else {
-        console.log('AuthScreen: Sign in failed:', result.message);
-        Alert.alert('Sign In Failed', result.message || 'Invalid email or password. Please try again.');
+        console.log('AuthScreen: Password reset failed:', result.message);
+        Alert.alert('Error', result.message || 'Failed to send password reset email. Please try again.');
       }
     } catch (error: any) {
-      console.log('AuthScreen: Sign in error:', error);
+      console.log('AuthScreen: Password reset error:', error);
       Alert.alert('Error', error?.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -186,7 +213,15 @@ export default function AuthScreen() {
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
+    setIsForgotPassword(false);
     setEmail('');
+    setPassword('');
+    setConsentAccepted(false);
+  };
+
+  const toggleForgotPassword = () => {
+    setIsForgotPassword(!isForgotPassword);
+    setIsSignUp(false);
     setPassword('');
     setConsentAccepted(false);
   };
@@ -219,12 +254,14 @@ export default function AuthScreen() {
             resizeMode="contain"
           />
           <Text style={[commonStyles.title, { color: colors.primary }]}>
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create Account' : 'Welcome Back'}
           </Text>
           <Text style={commonStyles.textSecondary}>
-            {isSignUp 
-              ? 'Sign up to start finding pickleball courts' 
-              : 'Sign in to continue'}
+            {isForgotPassword 
+              ? 'Enter your email to receive reset instructions' 
+              : isSignUp 
+                ? 'Sign up to start finding pickleball courts' 
+                : 'Sign in to continue'}
           </Text>
         </View>
 
@@ -242,32 +279,36 @@ export default function AuthScreen() {
             editable={!loading}
           />
 
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[commonStyles.input, styles.passwordInput]}
-              placeholder={isSignUp ? 'At least 6 characters' : 'Enter your password'}
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.showPasswordButton}
-              onPress={() => setShowPassword(!showPassword)}
-              disabled={loading}
-            >
-              <IconSymbol
-                ios_icon_name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
-                android_material_icon_name={showPassword ? 'visibility_off' : 'visibility'}
-                size={20}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
+          {!isForgotPassword && (
+            <>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[commonStyles.input, styles.passwordInput]}
+                  placeholder={isSignUp ? 'At least 6 characters' : 'Enter your password'}
+                  placeholderTextColor={colors.textSecondary}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.showPasswordButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  <IconSymbol
+                    ios_icon_name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
+                    android_material_icon_name={showPassword ? 'visibility_off' : 'visibility'}
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
 
           {isSignUp && (
             <View style={styles.consentContainer}>
@@ -321,7 +362,7 @@ export default function AuthScreen() {
               { marginTop: 8 }, 
               (loading || (isSignUp && !consentAccepted)) && { opacity: 0.6 }
             ]}
-            onPress={isSignUp ? handleSignUp : handleSignIn}
+            onPress={isForgotPassword ? handleForgotPassword : isSignUp ? handleSignUp : handleSignIn}
             disabled={loading || (isSignUp && !consentAccepted)}
             activeOpacity={0.8}
           >
@@ -329,24 +370,55 @@ export default function AuthScreen() {
               <ActivityIndicator color={colors.card} />
             ) : (
               <Text style={buttonStyles.text}>
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+                {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Sign Up' : 'Sign In'}
               </Text>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={toggleMode}
-            disabled={loading}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.toggleText}>
-              {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-              <Text style={styles.toggleLink}>
-                {isSignUp ? 'Sign In' : 'Sign Up'}
+          {!isForgotPassword && !isSignUp && (
+            <TouchableOpacity
+              style={styles.forgotPasswordButton}
+              onPress={toggleForgotPassword}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotPasswordText}>
+                Forgot Password?
               </Text>
-            </Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+
+          {!isForgotPassword && (
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={toggleMode}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.toggleText}>
+                {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+                <Text style={styles.toggleLink}>
+                  {isSignUp ? 'Sign In' : 'Sign Up'}
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {isForgotPassword && (
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={toggleForgotPassword}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.toggleText}>
+                Remember your password?{' '}
+                <Text style={styles.toggleLink}>
+                  Sign In
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {!isConfigured && (
@@ -368,26 +440,6 @@ export default function AuthScreen() {
             </Text>
           </View>
         )}
-
-        <View style={[commonStyles.card, { backgroundColor: colors.border, marginTop: 20, padding: 16 }]}>
-          <View style={styles.infoHeader}>
-            <IconSymbol 
-              ios_icon_name="info.circle.fill" 
-              android_material_icon_name="info" 
-              size={20} 
-              color={colors.primary} 
-            />
-            <Text style={[styles.infoTitle, { marginLeft: 8 }]}>
-              Email Verification
-            </Text>
-          </View>
-          <Text style={[styles.infoText, { marginTop: 8 }]}>
-            After signing up, you&apos;ll receive a verification email. Please check your inbox and click the link to verify your account before signing in.
-          </Text>
-          <Text style={[styles.infoText, { marginTop: 8, fontSize: 12, fontStyle: 'italic' }]}>
-            Note: If you don&apos;t receive an email, the email service may need to be configured by the administrator.
-          </Text>
-        </View>
 
         <LegalFooter />
       </ScrollView>
@@ -483,6 +535,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
+  forgotPasswordButton: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+  },
   toggleButton: {
     marginTop: 20,
     alignItems: 'center',
@@ -498,19 +559,5 @@ const styles = StyleSheet.create({
   warningHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  infoText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textSecondary,
   },
 });

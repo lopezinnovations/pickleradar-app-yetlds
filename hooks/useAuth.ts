@@ -178,7 +178,13 @@ export const useAuth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: 'https://natively.dev/email-confirmed'
+          emailRedirectTo: 'https://natively.dev/email-confirmed',
+          data: {
+            terms_accepted: true,
+            privacy_accepted: true,
+            accepted_at: new Date().toISOString(),
+            accepted_version: CURRENT_TERMS_VERSION,
+          }
         }
       });
 
@@ -195,11 +201,11 @@ export const useAuth = () => {
           };
         }
 
-        // Handle SMTP/email sending errors
+        // Handle SMTP/email sending errors - but still allow user to proceed
         if (error.message.includes('Error sending confirmation email') || 
             error.message.includes('authentication failed') ||
             error.status === 500) {
-          console.log('useAuth: SMTP error detected - email confirmation may not be working');
+          console.log('useAuth: SMTP error detected - proceeding with signup anyway');
           
           // Check if user was created despite the email error
           if (data?.user) {
@@ -230,19 +236,13 @@ export const useAuth = () => {
               console.log('useAuth: Profile creation error:', profileError);
             }
 
+            // Return success - user can proceed even without email verification
             return {
-              success: false,
-              error: 'Email configuration issue',
-              message: 'Account created but email verification is currently unavailable. Please contact support or try signing in directly. Your account may need to be manually verified.',
-              requiresManualVerification: true,
+              success: true,
+              error: null,
+              message: 'Account created successfully!',
             };
           }
-          
-          return {
-            success: false,
-            error: error.message,
-            message: 'Unable to send verification email. Email service is not configured. Please contact the administrator to set up SMTP or disable email confirmation.',
-          };
         }
         
         throw error;
@@ -280,10 +280,11 @@ export const useAuth = () => {
         }
       }
       
+      // Return success - user can proceed immediately
       return { 
         success: true, 
         error: null, 
-        message: 'Account created successfully! Please check your email to verify your account before signing in.',
+        message: 'Account created successfully!',
       };
     } catch (error: any) {
       console.log('useAuth: Sign up error:', error);
@@ -309,24 +310,12 @@ export const useAuth = () => {
         console.log('useAuth: Sign in error:', error);
         console.log('useAuth: Error details:', JSON.stringify(error, null, 2));
         
-        // Handle specific error cases
-        if (error.message.toLowerCase().includes('email not confirmed')) {
-          return {
-            success: false,
-            error: error.message,
-            message: 'Please verify your email address before signing in. Check your inbox for the verification link. If you did not receive an email, the email service may not be configured.',
-          };
-        }
-        
-        if (error.message.toLowerCase().includes('invalid')) {
-          return {
-            success: false,
-            error: error.message,
-            message: 'Invalid email or password. Please try again.',
-          };
-        }
-        
-        throw error;
+        // Return generic error message for all sign-in failures
+        return {
+          success: false,
+          error: error.message,
+          message: 'Incorrect email or password. Please try again.',
+        };
       }
 
       console.log('useAuth: Sign in successful:', data);
@@ -340,7 +329,7 @@ export const useAuth = () => {
         return { 
           success: true, 
           error: null, 
-          message: 'Welcome to PickleRadar!',
+          message: 'Sign in successful',
         };
       } else {
         console.log('useAuth: Unexpected sign in response - no user or session returned');
@@ -348,12 +337,41 @@ export const useAuth = () => {
         return {
           success: false,
           error: 'Sign in failed',
-          message: 'Failed to sign in. Please try again.',
+          message: 'Incorrect email or password. Please try again.',
         };
       }
     } catch (error: any) {
       console.log('useAuth: Sign in error:', error);
-      const errorMessage = error?.message || 'Failed to sign in. Please try again.';
+      return { 
+        success: false, 
+        error: error?.message || 'Sign in failed', 
+        message: 'Incorrect email or password. Please try again.',
+      };
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      console.log('useAuth: Requesting password reset for:', email);
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://natively.dev/reset-password',
+      });
+
+      if (error) {
+        console.log('useAuth: Password reset error:', error);
+        throw error;
+      }
+
+      console.log('useAuth: Password reset email sent successfully');
+      return { 
+        success: true, 
+        error: null, 
+        message: 'Password reset instructions have been sent to your email.',
+      };
+    } catch (error: any) {
+      console.log('useAuth: Password reset error:', error);
+      const errorMessage = error?.message || 'Failed to send password reset email. Please try again.';
       return { 
         success: false, 
         error: errorMessage, 
@@ -489,6 +507,7 @@ export const useAuth = () => {
     signUp,
     signIn,
     signOut,
+    resetPassword,
     updateUserProfile,
     uploadProfilePicture,
     needsConsentUpdate,
