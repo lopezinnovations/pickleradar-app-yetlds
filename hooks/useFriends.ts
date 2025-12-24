@@ -14,6 +14,8 @@ interface UserWithStatus {
   dupr_rating?: number;
   isAtCourt: boolean;
   courtsPlayed?: string[];
+  friendshipStatus?: 'none' | 'pending_sent' | 'pending_received' | 'accepted';
+  friendshipId?: string;
 }
 
 export const useFriends = (userId: string | undefined) => {
@@ -56,18 +58,36 @@ export const useFriends = (userId: string | undefined) => {
 
       const checkedInUserIds = new Set((checkIns || []).map(ci => ci.user_id));
 
-      // Get existing friend relationships and pending requests
-      const { data: existingRelationships, error: relationshipsError } = await supabase
+      // Get ALL friend relationships (not just accepted ones)
+      const { data: allRelationships, error: relationshipsError } = await supabase
         .from('friends')
-        .select('friend_id, user_id, status')
+        .select('id, user_id, friend_id, status')
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
       if (relationshipsError) throw relationshipsError;
 
-      // Create a set of user IDs that are already friends or have pending requests
-      const relatedUserIds = new Set(
-        (existingRelationships || []).flatMap(r => [r.user_id, r.friend_id]).filter(id => id !== userId)
-      );
+      // Create a map of user relationships
+      const relationshipMap = new Map<string, { status: string; friendshipId: string; isSender: boolean }>();
+      (allRelationships || []).forEach(rel => {
+        const otherUserId = rel.user_id === userId ? rel.friend_id : rel.user_id;
+        const isSender = rel.user_id === userId;
+        
+        if (rel.status === 'accepted') {
+          relationshipMap.set(otherUserId, { 
+            status: 'accepted', 
+            friendshipId: rel.id,
+            isSender 
+          });
+        } else if (rel.status === 'pending') {
+          // Determine if this is a sent or received request
+          const friendshipStatus = isSender ? 'pending_sent' : 'pending_received';
+          relationshipMap.set(otherUserId, { 
+            status: friendshipStatus, 
+            friendshipId: rel.id,
+            isSender 
+          });
+        }
+      });
 
       // Get courts played by each user
       const { data: userCheckIns, error: userCheckInsError } = await supabase
@@ -87,16 +107,19 @@ export const useFriends = (userId: string | undefined) => {
         }
       });
 
-      // Filter out users who are already friends or have pending requests
-      const usersWithStatus: UserWithStatus[] = (users || [])
-        .filter(user => !relatedUserIds.has(user.id))
-        .map(user => ({
+      // Map users with their relationship status
+      const usersWithStatus: UserWithStatus[] = (users || []).map(user => {
+        const relationship = relationshipMap.get(user.id);
+        return {
           ...user,
           isAtCourt: checkedInUserIds.has(user.id),
           courtsPlayed: userCourtsMap.has(user.id) 
             ? Array.from(userCourtsMap.get(user.id)!) 
             : [],
-        }));
+          friendshipStatus: relationship?.status as any || 'none',
+          friendshipId: relationship?.friendshipId,
+        };
+      });
 
       setAllUsers(usersWithStatus);
     } catch (error) {

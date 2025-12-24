@@ -225,8 +225,8 @@ export default function MessagesScreen() {
       {filteredConversations.length === 0 ? (
         <View style={styles.emptyState}>
           <IconSymbol
-            ios_icon_name="message"
-            android_material_icon_name="message"
+            ios_icon_name="envelope"
+            android_material_icon_name="mail"
             size={64}
             color={colors.textSecondary}
           />

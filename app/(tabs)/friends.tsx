@@ -30,9 +30,6 @@ export default function FriendsScreen() {
   const [selectedSkillLevels, setSelectedSkillLevels] = useState<string[]>([]);
   const [selectedCourts, setSelectedCourts] = useState<string[]>([]);
 
-  // Track pending requests sent by current user
-  const [pendingRequestsSent, setPendingRequestsSent] = useState<Set<string>>(new Set());
-
   const formatUserName = (firstName?: string, lastName?: string, nickname?: string, email?: string, phone?: string) => {
     if (firstName && lastName) {
       const displayName = `${firstName} ${lastName.charAt(0)}.`;
@@ -52,13 +49,12 @@ export default function FriendsScreen() {
     
     if (result.success) {
       Alert.alert('Success', `Friend request sent to ${friendName}!`);
-      setPendingRequestsSent(prev => new Set(prev).add(friendId));
     } else {
       Alert.alert('Error', result.error || 'Failed to send friend request');
     }
   };
 
-  const handleCancelRequest = async (friendId: string, friendName: string) => {
+  const handleCancelRequest = async (friendshipId: string, friendName: string) => {
     Alert.alert(
       'Cancel Request',
       `Cancel friend request to ${friendName}?`,
@@ -68,27 +64,11 @@ export default function FriendsScreen() {
           text: 'Yes',
           style: 'destructive',
           onPress: async () => {
-            // Find the friendship ID for this user
-            const friendship = await findFriendshipId(friendId);
-            if (friendship) {
-              await removeFriend(friendship);
-              setPendingRequestsSent(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(friendId);
-                return newSet;
-              });
-            }
+            await removeFriend(friendshipId);
           },
         },
       ]
     );
-  };
-
-  const findFriendshipId = async (friendId: string): Promise<string | null> => {
-    // This is a helper to find the friendship ID
-    // In a real implementation, you'd query the database
-    // For now, we'll rely on the useFriends hook to handle this
-    return null;
   };
 
   const handleAcceptRequest = async (friendshipId: string) => {
@@ -199,13 +179,6 @@ export default function FriendsScreen() {
       return true;
     });
   }, [allUsers, searchQuery, minDupr, maxDupr, selectedSkillLevels, selectedCourts]);
-
-  // Check if user is a friend or has pending request
-  const getUserRelationship = (userId: string): 'friend' | 'pending' | 'none' => {
-    if (friends.some(f => f.friendId === userId)) return 'friend';
-    if (pendingRequestsSent.has(userId)) return 'pending';
-    return 'none';
-  };
 
   if (loading) {
     return (
@@ -598,7 +571,7 @@ export default function FriendsScreen() {
                 otherUser.email
               );
               
-              const relationship = getUserRelationship(otherUser.id);
+              const relationship = otherUser.friendshipStatus || 'none';
               
               return (
                 <TouchableOpacity
@@ -666,12 +639,12 @@ export default function FriendsScreen() {
                       </TouchableOpacity>
                     )}
                     
-                    {relationship === 'pending' && (
+                    {relationship === 'pending_sent' && otherUser.friendshipId && (
                       <TouchableOpacity
                         style={styles.addButton}
                         onPress={(e) => {
                           e.stopPropagation();
-                          handleCancelRequest(otherUser.id, displayName);
+                          handleCancelRequest(otherUser.friendshipId!, displayName);
                         }}
                       >
                         <IconSymbol 
@@ -683,7 +656,7 @@ export default function FriendsScreen() {
                       </TouchableOpacity>
                     )}
                     
-                    {relationship === 'friend' && (
+                    {relationship === 'accepted' && (
                       <View style={styles.friendBadge}>
                         <IconSymbol 
                           ios_icon_name="checkmark.circle.fill" 

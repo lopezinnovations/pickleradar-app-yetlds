@@ -434,8 +434,8 @@ export default function UserProfileScreen() {
                     onPress={() => router.push(`/conversation/${id}`)}
                   >
                     <IconSymbol 
-                      ios_icon_name="message.fill" 
-                      android_material_icon_name="message" 
+                      ios_icon_name="envelope.fill" 
+                      android_material_icon_name="mail" 
                       size={20} 
                       color={colors.card} 
                     />
