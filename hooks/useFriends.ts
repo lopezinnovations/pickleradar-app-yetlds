@@ -3,10 +3,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 import { Friend, FriendWithDetails } from '@/types';
 
+interface UserWithStatus {
+  id: string;
+  email?: string;
+  phone?: string;
+  first_name?: string;
+  last_name?: string;
+  pickleballer_nickname?: string;
+  experience_level?: string;
+  dupr_rating?: number;
+  isAtCourt: boolean;
+}
+
 export const useFriends = (userId: string | undefined) => {
   const [friends, setFriends] = useState<FriendWithDetails[]>([]);
   const [pendingRequests, setPendingRequests] = useState<FriendWithDetails[]>([]);
-  const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<UserWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getRemainingTime = (expiresAt: string): { hours: number; minutes: number; totalMinutes: number } => {
@@ -19,49 +31,54 @@ export const useFriends = (userId: string | undefined) => {
     return { hours, minutes, totalMinutes };
   };
 
-  const fetchActiveUsers = useCallback(async () => {
+  const fetchAllUsers = useCallback(async () => {
     if (!userId || !isSupabaseConfigured()) {
       return;
     }
 
     try {
+      // Get all users except the current user
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, phone, first_name, last_name, pickleballer_nickname, experience_level, dupr_rating')
+        .neq('id', userId);
+
+      if (usersError) throw usersError;
+
       // Get all users who are currently checked in
       const { data: checkIns, error: checkInsError } = await supabase
         .from('check_ins')
-        .select('user_id, users!inner(id, first_name, last_name, pickleballer_nickname, experience_level, dupr_rating)')
-        .gte('expires_at', new Date().toISOString())
-        .neq('user_id', userId); // Exclude current user
+        .select('user_id')
+        .gte('expires_at', new Date().toISOString());
 
       if (checkInsError) throw checkInsError;
 
-      // Get existing friend relationships
-      const { data: existingFriends, error: friendsError } = await supabase
+      const checkedInUserIds = new Set((checkIns || []).map(ci => ci.user_id));
+
+      // Get existing friend relationships and pending requests
+      const { data: existingRelationships, error: relationshipsError } = await supabase
         .from('friends')
-        .select('friend_id, user_id')
+        .select('friend_id, user_id, status')
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
-      if (friendsError) throw friendsError;
+      if (relationshipsError) throw relationshipsError;
 
-      // Create a set of friend IDs for quick lookup
-      const friendIds = new Set(
-        existingFriends?.flatMap(f => [f.user_id, f.friend_id]).filter(id => id !== userId) || []
+      // Create a set of user IDs that are already friends or have pending requests
+      const relatedUserIds = new Set(
+        (existingRelationships || []).flatMap(r => [r.user_id, r.friend_id]).filter(id => id !== userId)
       );
 
       // Filter out users who are already friends or have pending requests
-      const activeUsersData = (checkIns || [])
-        .map((checkIn: any) => checkIn.users)
-        .filter((user: any) => user && !friendIds.has(user.id))
-        .reduce((unique: any[], user: any) => {
-          // Remove duplicates
-          if (!unique.find(u => u.id === user.id)) {
-            unique.push(user);
-          }
-          return unique;
-        }, []);
+      const usersWithStatus: UserWithStatus[] = (users || [])
+        .filter(user => !relatedUserIds.has(user.id))
+        .map(user => ({
+          ...user,
+          isAtCourt: checkedInUserIds.has(user.id),
+        }));
 
-      setActiveUsers(activeUsersData);
+      setAllUsers(usersWithStatus);
     } catch (error) {
-      console.log('Error fetching active users:', error);
+      console.log('Error fetching all users:', error);
     }
   }, [userId]);
 
@@ -153,14 +170,14 @@ export const useFriends = (userId: string | undefined) => {
       setFriends(friendsWithDetails);
       setPendingRequests(pendingWithDetails);
       
-      // Also fetch active users
-      await fetchActiveUsers();
+      // Also fetch all users
+      await fetchAllUsers();
     } catch (error) {
       console.log('Error fetching friends:', error);
     } finally {
       setLoading(false);
     }
-  }, [userId, fetchActiveUsers]);
+  }, [userId, fetchAllUsers]);
 
   useEffect(() => {
     if (userId && isSupabaseConfigured()) {
@@ -341,7 +358,7 @@ export const useFriends = (userId: string | undefined) => {
   return {
     friends,
     pendingRequests,
-    activeUsers,
+    allUsers,
     loading,
     sendFriendRequest,
     sendFriendRequestById,

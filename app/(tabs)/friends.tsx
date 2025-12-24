@@ -9,9 +9,17 @@ import { BrandingFooter } from '@/components/BrandingFooter';
 
 export default function FriendsScreen() {
   const { user } = useAuth();
-  const { friends, pendingRequests, activeUsers, loading, sendFriendRequest, sendFriendRequestById, acceptFriendRequest, rejectFriendRequest, removeFriend } = useFriends(user?.id);
-  const [friendIdentifier, setFriendIdentifier] = useState('');
-  const [sending, setSending] = useState(false);
+  const { 
+    friends, 
+    pendingRequests, 
+    allUsers, 
+    loading, 
+    sendFriendRequestById, 
+    acceptFriendRequest, 
+    rejectFriendRequest, 
+    removeFriend 
+  } = useFriends(user?.id);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const formatUserName = (firstName?: string, lastName?: string, nickname?: string, email?: string, phone?: string) => {
     if (firstName && lastName) {
@@ -25,24 +33,6 @@ export default function FriendsScreen() {
       return nickname;
     }
     return email || phone || 'Unknown User';
-  };
-
-  const handleAddFriend = async () => {
-    if (!friendIdentifier.trim()) {
-      Alert.alert('Error', 'Please enter a phone number or email address');
-      return;
-    }
-
-    setSending(true);
-    const result = await sendFriendRequest(friendIdentifier.trim().toLowerCase());
-    setSending(false);
-
-    if (result.success) {
-      Alert.alert('Success', 'Friend request sent!');
-      setFriendIdentifier('');
-    } else {
-      Alert.alert('Error', result.error || 'Failed to send friend request');
-    }
   };
 
   const handleAddFriendById = async (friendId: string, friendName: string) => {
@@ -79,6 +69,22 @@ export default function FriendsScreen() {
     );
   };
 
+  // Filter users based on search query
+  const filteredUsers = allUsers.filter(u => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const firstName = u.first_name?.toLowerCase() || '';
+    const lastName = u.last_name?.toLowerCase() || '';
+    const nickname = u.pickleballer_nickname?.toLowerCase() || '';
+    const email = u.email?.toLowerCase() || '';
+    
+    return firstName.includes(query) || 
+           lastName.includes(query) || 
+           nickname.includes(query) || 
+           email.includes(query);
+  });
+
   if (loading) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -101,140 +107,7 @@ export default function FriendsScreen() {
           </Text>
         </View>
 
-        <View style={commonStyles.card}>
-          <Text style={commonStyles.subtitle}>Add Friend</Text>
-          <Text style={[commonStyles.textSecondary, { marginTop: 8, marginBottom: 12 }]}>
-            Enter your friend&apos;s phone number or email address
-          </Text>
-          
-          <TextInput
-            style={commonStyles.input}
-            placeholder="+1 (555) 123-4567 or friend@example.com"
-            placeholderTextColor={colors.textSecondary}
-            value={friendIdentifier}
-            onChangeText={setFriendIdentifier}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <TouchableOpacity
-            style={[buttonStyles.primary, { marginTop: 12 }]}
-            onPress={handleAddFriend}
-            disabled={sending}
-          >
-            {sending ? (
-              <ActivityIndicator color={colors.card} />
-            ) : (
-              <Text style={buttonStyles.text}>Send Request</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {activeUsers.length > 0 && (
-          <View style={styles.section}>
-            <Text style={commonStyles.subtitle}>Active Users ({activeUsers.length})</Text>
-            <Text style={[commonStyles.textSecondary, { marginTop: 4, marginBottom: 12 }]}>
-              Players currently checked in at courts
-            </Text>
-            {activeUsers.map((activeUser, index) => {
-              const displayName = formatUserName(
-                activeUser.first_name,
-                activeUser.last_name,
-                activeUser.pickleballer_nickname
-              );
-              
-              return (
-                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
-                  <View style={styles.friendHeader}>
-                    <View style={styles.friendIcon}>
-                      <IconSymbol 
-                        ios_icon_name="person.fill" 
-                        android_material_icon_name="person" 
-                        size={24} 
-                        color={colors.primary} 
-                      />
-                    </View>
-                    <View style={styles.friendInfo}>
-                      <Text style={commonStyles.subtitle}>{displayName}</Text>
-                      {activeUser.experience_level && (
-                        <Text style={commonStyles.textSecondary}>
-                          {activeUser.experience_level}
-                          {activeUser.dupr_rating && ` • DUPR: ${activeUser.dupr_rating}`}
-                        </Text>
-                      )}
-                    </View>
-                    <TouchableOpacity
-                      style={styles.addButton}
-                      onPress={() => handleAddFriendById(activeUser.id, displayName)}
-                    >
-                      <IconSymbol 
-                        ios_icon_name="plus.circle.fill" 
-                        android_material_icon_name="add_circle" 
-                        size={32} 
-                        color={colors.primary} 
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        {pendingRequests.length > 0 && (
-          <View style={styles.section}>
-            <Text style={commonStyles.subtitle}>Pending Requests ({pendingRequests.length})</Text>
-            {pendingRequests.map((request, index) => {
-              const displayName = formatUserName(
-                request.friendFirstName,
-                request.friendLastName,
-                request.friendNickname,
-                request.friendEmail,
-                request.friendPhone
-              );
-              
-              return (
-                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
-                  <View style={styles.friendHeader}>
-                    <View style={styles.friendIcon}>
-                      <IconSymbol 
-                        ios_icon_name="person.fill" 
-                        android_material_icon_name="person" 
-                        size={24} 
-                        color={colors.primary} 
-                      />
-                    </View>
-                    <View style={styles.friendInfo}>
-                      <Text style={commonStyles.subtitle}>{displayName}</Text>
-                      {request.friendExperienceLevel && (
-                        <Text style={commonStyles.textSecondary}>
-                          {request.friendExperienceLevel}
-                          {request.friendDuprRating && ` • DUPR: ${request.friendDuprRating}`}
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-
-                  <View style={styles.requestActions}>
-                    <TouchableOpacity
-                      style={[buttonStyles.primary, { flex: 1, marginRight: 8 }]}
-                      onPress={() => handleAcceptRequest(request.id)}
-                    >
-                      <Text style={buttonStyles.text}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[buttonStyles.secondary, { flex: 1 }]}
-                      onPress={() => handleRejectRequest(request.id)}
-                    >
-                      <Text style={[buttonStyles.text, { color: colors.text }]}>Decline</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
+        {/* My Friends Section */}
         <View style={styles.section}>
           <Text style={commonStyles.subtitle}>
             My Friends ({friends.length})
@@ -333,6 +206,179 @@ export default function FriendsScreen() {
           )}
         </View>
 
+        {/* Friend Requests Section */}
+        {pendingRequests.length > 0 && (
+          <View style={styles.section}>
+            <Text style={commonStyles.subtitle}>Friend Requests ({pendingRequests.length})</Text>
+            <Text style={[commonStyles.textSecondary, { marginTop: 4, marginBottom: 8 }]}>
+              Accept or deny incoming friend requests
+            </Text>
+            {pendingRequests.map((request, index) => {
+              const displayName = formatUserName(
+                request.friendFirstName,
+                request.friendLastName,
+                request.friendNickname,
+                request.friendEmail,
+                request.friendPhone
+              );
+              
+              return (
+                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                  <View style={styles.friendHeader}>
+                    <View style={styles.friendIcon}>
+                      <IconSymbol 
+                        ios_icon_name="person.fill" 
+                        android_material_icon_name="person" 
+                        size={24} 
+                        color={colors.accent} 
+                      />
+                    </View>
+                    <View style={styles.friendInfo}>
+                      <Text style={commonStyles.subtitle}>{displayName}</Text>
+                      {request.friendExperienceLevel && (
+                        <Text style={commonStyles.textSecondary}>
+                          {request.friendExperienceLevel}
+                          {request.friendDuprRating && ` • DUPR: ${request.friendDuprRating}`}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+
+                  <View style={styles.requestActions}>
+                    <TouchableOpacity
+                      style={[buttonStyles.primary, { flex: 1, marginRight: 8 }]}
+                      onPress={() => handleAcceptRequest(request.id)}
+                    >
+                      <Text style={buttonStyles.text}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[buttonStyles.secondary, { flex: 1 }]}
+                      onPress={() => handleRejectRequest(request.id)}
+                    >
+                      <Text style={[buttonStyles.text, { color: colors.text }]}>Deny</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Search Bar */}
+        <View style={styles.section}>
+          <Text style={commonStyles.subtitle}>Find People</Text>
+          <Text style={[commonStyles.textSecondary, { marginTop: 4, marginBottom: 12 }]}>
+            Search for players to add as friends
+          </Text>
+          
+          <View style={styles.searchContainer}>
+            <IconSymbol 
+              ios_icon_name="magnifyingglass" 
+              android_material_icon_name="search" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name, nickname, or email..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <IconSymbol 
+                  ios_icon_name="xmark.circle.fill" 
+                  android_material_icon_name="cancel" 
+                  size={20} 
+                  color={colors.textSecondary} 
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* All Users List */}
+        <View style={styles.section}>
+          <Text style={commonStyles.subtitle}>
+            All Users ({filteredUsers.length})
+          </Text>
+          <Text style={[commonStyles.textSecondary, { marginTop: 4, marginBottom: 8 }]}>
+            {searchQuery.trim() ? 'Search results' : 'All players in the app'}
+          </Text>
+          
+          {filteredUsers.length === 0 ? (
+            <View style={[commonStyles.card, { marginTop: 12, alignItems: 'center', padding: 32 }]}>
+              <IconSymbol 
+                ios_icon_name="person.crop.circle.badge.questionmark" 
+                android_material_icon_name="person_search" 
+                size={48} 
+                color={colors.textSecondary} 
+              />
+              <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
+                {searchQuery.trim() ? 'No users found matching your search' : 'No other users in the app yet'}
+              </Text>
+            </View>
+          ) : (
+            filteredUsers.map((otherUser, index) => {
+              const displayName = formatUserName(
+                otherUser.first_name,
+                otherUser.last_name,
+                otherUser.pickleballer_nickname,
+                otherUser.email
+              );
+              
+              return (
+                <View key={index} style={[commonStyles.card, { marginTop: 12 }]}>
+                  <View style={styles.friendHeader}>
+                    <View style={styles.friendIcon}>
+                      <IconSymbol 
+                        ios_icon_name="person.fill" 
+                        android_material_icon_name="person" 
+                        size={24} 
+                        color={colors.primary} 
+                      />
+                    </View>
+                    <View style={styles.friendInfo}>
+                      <Text style={commonStyles.subtitle}>{displayName}</Text>
+                      {otherUser.experience_level && (
+                        <Text style={commonStyles.textSecondary}>
+                          {otherUser.experience_level}
+                          {otherUser.dupr_rating && ` • DUPR: ${otherUser.dupr_rating}`}
+                        </Text>
+                      )}
+                      {otherUser.isAtCourt ? (
+                        <View style={styles.offlineContainer}>
+                          <View style={styles.onlineDot} />
+                          <Text style={styles.onlineText}>At a court</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.offlineContainer}>
+                          <View style={styles.offlineDot} />
+                          <Text style={styles.offlineText}>Not at a court</Text>
+                        </View>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      onPress={() => handleAddFriendById(otherUser.id, displayName)}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="plus.circle.fill" 
+                        android_material_icon_name="add_circle" 
+                        size={32} 
+                        color={colors.primary} 
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })
+          )}
+        </View>
+
         <BrandingFooter />
       </ScrollView>
     </View>
@@ -353,6 +399,23 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 24,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.text,
+    marginLeft: 12,
+    marginRight: 12,
   },
   friendHeader: {
     flexDirection: 'row',
@@ -418,9 +481,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textSecondary,
     marginRight: 6,
   },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+    marginRight: 6,
+  },
   offlineText: {
     fontSize: 12,
     color: colors.textSecondary,
     fontStyle: 'italic',
+  },
+  onlineText: {
+    fontSize: 12,
+    color: colors.success,
+    fontWeight: '600',
   },
 });
