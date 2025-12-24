@@ -388,8 +388,9 @@ export const useAuth = () => {
     try {
       console.log('useAuth: Requesting password reset for:', email);
       
+      // Use a deep link that will redirect back to the app
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://natively.dev/reset-password',
+        redirectTo: 'pickleball://reset-password',
       });
 
       if (error) {
@@ -416,7 +417,7 @@ export const useAuth = () => {
       return { 
         success: true, 
         error: null, 
-        message: 'If an account exists with this email, you will receive password reset instructions shortly.',
+        message: 'If an account exists with this email, you will receive password reset instructions shortly. Click the link in the email to reset your password.',
       };
     } catch (error: any) {
       console.log('useAuth: Password reset error:', error);
@@ -426,6 +427,32 @@ export const useAuth = () => {
         success: false, 
         error: error?.message || 'Failed to process password reset request', 
         message: 'Unable to send password reset email. Please try again later or contact support.',
+      };
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      console.log('useAuth: Updating password...');
+      
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      console.log('useAuth: Password updated successfully');
+      return { 
+        success: true, 
+        error: null, 
+        message: 'Password updated successfully!',
+      };
+    } catch (error: any) {
+      console.log('useAuth: Update password error:', error);
+      return { 
+        success: false, 
+        error: error?.message || 'Failed to update password', 
+        message: 'Failed to update password. Please try again.',
       };
     }
   };
@@ -562,6 +589,7 @@ export const useAuth = () => {
     signIn,
     signOut,
     resetPassword,
+    updatePassword,
     updateUserProfile,
     uploadProfilePicture,
     needsConsentUpdate,

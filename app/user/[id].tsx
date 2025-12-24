@@ -265,13 +265,21 @@ export default function UserProfileScreen() {
     );
   }
 
-  const displayName = formatUserName(
-    userProfile.first_name,
-    userProfile.last_name,
-    userProfile.pickleballer_nickname,
-    userProfile.email,
-    userProfile.phone
-  );
+  // Determine what information to show based on friendship status
+  const isFriend = friendshipStatus === 'accepted';
+  
+  // Format display name based on friendship status
+  const displayName = isFriend
+    ? formatUserName(
+        userProfile.first_name,
+        userProfile.last_name,
+        userProfile.pickleballer_nickname,
+        userProfile.email,
+        userProfile.phone
+      )
+    : userProfile.first_name && userProfile.last_name
+      ? `${userProfile.first_name} ${userProfile.last_name.charAt(0)}.`
+      : 'User';
 
   return (
     <View style={commonStyles.container}>
@@ -297,7 +305,7 @@ export default function UserProfileScreen() {
       >
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            {userProfile.profile_picture_url ? (
+            {userProfile.profile_picture_url && isFriend ? (
               <Image 
                 source={{ uri: userProfile.profile_picture_url }} 
                 style={styles.avatarImage}
@@ -316,14 +324,33 @@ export default function UserProfileScreen() {
             {displayName}
           </Text>
           
+          {!isFriend && (
+            <View style={[commonStyles.card, { marginTop: 16, backgroundColor: colors.highlight, padding: 12 }]}>
+              <View style={styles.privacyNotice}>
+                <IconSymbol 
+                  ios_icon_name="lock.fill" 
+                  android_material_icon_name="lock" 
+                  size={16} 
+                  color={colors.textSecondary} 
+                />
+                <Text style={[commonStyles.textSecondary, { marginLeft: 8, fontSize: 13 }]}>
+                  Limited profile - Add as friend to see more
+                </Text>
+              </View>
+            </View>
+          )}
+          
           {userProfile.experience_level && (
             <View style={styles.userStats}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{checkInHistory.length}</Text>
-                <Text style={commonStyles.textSecondary}>Check-ins</Text>
-              </View>
-              
-              <View style={styles.separator} />
+              {isFriend && (
+                <React.Fragment>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{checkInHistory.length}</Text>
+                    <Text style={commonStyles.textSecondary}>Check-ins</Text>
+                  </View>
+                  <View style={styles.separator} />
+                </React.Fragment>
+              )}
               
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{userProfile.experience_level}</Text>
@@ -353,7 +380,7 @@ export default function UserProfileScreen() {
             </View>
           )}
 
-          {/* Friend Action Button */}
+          {/* Friend Action Buttons */}
           {currentUser && currentUser.id !== id && (
             <View style={styles.actionButtonContainer}>
               {friendshipStatus === 'none' && (
@@ -401,70 +428,88 @@ export default function UserProfileScreen() {
               )}
 
               {friendshipStatus === 'accepted' && (
-                <TouchableOpacity
-                  style={[buttonStyles.secondary, { backgroundColor: colors.accent }]}
-                  onPress={handleRemoveFriend}
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? (
-                    <ActivityIndicator color={colors.card} />
-                  ) : (
-                    <React.Fragment>
-                      <IconSymbol 
-                        ios_icon_name="person.badge.minus" 
-                        android_material_icon_name="person_remove" 
-                        size={20} 
-                        color={colors.card} 
-                      />
-                      <Text style={[buttonStyles.text, { marginLeft: 8 }]}>Remove Friend</Text>
-                    </React.Fragment>
-                  )}
-                </TouchableOpacity>
+                <React.Fragment>
+                  <TouchableOpacity
+                    style={buttonStyles.primary}
+                    onPress={() => router.push(`/conversation/${id}`)}
+                  >
+                    <IconSymbol 
+                      ios_icon_name="message.fill" 
+                      android_material_icon_name="message" 
+                      size={20} 
+                      color={colors.card} 
+                    />
+                    <Text style={[buttonStyles.text, { marginLeft: 8 }]}>Send Message</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[buttonStyles.secondary, { backgroundColor: colors.accent, marginTop: 12 }]}
+                    onPress={handleRemoveFriend}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <ActivityIndicator color={colors.card} />
+                    ) : (
+                      <React.Fragment>
+                        <IconSymbol 
+                          ios_icon_name="person.badge.minus" 
+                          android_material_icon_name="person_remove" 
+                          size={20} 
+                          color={colors.card} 
+                        />
+                        <Text style={[buttonStyles.text, { marginLeft: 8 }]}>Remove Friend</Text>
+                      </React.Fragment>
+                    )}
+                  </TouchableOpacity>
+                </React.Fragment>
               )}
             </View>
           )}
         </View>
 
-        {/* Check-In History */}
-        <View style={commonStyles.card}>
-          <View style={styles.historyHeader}>
-            <Text style={commonStyles.subtitle}>Check-In History</Text>
-            <Text style={commonStyles.textSecondary}>
-              {checkInHistory.length} total
-            </Text>
-          </View>
-          
-          {checkInHistory.length > 0 ? (
-            <View style={styles.historyList}>
-              {checkInHistory.map((checkIn, index) => (
-                <View key={index} style={styles.historyItem}>
-                  <View style={styles.historyIcon}>
-                    <IconSymbol 
-                      ios_icon_name="location.fill" 
-                      android_material_icon_name="location_on" 
-                      size={20} 
-                      color={colors.primary} 
-                    />
-                  </View>
-                  <View style={styles.historyInfo}>
-                    <Text style={commonStyles.text}>{checkIn.courtName}</Text>
-                    <Text style={commonStyles.textSecondary}>
-                      {formatDate(checkIn.checkedInAt)} • {checkIn.skillLevel}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyHistory}>
+        {/* Check-In History - Only show for friends */}
+        {isFriend && (
+          <View style={commonStyles.card}>
+            <View style={styles.historyHeader}>
+              <Text style={commonStyles.subtitle}>Check-In History</Text>
               <Text style={commonStyles.textSecondary}>
-                No check-ins yet
+                {checkInHistory.length} total
               </Text>
             </View>
-          )}
-        </View>
+            
+            {checkInHistory.length > 0 ? (
+              <View style={styles.historyList}>
+                {checkInHistory.map((checkIn, index) => (
+                  <View key={index} style={styles.historyItem}>
+                    <View style={styles.historyIcon}>
+                      <IconSymbol 
+                        ios_icon_name="location.fill" 
+                        android_material_icon_name="location_on" 
+                        size={20} 
+                        color={colors.primary} 
+                      />
+                    </View>
+                    <View style={styles.historyInfo}>
+                      <Text style={commonStyles.text}>{checkIn.courtName}</Text>
+                      <Text style={commonStyles.textSecondary}>
+                        {formatDate(checkIn.checkedInAt)} • {checkIn.skillLevel}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyHistory}>
+                <Text style={commonStyles.textSecondary}>
+                  No check-ins yet
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
-        {userProfile.created_at && (
+        {/* Member Since - Only show for friends */}
+        {isFriend && userProfile.created_at && (
           <View style={commonStyles.card}>
             <Text style={commonStyles.subtitle}>Member Since</Text>
             <Text style={[commonStyles.text, { marginTop: 8 }]}>
@@ -587,5 +632,10 @@ const styles = StyleSheet.create({
   emptyHistory: {
     paddingVertical: 24,
     alignItems: 'center',
+  },
+  privacyNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

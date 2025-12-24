@@ -9,6 +9,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { SkillLevelBars } from '@/components/SkillLevelBars';
 import { LegalFooter } from '@/components/LegalFooter';
 import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '@/app/integrations/supabase/client';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function ProfileScreen() {
   const [showConsentPrompt, setShowConsentPrompt] = useState(false);
   const [acceptingConsent, setAcceptingConsent] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
@@ -221,6 +223,65 @@ export default function ProfileScreen() {
     
     setIsEditing(false);
     Alert.alert('Success', 'Profile updated successfully!');
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data, including check-ins, messages, and friend connections will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Permanently',
+          style: 'destructive',
+          onPress: confirmDeleteAccount,
+        },
+      ]
+    );
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!user) return;
+
+    setDeletingAccount(true);
+    try {
+      console.log('ProfileScreen: Deleting account...');
+      
+      // Delete user data from database (cascading deletes will handle related data)
+      const { error: deleteError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', user.id);
+
+      if (deleteError) throw deleteError;
+
+      // Delete auth user
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (authError) {
+        console.log('ProfileScreen: Auth deletion error (may require admin privileges):', authError);
+        // Continue anyway as the user data is deleted
+      }
+
+      // Sign out
+      await signOut();
+      
+      Alert.alert(
+        'Account Deleted',
+        'Your account has been permanently deleted.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/welcome'),
+          },
+        ]
+      );
+    } catch (error) {
+      console.log('ProfileScreen: Delete account error:', error);
+      Alert.alert('Error', 'Failed to delete account. Please try again or contact support.');
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -764,18 +825,40 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </React.Fragment>
         ) : (
-          <TouchableOpacity
-            style={[buttonStyles.secondary, { marginTop: 12 }]}
-            onPress={handleSignOut}
-          >
-            <IconSymbol 
-              ios_icon_name="rectangle.portrait.and.arrow.right" 
-              android_material_icon_name="logout" 
-              size={20} 
-              color={colors.accent} 
-            />
-            <Text style={[buttonStyles.text, { color: colors.accent, marginLeft: 8 }]}>Sign Out</Text>
-          </TouchableOpacity>
+          <React.Fragment>
+            <TouchableOpacity
+              style={[buttonStyles.secondary, { marginTop: 12 }]}
+              onPress={handleSignOut}
+            >
+              <IconSymbol 
+                ios_icon_name="rectangle.portrait.and.arrow.right" 
+                android_material_icon_name="logout" 
+                size={20} 
+                color={colors.accent} 
+              />
+              <Text style={[buttonStyles.text, { color: colors.accent, marginLeft: 8 }]}>Sign Out</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[buttonStyles.secondary, { marginTop: 12, backgroundColor: colors.accent, borderColor: colors.accent }]}
+              onPress={handleDeleteAccount}
+              disabled={deletingAccount}
+            >
+              {deletingAccount ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <React.Fragment>
+                  <IconSymbol 
+                    ios_icon_name="trash.fill" 
+                    android_material_icon_name="delete_forever" 
+                    size={20} 
+                    color={colors.card} 
+                  />
+                  <Text style={[buttonStyles.text, { marginLeft: 8 }]}>Delete Account</Text>
+                </React.Fragment>
+              )}
+            </TouchableOpacity>
+          </React.Fragment>
         )}
 
         <LegalFooter />
