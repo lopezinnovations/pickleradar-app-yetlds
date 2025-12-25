@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator, TextInput, Image, Modal } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { useCheckIn } from '@/hooks/useCheckIn';
 import { IconSymbol } from '@/components/IconSymbol';
-import { SkillLevelBars } from '@/components/SkillLevelBars';
 import { LegalFooter } from '@/components/LegalFooter';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/app/integrations/supabase/client';
@@ -32,6 +31,7 @@ export default function ProfileScreen() {
   const [acceptingConsent, setAcceptingConsent] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
@@ -534,40 +534,7 @@ export default function ProfileScreen() {
               </React.Fragment>
             )}
           </View>
-
-          {/* Skill level progress bar */}
-          <View style={styles.skillLevelBarContainer}>
-            <SkillLevelBars 
-              averageSkillLevel={0}
-              skillLevel={skillLevel}
-              size={12}
-              color={colors.primary}
-            />
-          </View>
         </View>
-
-        {/* Legal Consent Status */}
-        {user.termsAccepted && user.privacyAccepted && user.acceptedAt && (
-          <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
-            <View style={styles.consentStatusHeader}>
-              <IconSymbol 
-                ios_icon_name="checkmark.shield.fill" 
-                android_material_icon_name="verified_user" 
-                size={20} 
-                color={colors.success} 
-              />
-              <Text style={[commonStyles.text, { marginLeft: 8, fontWeight: '600' }]}>
-                Legal Compliance
-              </Text>
-            </View>
-            <Text style={[commonStyles.textSecondary, { marginTop: 8, fontSize: 13 }]}>
-              Terms accepted on {formatDate(user.acceptedAt)}
-            </Text>
-            <Text style={[commonStyles.textSecondary, { marginTop: 4, fontSize: 13 }]}>
-              Version: {user.acceptedVersion || 'v1.0'}
-            </Text>
-          </View>
-        )}
 
         {currentCheckIn && remainingTime && remainingTime.hours >= 0 && remainingTime.minutes >= 0 && (
           <View style={[commonStyles.card, { backgroundColor: colors.highlight }]}>
@@ -858,45 +825,121 @@ export default function ProfileScreen() {
               <Text style={[buttonStyles.text, { color: colors.text }]}>Cancel</Text>
             </TouchableOpacity>
           </React.Fragment>
-        ) : (
-          <React.Fragment>
+        ) : null}
+
+        {/* Account Actions - Simple Links */}
+        {!isEditing && (
+          <View style={styles.accountActionsContainer}>
             <TouchableOpacity
-              style={[buttonStyles.secondary, { marginTop: 12 }]}
+              style={styles.linkButton}
               onPress={handleSignOut}
             >
               <IconSymbol 
                 ios_icon_name="rectangle.portrait.and.arrow.right" 
                 android_material_icon_name="logout" 
-                size={20} 
-                color={colors.accent} 
+                size={18} 
+                color={colors.primary} 
               />
-              <Text style={[buttonStyles.text, { color: colors.accent, marginLeft: 8 }]}>Sign Out</Text>
+              <Text style={styles.linkText}>Sign Out</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[buttonStyles.secondary, { marginTop: 12, backgroundColor: colors.accent, borderColor: colors.accent }]}
+              style={styles.linkButton}
               onPress={handleDeleteAccount}
               disabled={deletingAccount}
             >
               {deletingAccount ? (
-                <ActivityIndicator color={colors.card} />
+                <ActivityIndicator color={colors.accent} size="small" />
               ) : (
                 <React.Fragment>
                   <IconSymbol 
                     ios_icon_name="trash.fill" 
                     android_material_icon_name="delete_forever" 
-                    size={20} 
-                    color={colors.card} 
+                    size={18} 
+                    color={colors.accent} 
                   />
-                  <Text style={[buttonStyles.text, { marginLeft: 8 }]}>Delete Account</Text>
+                  <Text style={[styles.linkText, { color: colors.accent }]}>Delete Account</Text>
                 </React.Fragment>
               )}
             </TouchableOpacity>
-          </React.Fragment>
+
+            {/* Legal Compliance Link */}
+            {user.termsAccepted && user.privacyAccepted && user.acceptedAt && (
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => setShowLegalModal(true)}
+              >
+                <IconSymbol 
+                  ios_icon_name="checkmark.shield.fill" 
+                  android_material_icon_name="verified_user" 
+                  size={18} 
+                  color={colors.success} 
+                />
+                <Text style={[styles.linkText, { color: colors.success }]}>Legal Compliance</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
         <LegalFooter />
       </ScrollView>
+
+      {/* Legal Compliance Modal */}
+      <Modal
+        visible={showLegalModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLegalModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowLegalModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <IconSymbol 
+                ios_icon_name="checkmark.shield.fill" 
+                android_material_icon_name="verified_user" 
+                size={32} 
+                color={colors.success} 
+              />
+              <Text style={[commonStyles.title, { marginTop: 12, fontSize: 20 }]}>
+                Legal Compliance
+              </Text>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <View style={styles.modalRow}>
+                <Text style={[commonStyles.text, { fontWeight: '600' }]}>Terms Accepted:</Text>
+                <Text style={commonStyles.text}>{formatDate(user.acceptedAt)}</Text>
+              </View>
+              
+              <View style={styles.modalRow}>
+                <Text style={[commonStyles.text, { fontWeight: '600' }]}>Version:</Text>
+                <Text style={commonStyles.text}>{user.acceptedVersion || 'v1.0'}</Text>
+              </View>
+              
+              <View style={styles.modalRow}>
+                <Text style={[commonStyles.text, { fontWeight: '600' }]}>Privacy Policy:</Text>
+                <Text style={[commonStyles.text, { color: colors.success }]}>✓ Accepted</Text>
+              </View>
+              
+              <View style={styles.modalRow}>
+                <Text style={[commonStyles.text, { fontWeight: '600' }]}>Terms of Service:</Text>
+                <Text style={[commonStyles.text, { color: colors.success }]}>✓ Accepted</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[buttonStyles.primary, { marginTop: 20 }]}
+              onPress={() => setShowLegalModal(false)}
+            >
+              <Text style={buttonStyles.text}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -995,10 +1038,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginBottom: 4,
   },
-  skillLevelBarContainer: {
-    width: '80%',
-    marginTop: 16,
-  },
   consentPromptHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1021,10 +1060,6 @@ const styles = StyleSheet.create({
   consentButtonText: {
     fontSize: 14,
     fontWeight: '600',
-  },
-  consentStatusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   currentCheckInHeader: {
     flexDirection: 'row',
@@ -1138,5 +1173,59 @@ const styles = StyleSheet.create({
     backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  accountActionsContainer: {
+    marginTop: 24,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: 16,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  linkText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalBody: {
+    marginTop: 20,
+    gap: 16,
+  },
+  modalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
 });
