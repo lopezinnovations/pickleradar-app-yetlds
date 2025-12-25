@@ -40,13 +40,20 @@ export const useFriends = (userId: string | undefined) => {
     }
 
     try {
+      console.log('Fetching all users for userId:', userId);
+      
       // Get all users except the current user
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select('id, email, phone, first_name, last_name, pickleballer_nickname, experience_level, dupr_rating')
         .neq('id', userId);
 
-      if (usersError) throw usersError;
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        throw usersError;
+      }
+
+      console.log('Fetched users:', users?.length);
 
       // Get all users who are currently checked in
       const { data: checkIns, error: checkInsError } = await supabase
@@ -54,7 +61,10 @@ export const useFriends = (userId: string | undefined) => {
         .select('user_id')
         .gte('expires_at', new Date().toISOString());
 
-      if (checkInsError) throw checkInsError;
+      if (checkInsError) {
+        console.error('Error fetching check-ins:', checkInsError);
+        throw checkInsError;
+      }
 
       const checkedInUserIds = new Set((checkIns || []).map(ci => ci.user_id));
 
@@ -64,7 +74,12 @@ export const useFriends = (userId: string | undefined) => {
         .select('id, user_id, friend_id, status')
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
-      if (relationshipsError) throw relationshipsError;
+      if (relationshipsError) {
+        console.error('Error fetching relationships:', relationshipsError);
+        throw relationshipsError;
+      }
+
+      console.log('Fetched relationships:', allRelationships?.length);
 
       // Create a map of user relationships
       const relationshipMap = new Map<string, { status: string; friendshipId: string; isSender: boolean }>();
@@ -94,7 +109,10 @@ export const useFriends = (userId: string | undefined) => {
         .from('check_ins')
         .select('user_id, court_id, courts(name)');
 
-      if (userCheckInsError) throw userCheckInsError;
+      if (userCheckInsError) {
+        console.error('Error fetching user check-ins:', userCheckInsError);
+        throw userCheckInsError;
+      }
 
       // Create a map of user_id to courts played
       const userCourtsMap = new Map<string, Set<string>>();
@@ -121,9 +139,10 @@ export const useFriends = (userId: string | undefined) => {
         };
       });
 
+      console.log('Users with status:', usersWithStatus.length);
       setAllUsers(usersWithStatus);
     } catch (error) {
-      console.log('Error fetching all users:', error);
+      console.error('Error in fetchAllUsers:', error);
     }
   }, [userId]);
 
@@ -218,7 +237,7 @@ export const useFriends = (userId: string | undefined) => {
       // Also fetch all users
       await fetchAllUsers();
     } catch (error) {
-      console.log('Error fetching friends:', error);
+      console.error('Error fetching friends:', error);
     } finally {
       setLoading(false);
     }
@@ -304,32 +323,43 @@ export const useFriends = (userId: string | undefined) => {
       await fetchFriends();
       return { success: true, error: null };
     } catch (error: any) {
-      console.log('Error sending friend request:', error);
+      console.error('Error sending friend request:', error);
       return { success: false, error: error.message };
     }
   };
 
   const sendFriendRequestById = async (friendId: string) => {
     if (!userId || !isSupabaseConfigured()) {
+      console.error('sendFriendRequestById: Not configured or no userId');
       return { success: false, error: 'Not configured' };
     }
 
     try {
+      console.log('Sending friend request from', userId, 'to', friendId);
+      
       if (friendId === userId) {
+        console.error('Cannot add yourself as a friend');
         return { success: false, error: 'Cannot add yourself as a friend' };
       }
 
-      const { data: existing } = await supabase
+      // Check if a relationship already exists
+      const { data: existing, error: existingError } = await supabase
         .from('friends')
         .select('*')
-        .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`)
-        .single();
+        .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`);
 
-      if (existing) {
+      if (existingError) {
+        console.error('Error checking existing relationship:', existingError);
+        throw existingError;
+      }
+
+      if (existing && existing.length > 0) {
+        console.log('Relationship already exists:', existing);
         return { success: false, error: 'Friend request already exists' };
       }
 
-      const { error } = await supabase
+      console.log('Inserting new friend request');
+      const { data: insertData, error: insertError } = await supabase
         .from('friends')
         .insert([
           {
@@ -337,15 +367,22 @@ export const useFriends = (userId: string | undefined) => {
             friend_id: friendId,
             status: 'pending',
           },
-        ]);
+        ])
+        .select();
 
-      if (error) throw error;
+      if (insertError) {
+        console.error('Error inserting friend request:', insertError);
+        throw insertError;
+      }
 
+      console.log('Friend request inserted successfully:', insertData);
+      
+      // Refresh the data
       await fetchFriends();
       return { success: true, error: null };
     } catch (error: any) {
-      console.log('Error sending friend request:', error);
-      return { success: false, error: error.message };
+      console.error('Error in sendFriendRequestById:', error);
+      return { success: false, error: error.message || 'Failed to send friend request' };
     }
   };
 
@@ -362,7 +399,7 @@ export const useFriends = (userId: string | undefined) => {
 
       await fetchFriends();
     } catch (error) {
-      console.log('Error accepting friend request:', error);
+      console.error('Error accepting friend request:', error);
     }
   };
 
@@ -379,7 +416,7 @@ export const useFriends = (userId: string | undefined) => {
 
       await fetchFriends();
     } catch (error) {
-      console.log('Error rejecting friend request:', error);
+      console.error('Error rejecting friend request:', error);
     }
   };
 
@@ -396,7 +433,7 @@ export const useFriends = (userId: string | undefined) => {
 
       await fetchFriends();
     } catch (error) {
-      console.log('Error removing friend:', error);
+      console.error('Error removing friend:', error);
     }
   };
 

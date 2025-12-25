@@ -20,7 +20,7 @@ export default function TabLayout() {
     {
       name: 'messages',
       route: '/(tabs)/messages',
-      icon: 'message',
+      icon: 'mail',
       label: 'Messages',
     },
     {

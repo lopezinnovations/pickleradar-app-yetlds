@@ -23,6 +23,7 @@ export default function FriendsScreen() {
   } = useFriends(user?.id);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [sendingRequestTo, setSendingRequestTo] = useState<string | null>(null);
   
   // Filter states
   const [minDupr, setMinDupr] = useState('');
@@ -45,12 +46,30 @@ export default function FriendsScreen() {
   };
 
   const handleAddFriendById = async (friendId: string, friendName: string) => {
-    const result = await sendFriendRequestById(friendId);
+    console.log('handleAddFriendById called for:', friendId, friendName);
     
-    if (result.success) {
-      Alert.alert('Success', `Friend request sent to ${friendName}!`);
-    } else {
-      Alert.alert('Error', result.error || 'Failed to send friend request');
+    // Prevent multiple simultaneous requests
+    if (sendingRequestTo) {
+      console.log('Already sending a request, ignoring');
+      return;
+    }
+    
+    setSendingRequestTo(friendId);
+    
+    try {
+      const result = await sendFriendRequestById(friendId);
+      console.log('sendFriendRequestById result:', result);
+      
+      if (result.success) {
+        Alert.alert('Success', `Friend request sent to ${friendName}!`);
+      } else {
+        Alert.alert('Error', result.error || 'Failed to send friend request');
+      }
+    } catch (error) {
+      console.error('Error in handleAddFriendById:', error);
+      Alert.alert('Error', 'An unexpected error occurred');
+    } finally {
+      setSendingRequestTo(null);
     }
   };
 
@@ -572,6 +591,7 @@ export default function FriendsScreen() {
               );
               
               const relationship = otherUser.friendshipStatus || 'none';
+              const isSending = sendingRequestTo === otherUser.id;
               
               return (
                 <TouchableOpacity
@@ -629,13 +649,18 @@ export default function FriendsScreen() {
                           e.stopPropagation();
                           handleAddFriendById(otherUser.id, displayName);
                         }}
+                        disabled={isSending}
                       >
-                        <IconSymbol 
-                          ios_icon_name="plus.circle.fill" 
-                          android_material_icon_name="add_circle" 
-                          size={32} 
-                          color={colors.primary} 
-                        />
+                        {isSending ? (
+                          <ActivityIndicator size="small" color={colors.primary} />
+                        ) : (
+                          <IconSymbol 
+                            ios_icon_name="plus.circle.fill" 
+                            android_material_icon_name="add_circle" 
+                            size={32} 
+                            color={colors.primary} 
+                          />
+                        )}
                       </TouchableOpacity>
                     )}
                     
@@ -844,6 +869,9 @@ const styles = StyleSheet.create({
   },
   addButton: {
     padding: 4,
+    minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   friendBadge: {
     flexDirection: 'row',
