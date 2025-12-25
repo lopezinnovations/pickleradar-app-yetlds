@@ -194,25 +194,21 @@ export const useCourts = (userId?: string) => {
       try {
         console.log('useCourts: Setting up realtime subscription for check-ins');
         
-        const channel = supabase.channel('check_ins:changes', {
-          config: { broadcast: { self: true } }
-        });
-        
-        channelRef.current = channel;
-
-        channel
-          .on('broadcast', { event: 'INSERT' }, (payload) => {
-            console.log('useCourts: Check-in created', payload);
-            fetchCourts();
-          })
-          .on('broadcast', { event: 'DELETE' }, (payload) => {
-            console.log('useCourts: Check-in deleted', payload);
-            fetchCourts();
-          })
-          .on('broadcast', { event: 'UPDATE' }, (payload) => {
-            console.log('useCourts: Check-in updated', payload);
-            fetchCourts();
-          })
+        // Use postgres_changes instead of broadcast for actual database changes
+        const channel = supabase
+          .channel('check_ins_changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'check_ins'
+            },
+            (payload) => {
+              console.log('useCourts: Check-in change detected:', payload);
+              fetchCourts();
+            }
+          )
           .subscribe((status, err) => {
             if (status === 'SUBSCRIBED') {
               console.log('useCourts: Successfully subscribed to check-in updates');
@@ -220,8 +216,12 @@ export const useCourts = (userId?: string) => {
               console.error('useCourts: Channel error:', err);
             } else if (status === 'CLOSED') {
               console.log('useCourts: Channel closed');
+            } else if (status === 'TIMED_OUT') {
+              console.error('useCourts: Channel timed out');
             }
           });
+        
+        channelRef.current = channel;
       } catch (error) {
         console.error('useCourts: Error setting up realtime subscription:', error);
       }

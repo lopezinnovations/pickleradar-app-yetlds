@@ -1,105 +1,71 @@
 
-import "react-native-reanimated";
-import React, { useEffect } from "react";
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { SystemBars } from "react-native-edge-to-edge";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme, Alert } from "react-native";
-import { useNetworkState } from "expo-network";
-import {
-  DarkTheme,
-  DefaultTheme,
-  Theme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { StatusBar } from "expo-status-bar";
-import { WidgetProvider } from "@/contexts/WidgetContext";
-
-SplashScreen.preventAutoHideAsync();
-
-export const unstable_settings = {
-  initialRouteName: "index",
-};
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import * as Linking from 'expo-linking';
+import { supabase } from '@/app/integrations/supabase/client';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const networkState = useNetworkState();
-  const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-  });
-
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    // Handle deep links for password reset
+    const handleDeepLink = async (event: { url: string }) => {
+      console.log('Deep link received:', event.url);
+      
+      // Parse the URL
+      const url = Linking.parse(event.url);
+      console.log('Parsed URL:', url);
+      
+      // Check if this is a password reset link
+      if (url.path === 'reset-password' || url.hostname === 'reset-password') {
+        console.log('Password reset link detected');
+        
+        // Extract the token from the URL
+        const params = url.queryParams;
+        if (params && typeof params === 'object') {
+          const token = params.token as string;
+          const type = params.type as string;
+          
+          if (token && type === 'recovery') {
+            console.log('Valid recovery token found, verifying...');
+            
+            // Verify the OTP token
+            const { data, error } = await supabase.auth.verifyOtp({
+              token_hash: token,
+              type: 'recovery',
+            });
+            
+            if (error) {
+              console.error('Error verifying recovery token:', error);
+            } else {
+              console.log('Recovery token verified successfully:', data);
+            }
+          }
+        }
+      }
+    };
 
-  React.useEffect(() => {
-    if (
-      !networkState.isConnected &&
-      networkState.isInternetReachable === false
-    ) {
-      Alert.alert(
-        "🔌 You are offline",
-        "You can keep using the app! Your changes will be saved locally and synced when you are back online."
-      );
-    }
-  }, [networkState.isConnected, networkState.isInternetReachable]);
+    // Listen for deep links
+    const subscription = Linking.addEventListener('url', handleDeepLink);
 
-  if (!loaded) {
-    return null;
-  }
+    // Check if app was opened with a deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log('App opened with URL:', url);
+        handleDeepLink({ url });
+      }
+    });
 
-  const CustomDefaultTheme: Theme = {
-    ...DefaultTheme,
-    dark: false,
-    colors: {
-      primary: "rgb(46, 125, 50)",
-      background: "rgb(249, 249, 249)",
-      card: "rgb(255, 255, 255)",
-      text: "rgb(33, 33, 33)",
-      border: "rgb(224, 224, 224)",
-      notification: "rgb(255, 179, 0)",
-    },
-  };
-
-  const CustomDarkTheme: Theme = {
-    ...DarkTheme,
-    colors: {
-      primary: "rgb(46, 125, 50)",
-      background: "rgb(18, 18, 18)",
-      card: "rgb(28, 28, 30)",
-      text: "rgb(249, 249, 249)",
-      border: "rgb(44, 44, 46)",
-      notification: "rgb(255, 179, 0)",
-    },
-  };
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   return (
-    <>
-      <StatusBar style="auto" animated />
-      <ThemeProvider
-        value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-      >
-        <WidgetProvider>
-          <GestureHandlerRootView>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="welcome" />
-              <Stack.Screen name="auth" />
-              <Stack.Screen name="auth-migration-notice" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
-            <SystemBars style={"auto"} />
-          </GestureHandlerRootView>
-        </WidgetProvider>
-      </ThemeProvider>
-    </>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="welcome" />
+      <Stack.Screen name="auth" />
+      <Stack.Screen name="reset-password" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
   );
 }
