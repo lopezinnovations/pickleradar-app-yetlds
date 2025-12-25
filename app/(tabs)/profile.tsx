@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator, TextInput, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { useCheckIn } from '@/hooks/useCheckIn';
@@ -13,8 +13,8 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, signOut, updateUserProfile, uploadProfilePicture, loading: authLoading, needsConsentUpdate, acceptConsent } = useAuth();
-  const { checkInHistory, getUserCheckIn, checkOut, getRemainingTime, loading: historyLoading } = useCheckIn(user?.id);
+  const { user, signOut, updateUserProfile, uploadProfilePicture, loading: authLoading, needsConsentUpdate, acceptConsent, refetchUser } = useAuth();
+  const { checkInHistory, getUserCheckIn, checkOut, getRemainingTime, loading: historyLoading, refetch: refetchCheckIns } = useCheckIn(user?.id);
   
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -35,6 +35,18 @@ export default function ProfileScreen() {
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
+
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('ProfileScreen: Screen focused, refreshing data');
+      if (user) {
+        refetchUser();
+        refetchCheckIns();
+        loadCurrentCheckIn();
+      }
+    }, [user, refetchUser, refetchCheckIns])
+  );
 
   useEffect(() => {
     if (user && !hasLoadedUserData.current) {
@@ -357,6 +369,22 @@ export default function ProfileScreen() {
 
   return (
     <View style={commonStyles.container}>
+      {/* Header with gear icon */}
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <TouchableOpacity
+          style={styles.gearButton}
+          onPress={() => setIsEditing(!isEditing)}
+        >
+          <IconSymbol 
+            ios_icon_name={isEditing ? "xmark.circle.fill" : "gearshape.fill"} 
+            android_material_icon_name={isEditing ? "cancel" : "settings"} 
+            size={28} 
+            color={isEditing ? colors.accent : colors.primary} 
+          />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -439,7 +467,7 @@ export default function ProfileScreen() {
           <TouchableOpacity 
             style={styles.avatarContainer}
             onPress={handlePickImage}
-            disabled={uploadingImage}
+            disabled={uploadingImage || !isEditing}
           >
             {uploadingImage ? (
               <ActivityIndicator size="large" color={colors.primary} />
@@ -457,14 +485,16 @@ export default function ProfileScreen() {
                 color={colors.primary} 
               />
             )}
-            <View style={styles.editIconContainer}>
-              <IconSymbol 
-                ios_icon_name="camera.fill" 
-                android_material_icon_name="photo_camera" 
-                size={16} 
-                color={colors.card} 
-              />
-            </View>
+            {isEditing && (
+              <View style={styles.editIconContainer}>
+                <IconSymbol 
+                  ios_icon_name="camera.fill" 
+                  android_material_icon_name="photo_camera" 
+                  size={16} 
+                  color={colors.card} 
+                />
+              </View>
+            )}
           </TouchableOpacity>
           <Text style={[commonStyles.title, { color: colors.primary, fontSize: 22 }]}>
             {user.firstName && user.lastName 
@@ -590,15 +620,16 @@ export default function ProfileScreen() {
         <View style={commonStyles.card}>
           <View style={styles.sectionHeader}>
             <Text style={commonStyles.subtitle}>Profile Information</Text>
-            {!isEditing && (
-              <TouchableOpacity onPress={() => setIsEditing(true)}>
+            {isEditing && (
+              <View style={styles.editBadge}>
                 <IconSymbol 
-                  ios_icon_name="pencil.circle.fill" 
+                  ios_icon_name="pencil" 
                   android_material_icon_name="edit" 
-                  size={24} 
-                  color={colors.primary} 
+                  size={14} 
+                  color={colors.card} 
                 />
-              </TouchableOpacity>
+                <Text style={styles.editBadgeText}>Editing</Text>
+              </View>
             )}
           </View>
           
@@ -868,11 +899,35 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 48,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  gearButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.highlight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 48,
+    paddingTop: 24,
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
@@ -981,6 +1036,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  editBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
+  },
+  editBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.card,
   },
   inputDisabled: {
     backgroundColor: colors.highlight,

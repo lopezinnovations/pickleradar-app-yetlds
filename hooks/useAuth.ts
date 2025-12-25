@@ -177,6 +177,12 @@ export const useAuth = () => {
     }
   };
 
+  const refetchUser = async () => {
+    if (!user) return;
+    console.log('useAuth: Refetching user profile');
+    await fetchUserProfile(user.id, user.email || '');
+  };
+
   const signUp = async (
     email: string, 
     password: string, 
@@ -594,6 +600,7 @@ export const useAuth = () => {
     uploadProfilePicture,
     needsConsentUpdate,
     acceptConsent,
+    refetchUser,
     currentTermsVersion: CURRENT_TERMS_VERSION,
   };
 };

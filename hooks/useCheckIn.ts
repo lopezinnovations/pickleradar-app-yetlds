@@ -70,6 +70,13 @@ export const useCheckIn = (userId?: string) => {
     }
   };
 
+  const refetch = async () => {
+    if (userId) {
+      console.log('useCheckIn: Refetching check-in history');
+      await fetchCheckInHistory(userId);
+    }
+  };
+
   const checkIn = async (
     userId: string,
     courtId: string,
@@ -242,5 +249,5 @@ export const useCheckIn = (userId?: string) => {
     return { hours, minutes, totalMinutes };
   };
 
-  return { checkIn, checkOut, getUserCheckIn, getRemainingTime, loading, checkInHistory };
+  return { checkIn, checkOut, getUserCheckIn, getRemainingTime, loading, checkInHistory, refetch };
 };

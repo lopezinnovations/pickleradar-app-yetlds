@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -85,6 +85,14 @@ export default function MessagesScreen() {
       setLoading(false);
     }
   }, [user]);
+
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('MessagesScreen: Screen focused, refreshing data');
+      fetchConversations();
+    }, [fetchConversations])
+  );
 
   useEffect(() => {
     fetchConversations();

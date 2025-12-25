@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { useFriends } from '@/hooks/useFriends';
@@ -19,7 +19,8 @@ export default function FriendsScreen() {
     sendFriendRequestById, 
     acceptFriendRequest, 
     rejectFriendRequest, 
-    removeFriend 
+    removeFriend,
+    refetch
   } = useFriends(user?.id);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -30,6 +31,16 @@ export default function FriendsScreen() {
   const [maxDupr, setMaxDupr] = useState('');
   const [selectedSkillLevels, setSelectedSkillLevels] = useState<string[]>([]);
   const [selectedCourts, setSelectedCourts] = useState<string[]>([]);
+
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('FriendsScreen: Screen focused, refreshing data');
+      if (user) {
+        refetch();
+      }
+    }, [user, refetch])
+  );
 
   const formatUserName = (firstName?: string, lastName?: string, nickname?: string, email?: string, phone?: string) => {
     if (firstName && lastName) {
