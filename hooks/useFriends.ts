@@ -153,7 +153,10 @@ export const useFriends = (userId: string | undefined) => {
     }
 
     try {
-      const { data: acceptedFriends, error: friendsError } = await supabase
+      console.log('useFriends: Fetching friends for userId:', userId);
+
+      // Fetch accepted friends where current user is the sender (user_id)
+      const { data: sentFriends, error: sentError } = await supabase
         .from('friends')
         .select(`
           *,
@@ -162,8 +165,31 @@ export const useFriends = (userId: string | undefined) => {
         .eq('user_id', userId)
         .eq('status', 'accepted');
 
-      if (friendsError) throw friendsError;
+      if (sentError) {
+        console.error('useFriends: Error fetching sent friends:', sentError);
+        throw sentError;
+      }
 
+      console.log('useFriends: Sent friends:', sentFriends?.length || 0);
+
+      // Fetch accepted friends where current user is the receiver (friend_id)
+      const { data: receivedFriends, error: receivedError } = await supabase
+        .from('friends')
+        .select(`
+          *,
+          requester:users!friends_user_id_fkey(id, email, phone, first_name, last_name, pickleballer_nickname, skill_level, experience_level, dupr_rating)
+        `)
+        .eq('friend_id', userId)
+        .eq('status', 'accepted');
+
+      if (receivedError) {
+        console.error('useFriends: Error fetching received friends:', receivedError);
+        throw receivedError;
+      }
+
+      console.log('useFriends: Received friends:', receivedFriends?.length || 0);
+
+      // Fetch pending requests where current user is the receiver
       const { data: pending, error: pendingError } = await supabase
         .from('friends')
         .select(`
@@ -173,10 +199,16 @@ export const useFriends = (userId: string | undefined) => {
         .eq('friend_id', userId)
         .eq('status', 'pending');
 
-      if (pendingError) throw pendingError;
+      if (pendingError) {
+        console.error('useFriends: Error fetching pending requests:', pendingError);
+        throw pendingError;
+      }
 
-      const friendsWithDetails: FriendWithDetails[] = await Promise.all(
-        (acceptedFriends || []).map(async (friendship: any) => {
+      console.log('useFriends: Pending requests:', pending?.length || 0);
+
+      // Process sent friends (where current user is user_id)
+      const sentFriendsWithDetails: FriendWithDetails[] = await Promise.all(
+        (sentFriends || []).map(async (friendship: any) => {
           const friendData = friendship.friend;
           
           const { data: checkIn } = await supabase
@@ -212,6 +244,48 @@ export const useFriends = (userId: string | undefined) => {
         })
       );
 
+      // Process received friends (where current user is friend_id)
+      const receivedFriendsWithDetails: FriendWithDetails[] = await Promise.all(
+        (receivedFriends || []).map(async (friendship: any) => {
+          const friendData = friendship.requester;
+          
+          const { data: checkIn } = await supabase
+            .from('check_ins')
+            .select('court_id, expires_at, courts(name)')
+            .eq('user_id', friendData.id)
+            .gte('expires_at', new Date().toISOString())
+            .single();
+
+          let remainingTime = undefined;
+          if (checkIn?.expires_at) {
+            remainingTime = getRemainingTime(checkIn.expires_at);
+          }
+
+          return {
+            id: friendship.id,
+            userId: friendship.user_id,
+            friendId: friendship.user_id, // The friend is the user_id in this case
+            status: friendship.status,
+            createdAt: friendship.created_at,
+            friendEmail: friendData.email,
+            friendPhone: friendData.phone,
+            friendFirstName: friendData.first_name,
+            friendLastName: friendData.last_name,
+            friendNickname: friendData.pickleballer_nickname,
+            friendSkillLevel: friendData.skill_level,
+            friendExperienceLevel: friendData.experience_level,
+            friendDuprRating: friendData.dupr_rating,
+            currentCourtId: checkIn?.court_id,
+            currentCourtName: checkIn?.courts?.name,
+            remainingTime,
+          };
+        })
+      );
+
+      // Combine both lists
+      const allFriends = [...sentFriendsWithDetails, ...receivedFriendsWithDetails];
+      console.log('useFriends: Total friends:', allFriends.length);
+
       const pendingWithDetails: FriendWithDetails[] = (pending || []).map((friendship: any) => {
         const requesterData = friendship.requester;
         return {
@@ -231,7 +305,7 @@ export const useFriends = (userId: string | undefined) => {
         };
       });
 
-      setFriends(friendsWithDetails);
+      setFriends(allFriends);
       setPendingRequests(pendingWithDetails);
       
       // Also fetch all users

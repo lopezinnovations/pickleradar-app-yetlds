@@ -35,7 +35,7 @@ export default function UserProfileScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [checkInHistory, setCheckInHistory] = useState<CheckInHistory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'pending' | 'accepted'>('none');
+  const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'pending_sent' | 'pending_received' | 'accepted'>('none');
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -58,6 +58,7 @@ export default function UserProfileScreen() {
         .single();
 
       if (error) throw error;
+      console.log('UserProfile: Fetched user profile:', data);
       setUserProfile(data);
     } catch (error) {
       console.log('Error fetching user profile:', error);
@@ -96,17 +97,41 @@ export default function UserProfileScreen() {
     if (!id || !currentUser || !isSupabaseConfigured()) return;
 
     try {
+      console.log('UserProfile: Checking friendship status between', currentUser.id, 'and', id);
+      
+      // Check both directions of the friendship
       const { data, error } = await supabase
         .from('friends')
         .select('*')
-        .or(`and(user_id.eq.${currentUser.id},friend_id.eq.${id}),and(user_id.eq.${id},friend_id.eq.${currentUser.id})`)
-        .single();
+        .or(`and(user_id.eq.${currentUser.id},friend_id.eq.${id}),and(user_id.eq.${id},friend_id.eq.${currentUser.id})`);
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('UserProfile: Error fetching friendship status:', error);
+        throw error;
+      }
 
-      if (data) {
-        setFriendshipId(data.id);
-        setFriendshipStatus(data.status);
+      console.log('UserProfile: Friendship data:', data);
+
+      if (data && data.length > 0) {
+        const friendship = data[0];
+        setFriendshipId(friendship.id);
+        
+        // Determine the status based on who sent the request
+        if (friendship.status === 'accepted') {
+          setFriendshipStatus('accepted');
+        } else if (friendship.status === 'pending') {
+          // Check if current user sent the request or received it
+          if (friendship.user_id === currentUser.id) {
+            setFriendshipStatus('pending_sent');
+          } else {
+            setFriendshipStatus('pending_received');
+          }
+        }
+        
+        console.log('UserProfile: Friendship status set to:', friendship.status);
+      } else {
+        console.log('UserProfile: No friendship found');
+        setFriendshipStatus('none');
       }
     } catch (error) {
       console.log('Error fetching friendship status:', error);
@@ -268,18 +293,14 @@ export default function UserProfileScreen() {
   // Determine what information to show based on friendship status
   const isFriend = friendshipStatus === 'accepted';
   
-  // Format display name based on friendship status
-  const displayName = isFriend
-    ? formatUserName(
-        userProfile.first_name,
-        userProfile.last_name,
-        userProfile.pickleballer_nickname,
-        userProfile.email,
-        userProfile.phone
-      )
-    : userProfile.first_name && userProfile.last_name
-      ? `${userProfile.first_name} ${userProfile.last_name.charAt(0)}.`
-      : 'User';
+  // Format display name - always show first name, last initial, and nickname
+  const displayName = formatUserName(
+    userProfile.first_name,
+    userProfile.last_name,
+    userProfile.pickleballer_nickname,
+    userProfile.email,
+    userProfile.phone
+  );
 
   return (
     <View style={commonStyles.container}>
@@ -340,6 +361,7 @@ export default function UserProfileScreen() {
             </View>
           )}
           
+          {/* Always show skill level and DUPR */}
           {userProfile.experience_level && (
             <View style={styles.userStats}>
               {isFriend && (
@@ -369,6 +391,7 @@ export default function UserProfileScreen() {
             </View>
           )}
 
+          {/* Always show skill level bars */}
           {userProfile.experience_level && (
             <View style={styles.skillLevelBarContainer}>
               <SkillLevelBars 
@@ -405,7 +428,7 @@ export default function UserProfileScreen() {
                 </TouchableOpacity>
               )}
 
-              {friendshipStatus === 'pending' && (
+              {friendshipStatus === 'pending_sent' && (
                 <TouchableOpacity
                   style={[buttonStyles.secondary, { backgroundColor: colors.accent }]}
                   onPress={handleCancelRequest}
