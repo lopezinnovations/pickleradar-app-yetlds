@@ -1,11 +1,26 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
 import { BrandingFooter } from './BrandingFooter';
+import { IconSymbol } from './IconSymbol';
 
-export function LegalFooter() {
+interface LegalFooterProps {
+  showLegalCompliance?: boolean;
+  onLegalCompliancePress?: () => void;
+  showDeleteAccount?: boolean;
+  onDeleteAccountPress?: () => void;
+  deletingAccount?: boolean;
+}
+
+export function LegalFooter({ 
+  showLegalCompliance = false, 
+  onLegalCompliancePress,
+  showDeleteAccount = false,
+  onDeleteAccountPress,
+  deletingAccount = false
+}: LegalFooterProps) {
   const router = useRouter();
 
   const handleContactPress = () => {
@@ -36,6 +51,46 @@ export function LegalFooter() {
         <TouchableOpacity onPress={() => router.push('/legal/disclaimer')}>
           <Text style={styles.link}>Disclaimer</Text>
         </TouchableOpacity>
+
+        {showLegalCompliance && onLegalCompliancePress && (
+          <React.Fragment>
+            <Text style={styles.separator}>•</Text>
+            <TouchableOpacity onPress={onLegalCompliancePress}>
+              <View style={styles.linkWithIcon}>
+                <IconSymbol 
+                  ios_icon_name="checkmark.shield.fill" 
+                  android_material_icon_name="verified_user" 
+                  size={14} 
+                  color={colors.success} 
+                />
+                <Text style={[styles.link, { color: colors.success }]}>Legal Compliance</Text>
+              </View>
+            </TouchableOpacity>
+          </React.Fragment>
+        )}
+
+        {showDeleteAccount && onDeleteAccountPress && (
+          <React.Fragment>
+            <Text style={styles.separator}>•</Text>
+            <TouchableOpacity onPress={onDeleteAccountPress} disabled={deletingAccount}>
+              <View style={styles.linkWithIcon}>
+                {deletingAccount ? (
+                  <ActivityIndicator color={colors.accent} size="small" />
+                ) : (
+                  <React.Fragment>
+                    <IconSymbol 
+                      ios_icon_name="trash.fill" 
+                      android_material_icon_name="delete_forever" 
+                      size={14} 
+                      color={colors.accent} 
+                    />
+                    <Text style={[styles.link, { color: colors.accent }]}>Delete Account</Text>
+                  </React.Fragment>
+                )}
+              </View>
+            </TouchableOpacity>
+          </React.Fragment>
+        )}
       </View>
       
       <Text style={styles.copyright}>
@@ -66,6 +121,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.primary,
     fontWeight: '500',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  linkWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },

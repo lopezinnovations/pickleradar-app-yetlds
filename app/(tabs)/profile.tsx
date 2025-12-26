@@ -825,63 +825,30 @@ export default function ProfileScreen() {
               <Text style={[buttonStyles.text, { color: colors.text }]}>Cancel</Text>
             </TouchableOpacity>
           </React.Fragment>
-        ) : null}
-
-        {/* Account Actions - Simple Links */}
-        {!isEditing && (
-          <View style={styles.accountActionsContainer}>
+        ) : (
+          <View style={commonStyles.card}>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={styles.signOutButton}
               onPress={handleSignOut}
             >
               <IconSymbol 
                 ios_icon_name="rectangle.portrait.and.arrow.right" 
                 android_material_icon_name="logout" 
-                size={18} 
-                color={colors.primary} 
+                size={20} 
+                color={colors.card} 
               />
-              <Text style={styles.linkText}>Sign Out</Text>
+              <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={handleDeleteAccount}
-              disabled={deletingAccount}
-            >
-              {deletingAccount ? (
-                <ActivityIndicator color={colors.accent} size="small" />
-              ) : (
-                <React.Fragment>
-                  <IconSymbol 
-                    ios_icon_name="trash.fill" 
-                    android_material_icon_name="delete_forever" 
-                    size={18} 
-                    color={colors.accent} 
-                  />
-                  <Text style={[styles.linkText, { color: colors.accent }]}>Delete Account</Text>
-                </React.Fragment>
-              )}
-            </TouchableOpacity>
-
-            {/* Legal Compliance Link */}
-            {user.termsAccepted && user.privacyAccepted && user.acceptedAt && (
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => setShowLegalModal(true)}
-              >
-                <IconSymbol 
-                  ios_icon_name="checkmark.shield.fill" 
-                  android_material_icon_name="verified_user" 
-                  size={18} 
-                  color={colors.success} 
-                />
-                <Text style={[styles.linkText, { color: colors.success }]}>Legal Compliance</Text>
-              </TouchableOpacity>
-            )}
           </View>
         )}
 
-        <LegalFooter />
+        <LegalFooter 
+          showLegalCompliance={user.termsAccepted && user.privacyAccepted && user.acceptedAt}
+          onLegalCompliancePress={() => setShowLegalModal(true)}
+          showDeleteAccount={true}
+          onDeleteAccountPress={handleDeleteAccount}
+          deletingAccount={deletingAccount}
+        />
       </ScrollView>
 
       {/* Legal Compliance Modal */}
@@ -1174,24 +1141,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  accountActionsContainer: {
-    marginTop: 24,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    gap: 16,
-  },
-  linkButton: {
+  signOutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 8,
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 10,
   },
-  linkText: {
+  signOutText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
+    fontWeight: '700',
+    color: colors.card,
   },
   modalOverlay: {
     flex: 1,
