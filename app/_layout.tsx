@@ -6,7 +6,7 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function RootLayout() {
   useEffect(() => {
-    // Handle deep links for password reset
+    // Handle deep links for password reset and email confirmation
     const handleDeepLink = async (event: { url: string }) => {
       console.log('Deep link received:', event.url);
       
@@ -41,6 +41,35 @@ export default function RootLayout() {
           }
         }
       }
+      
+      // Check if this is an email confirmation link
+      if (url.path === 'email-confirmed' || url.hostname === 'email-confirmed') {
+        console.log('Email confirmation link detected');
+        
+        // Extract the token from the URL
+        const params = url.queryParams;
+        if (params && typeof params === 'object') {
+          const token = params.token as string;
+          const type = params.type as string;
+          
+          if (token && type === 'signup') {
+            console.log('Valid signup token found, verifying...');
+            
+            // Verify the OTP token
+            const { data, error } = await supabase.auth.verifyOtp({
+              token_hash: token,
+              type: 'signup',
+            });
+            
+            if (error) {
+              console.error('Error verifying signup token:', error);
+            } else {
+              console.log('Signup token verified successfully:', data);
+              // The email-confirmed screen will handle the redirect
+            }
+          }
+        }
+      }
     };
 
     // Listen for deep links
@@ -64,6 +93,8 @@ export default function RootLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="welcome" />
       <Stack.Screen name="auth" />
+      <Stack.Screen name="confirm-email" />
+      <Stack.Screen name="email-confirmed" />
       <Stack.Screen name="reset-password" />
       <Stack.Screen name="(tabs)" />
     </Stack>

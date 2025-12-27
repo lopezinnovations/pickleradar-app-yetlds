@@ -294,7 +294,8 @@ export const useAuth = () => {
             return {
               success: true,
               error: null,
-              message: 'Account created successfully!',
+              message: 'Account created successfully! Please check your email to confirm your account.',
+              email: email,
             };
           }
         }
@@ -339,11 +340,12 @@ export const useAuth = () => {
         }
       }
       
-      // Return success - user can proceed immediately
+      // Return success with email for confirmation screen
       return { 
         success: true, 
         error: null, 
-        message: 'Account created successfully!',
+        message: 'Account created successfully! Please check your email to confirm your account.',
+        email: email,
       };
     } catch (error: any) {
       console.log('useAuth: Sign up error:', error);

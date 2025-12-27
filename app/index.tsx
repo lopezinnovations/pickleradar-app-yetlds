@@ -8,6 +8,8 @@ import { colors } from '@/styles/commonStyles';
 export default function LandingScreen() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
   const hasCheckedAuth = useRef(false);
 
   useEffect(() => {
@@ -36,8 +38,17 @@ export default function LandingScreen() {
         console.log('LandingScreen: Error getting session:', error);
         setIsAuthenticated(false);
       } else if (session?.user) {
-        console.log('LandingScreen: User is logged in:', session.user.email);
-        setIsAuthenticated(true);
+        console.log('LandingScreen: User session found:', session.user.email);
+        
+        // Check if email is confirmed
+        if (session.user.email_confirmed_at) {
+          console.log('LandingScreen: Email confirmed, user is authenticated');
+          setIsAuthenticated(true);
+        } else {
+          console.log('LandingScreen: Email not confirmed, redirecting to confirm-email');
+          setNeedsEmailConfirmation(true);
+          setUserEmail(session.user.email);
+        }
       } else {
         console.log('LandingScreen: No active session');
         setIsAuthenticated(false);
@@ -59,7 +70,9 @@ export default function LandingScreen() {
   }
 
   // Redirect based on authentication status
-  if (isAuthenticated) {
+  if (needsEmailConfirmation) {
+    return <Redirect href={{ pathname: '/confirm-email', params: { email: userEmail } }} />;
+  } else if (isAuthenticated) {
     return <Redirect href="/(tabs)/(home)/" />;
   } else {
     return <Redirect href="/welcome" />;
