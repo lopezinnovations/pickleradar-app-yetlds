@@ -450,6 +450,22 @@ export default function UserProfileScreen() {
                 </TouchableOpacity>
               )}
 
+              {/* Message button - always available */}
+              {(friendshipStatus === 'none' || friendshipStatus === 'pending_sent' || friendshipStatus === 'pending_received') && (
+                <TouchableOpacity
+                  style={[buttonStyles.secondary, { marginTop: 12 }]}
+                  onPress={() => router.push(`/conversation/${id}`)}
+                >
+                  <IconSymbol 
+                    ios_icon_name="envelope.fill" 
+                    android_material_icon_name="mail" 
+                    size={20} 
+                    color={colors.primary} 
+                  />
+                  <Text style={[buttonStyles.text, { marginLeft: 8, color: colors.primary }]}>Send Message</Text>
+                </TouchableOpacity>
+              )}
+
               {friendshipStatus === 'accepted' && (
                 <React.Fragment>
                   <TouchableOpacity

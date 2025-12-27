@@ -86,6 +86,12 @@ export default function EmailConfirmedScreen() {
             You now have full functionality and access to PickleRadar.
           </Text>
 
+          <View style={styles.welcomeBox}>
+            <Text style={styles.welcomeText}>
+              Welcome to the courts! 🎾
+            </Text>
+          </View>
+
           <Text style={[styles.message, { marginTop: 24 }]}>
             Redirecting you to the app...
           </Text>
@@ -139,5 +145,18 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  welcomeBox: {
+    backgroundColor: colors.highlight,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 24,
+  },
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.primary,
+    textAlign: 'center',
   },
 });

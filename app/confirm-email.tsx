@@ -71,10 +71,10 @@ export default function ConfirmEmailScreen() {
           />
         </View>
 
-        <Text style={styles.title}>Please confirm your email to continue.</Text>
+        <Text style={styles.title}>Almost done!</Text>
 
         <Text style={styles.message}>
-          We&apos;ve sent a confirmation email to:
+          Please check your email and confirm your address to activate your account.
         </Text>
 
         {email && (
@@ -82,12 +82,24 @@ export default function ConfirmEmailScreen() {
         )}
 
         <Text style={[styles.message, { marginTop: 16 }]}>
-          Click the link in the email to verify your account and get full access to PickleRadar.
+          Click the confirmation link in your email to unlock full access to PickleRadar.
         </Text>
 
         <Text style={[styles.message, { marginTop: 16, fontSize: 14, fontStyle: 'italic' }]}>
           Don&apos;t forget to check your spam folder!
         </Text>
+
+        <View style={styles.accessNote}>
+          <IconSymbol 
+            ios_icon_name="lock.fill" 
+            android_material_icon_name="lock" 
+            size={20} 
+            color={colors.primary} 
+          />
+          <Text style={[styles.message, { marginLeft: 8, fontSize: 14 }]}>
+            Access will unlock after confirmation
+          </Text>
+        </View>
 
         {resendSuccess && (
           <View style={styles.successBanner}>
@@ -187,5 +199,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
     textAlign: 'center',
+  },
+  accessNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.highlight,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 24,
   },
 });

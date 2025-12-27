@@ -23,6 +23,13 @@ interface UserProfile {
   pickleballer_nickname?: string;
 }
 
+interface MessageRequest {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  status: 'pending' | 'accepted' | 'ignored';
+}
+
 export default function ConversationScreen() {
   const router = useRouter();
   const { id: recipientId } = useLocalSearchParams();
@@ -32,6 +39,8 @@ export default function ConversationScreen() {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [messageRequest, setMessageRequest] = useState<MessageRequest | null>(null);
+  const [isFriend, setIsFriend] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   const fetchRecipientProfile = useCallback(async () => {
@@ -50,6 +59,42 @@ export default function ConversationScreen() {
       console.log('Error fetching recipient profile:', error);
     }
   }, [recipientId]);
+
+  const checkFriendshipStatus = useCallback(async () => {
+    if (!user || !recipientId || !isSupabaseConfigured()) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('friends')
+        .select('*')
+        .or(`and(user_id.eq.${user.id},friend_id.eq.${recipientId}),and(user_id.eq.${recipientId},friend_id.eq.${user.id})`)
+        .eq('status', 'accepted')
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setIsFriend(!!data);
+    } catch (error) {
+      console.log('Error checking friendship status:', error);
+    }
+  }, [user, recipientId]);
+
+  const checkMessageRequest = useCallback(async () => {
+    if (!user || !recipientId || !isSupabaseConfigured()) return;
+
+    try {
+      // Check if there's an existing message request
+      const { data, error } = await supabase
+        .from('message_requests')
+        .select('*')
+        .or(`and(sender_id.eq.${user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setMessageRequest(data);
+    } catch (error) {
+      console.log('Error checking message request:', error);
+    }
+  }, [user, recipientId]);
 
   const fetchMessages = useCallback(async () => {
     if (!user || !recipientId || !isSupabaseConfigured()) {
@@ -89,6 +134,8 @@ export default function ConversationScreen() {
   useEffect(() => {
     fetchRecipientProfile();
     fetchMessages();
+    checkFriendshipStatus();
+    checkMessageRequest();
 
     // Set up real-time subscription
     if (user && recipientId && isSupabaseConfigured()) {
@@ -111,6 +158,11 @@ export default function ConversationScreen() {
                 .update({ read: true })
                 .eq('id', payload.new.id)
                 .then(() => console.log('Message marked as read'));
+              
+              // If this is the first message from recipient, accept the message request
+              if (messageRequest && messageRequest.status === 'pending' && messageRequest.recipient_id === user.id) {
+                acceptMessageRequest();
+              }
             }
           }
         )
@@ -120,13 +172,81 @@ export default function ConversationScreen() {
         subscription.unsubscribe();
       };
     }
-  }, [user, recipientId, fetchRecipientProfile, fetchMessages]);
+  }, [user, recipientId, fetchRecipientProfile, fetchMessages, checkFriendshipStatus, checkMessageRequest, messageRequest]);
+
+  const createMessageRequest = async () => {
+    if (!user || !recipientId || !isSupabaseConfigured()) return;
+
+    try {
+      const { error } = await supabase
+        .from('message_requests')
+        .insert([
+          {
+            sender_id: user.id,
+            recipient_id: recipientId,
+            status: 'pending',
+          },
+        ]);
+
+      if (error && error.code !== '23505') { // Ignore duplicate key errors
+        throw error;
+      }
+
+      // Create notification for recipient
+      await supabase
+        .from('notifications')
+        .insert([
+          {
+            user_id: recipientId,
+            title: 'New Message Request',
+            body: `${user.firstName || 'Someone'} sent you a message`,
+            type: 'message_request',
+            data: {
+              sender_id: user.id,
+              sender_name: user.firstName && user.lastName 
+                ? `${user.firstName} ${user.lastName.charAt(0)}.`
+                : user.pickleballerNickname || 'Unknown User',
+            },
+          },
+        ]);
+
+      await checkMessageRequest();
+    } catch (error) {
+      console.log('Error creating message request:', error);
+    }
+  };
+
+  const acceptMessageRequest = async () => {
+    if (!messageRequest || !user || !isSupabaseConfigured()) return;
+
+    try {
+      const { error } = await supabase
+        .from('message_requests')
+        .update({ status: 'accepted' })
+        .eq('id', messageRequest.id);
+
+      if (error) throw error;
+      await checkMessageRequest();
+    } catch (error) {
+      console.log('Error accepting message request:', error);
+    }
+  };
 
   const sendMessage = async () => {
     if (!messageText.trim() || !user || !recipientId || !isSupabaseConfigured()) return;
 
     setSending(true);
     try {
+      // Check if we need to create a message request
+      if (!isFriend && !messageRequest) {
+        await createMessageRequest();
+      }
+
+      // If recipient is replying to a pending request, accept it automatically
+      if (messageRequest && messageRequest.status === 'pending' && messageRequest.recipient_id === user.id) {
+        await acceptMessageRequest();
+      }
+
       const { error } = await supabase
         .from('messages')
         .insert([
@@ -245,6 +365,20 @@ export default function ConversationScreen() {
         </TouchableOpacity>
       </View>
 
+      {!isFriend && messageRequest?.status === 'pending' && messageRequest.sender_id === user?.id && (
+        <View style={styles.messageRequestBanner}>
+          <IconSymbol
+            ios_icon_name="info.circle.fill"
+            android_material_icon_name="info"
+            size={20}
+            color={colors.primary}
+          />
+          <Text style={styles.messageRequestText}>
+            Message request sent. {recipientName} can reply to accept.
+          </Text>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -262,7 +396,9 @@ export default function ConversationScreen() {
               color={colors.textSecondary}
             />
             <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
-              No messages yet. Start the conversation!
+              {!isFriend && !messageRequest 
+                ? 'Send a message to start a conversation'
+                : 'No messages yet. Start the conversation!'}
             </Text>
           </View>
         }
@@ -423,5 +559,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
+  },
+  messageRequestBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  messageRequestText: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
   },
 });
