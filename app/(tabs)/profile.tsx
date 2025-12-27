@@ -20,6 +20,7 @@ export default function ProfileScreen() {
   const [pickleballerNickname, setPickleballerNickname] = useState('');
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
   const [duprRating, setDuprRating] = useState('');
+  const [duprError, setDuprError] = useState('');
   const [privacyOptIn, setPrivacyOptIn] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
@@ -54,8 +55,9 @@ export default function ProfileScreen() {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setPickleballerNickname(user.pickleballerNickname || '');
-      setSkillLevel(user.skillLevel || 'Beginner');
+      setSkillLevel(user.experienceLevel || user.skillLevel || 'Beginner');
       setDuprRating(user.duprRating ? user.duprRating.toString() : '');
+      setDuprError('');
       setPrivacyOptIn(user.privacyOptIn);
       setNotificationsEnabled(user.notificationsEnabled);
       setLocationEnabled(user.locationEnabled);
@@ -70,6 +72,32 @@ export default function ProfileScreen() {
       hasLoadedUserData.current = false;
     }
   }, [user, authLoading, needsConsentUpdate]);
+
+  const validateDuprRating = (value: string) => {
+    if (!value.trim()) {
+      setDuprError('');
+      return true;
+    }
+
+    const duprValue = parseFloat(value);
+    if (isNaN(duprValue)) {
+      setDuprError('DUPR rating must be a number');
+      return false;
+    }
+
+    if (duprValue < 1 || duprValue > 7) {
+      setDuprError('DUPR rating must be between 1.0 and 7.0');
+      return false;
+    }
+
+    setDuprError('');
+    return true;
+  };
+
+  const handleDuprChange = (value: string) => {
+    setDuprRating(value);
+    validateDuprRating(value);
+  };
 
   const loadCurrentCheckIn = useCallback(async () => {
     if (!user) return;
@@ -218,24 +246,29 @@ export default function ProfileScreen() {
 
     const duprValue = duprRating.trim() ? parseFloat(duprRating) : undefined;
     
-    if (duprValue !== undefined && (isNaN(duprValue) || duprValue < 0 || duprValue > 8.0)) {
-      Alert.alert('Invalid DUPR Rating', 'DUPR rating must be between 0.0 and 8.0');
+    if (duprValue !== undefined && (isNaN(duprValue) || duprValue < 1 || duprValue > 7)) {
+      Alert.alert('Invalid DUPR Rating', 'DUPR rating must be between 1.0 and 7.0');
       return;
     }
 
-    await updateUserProfile({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      pickleballerNickname: pickleballerNickname.trim() || undefined,
-      skillLevel,
-      duprRating: duprValue,
-      privacyOptIn,
-      notificationsEnabled,
-      locationEnabled,
-    });
-    
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+    try {
+      await updateUserProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        pickleballerNickname: pickleballerNickname.trim() || undefined,
+        experienceLevel: skillLevel,
+        duprRating: duprValue,
+        privacyOptIn,
+        notificationsEnabled,
+        locationEnabled,
+      });
+      
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error: any) {
+      console.log('ProfileScreen: Save profile error:', error);
+      Alert.alert('Error', error?.message || 'Failed to update profile. Please try again.');
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -521,7 +554,7 @@ export default function ProfileScreen() {
             
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{skillLevel}</Text>
-              <Text style={commonStyles.textSecondary}>Skill Level</Text>
+              <Text style={commonStyles.textSecondary}>Experience</Text>
             </View>
             
             {duprRating && (
@@ -647,10 +680,10 @@ export default function ProfileScreen() {
           <Text style={commonStyles.subtitle}>Player Information</Text>
           
           <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, fontWeight: '600' }]}>
-            Skill Level
+            Experience Level
           </Text>
           <Text style={[commonStyles.textSecondary, { marginBottom: 12 }]}>
-            Select your pickleball skill level
+            Select your pickleball experience level
           </Text>
           
           <View style={styles.skillLevelContainer}>
@@ -681,18 +714,21 @@ export default function ProfileScreen() {
             DUPR Rating (Optional)
           </Text>
           <Text style={[commonStyles.textSecondary, { marginBottom: 12 }]}>
-            Enter your DUPR rating (0.0 - 8.0)
+            Enter your DUPR rating (1.0 - 7.0)
           </Text>
           <TextInput
-            style={[commonStyles.input, !isEditing && styles.inputDisabled]}
+            style={[commonStyles.input, !isEditing && styles.inputDisabled, duprError ? styles.inputError : null]}
             placeholder="e.g., 3.5"
             placeholderTextColor={colors.textSecondary}
             value={duprRating}
-            onChangeText={setDuprRating}
+            onChangeText={handleDuprChange}
             keyboardType="decimal-pad"
             maxLength={4}
             editable={isEditing}
           />
+          {duprError && isEditing && (
+            <Text style={styles.errorText}>{duprError}</Text>
+          )}
         </View>
 
         <View style={commonStyles.card}>
@@ -814,8 +850,9 @@ export default function ProfileScreen() {
                 setFirstName(user.firstName || '');
                 setLastName(user.lastName || '');
                 setPickleballerNickname(user.pickleballerNickname || '');
-                setSkillLevel(user.skillLevel || 'Beginner');
+                setSkillLevel(user.experienceLevel || user.skillLevel || 'Beginner');
                 setDuprRating(user.duprRating ? user.duprRating.toString() : '');
+                setDuprError('');
                 setPrivacyOptIn(user.privacyOptIn);
                 setNotificationsEnabled(user.notificationsEnabled);
                 setLocationEnabled(user.locationEnabled);
@@ -1059,6 +1096,16 @@ const styles = StyleSheet.create({
   inputDisabled: {
     backgroundColor: colors.highlight,
     opacity: 0.7,
+  },
+  inputError: {
+    borderColor: colors.accent,
+    borderWidth: 2,
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.accent,
+    marginTop: 4,
+    marginBottom: 8,
   },
   skillLevelContainer: {
     flexDirection: 'row',

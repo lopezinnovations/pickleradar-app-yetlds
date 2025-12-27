@@ -223,6 +223,15 @@ export const useAuth = () => {
         };
       }
 
+      // Validate DUPR rating if provided
+      if (duprRating !== undefined && (duprRating < 1 || duprRating > 7)) {
+        return {
+          success: false,
+          error: 'Invalid DUPR rating',
+          message: 'DUPR rating must be between 1.0 and 7.0',
+        };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -519,7 +528,14 @@ export const useAuth = () => {
       if (updates.latitude !== undefined) dbUpdates.latitude = updates.latitude;
       if (updates.longitude !== undefined) dbUpdates.longitude = updates.longitude;
       if (updates.zipCode !== undefined) dbUpdates.zip_code = updates.zipCode;
-      if (updates.duprRating !== undefined) dbUpdates.dupr_rating = updates.duprRating;
+      if (updates.duprRating !== undefined) {
+        // Validate DUPR rating before updating
+        if (updates.duprRating !== null && (updates.duprRating < 1 || updates.duprRating > 7)) {
+          console.log('useAuth: Invalid DUPR rating:', updates.duprRating);
+          throw new Error('DUPR rating must be between 1.0 and 7.0');
+        }
+        dbUpdates.dupr_rating = updates.duprRating;
+      }
       if (updates.locationPermissionRequested !== undefined) dbUpdates.location_permission_requested = updates.locationPermissionRequested;
       if (updates.profilePictureUrl !== undefined) dbUpdates.profile_picture_url = updates.profilePictureUrl;
       if (updates.termsAccepted !== undefined) dbUpdates.terms_accepted = updates.termsAccepted;
@@ -537,6 +553,7 @@ export const useAuth = () => {
       console.log('useAuth: Profile update successful');
     } catch (error) {
       console.log('useAuth: Update profile error:', error);
+      throw error;
     }
   }, [user]);
 

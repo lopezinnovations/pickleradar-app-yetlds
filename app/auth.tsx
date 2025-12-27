@@ -18,6 +18,7 @@ export default function AuthScreen() {
   const [lastName, setLastName] = useState('');
   const [pickleballerNickname, setPickleballerNickname] = useState('');
   const [duprRating, setDuprRating] = useState('');
+  const [duprError, setDuprError] = useState('');
   const [experienceLevel, setExperienceLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -48,6 +49,32 @@ export default function AuthScreen() {
 
   const validatePassword = (password: string) => {
     return password.length >= 6;
+  };
+
+  const validateDuprRating = (value: string) => {
+    if (!value.trim()) {
+      setDuprError('');
+      return true;
+    }
+
+    const duprValue = parseFloat(value);
+    if (isNaN(duprValue)) {
+      setDuprError('DUPR rating must be a number');
+      return false;
+    }
+
+    if (duprValue < 1 || duprValue > 7) {
+      setDuprError('DUPR rating must be between 1.0 and 7.0');
+      return false;
+    }
+
+    setDuprError('');
+    return true;
+  };
+
+  const handleDuprChange = (value: string) => {
+    setDuprRating(value);
+    validateDuprRating(value);
   };
 
   const handleSignUp = async () => {
@@ -88,8 +115,8 @@ export default function AuthScreen() {
 
     if (duprRating.trim()) {
       const duprValue = parseFloat(duprRating);
-      if (isNaN(duprValue) || duprValue < 0 || duprValue > 8.0) {
-        Alert.alert('Error', 'DUPR rating must be between 0.0 and 8.0');
+      if (isNaN(duprValue) || duprValue < 1 || duprValue > 7) {
+        Alert.alert('Error', 'DUPR rating must be between 1.0 and 7.0');
         return;
       }
     }
@@ -134,6 +161,7 @@ export default function AuthScreen() {
         setLastName('');
         setPickleballerNickname('');
         setDuprRating('');
+        setDuprError('');
         setExperienceLevel('Beginner');
         setConsentAccepted(false);
         
@@ -294,6 +322,7 @@ export default function AuthScreen() {
     setLastName('');
     setPickleballerNickname('');
     setDuprRating('');
+    setDuprError('');
     setExperienceLevel('Beginner');
     setConsentAccepted(false);
   };
@@ -304,8 +333,6 @@ export default function AuthScreen() {
     setPassword('');
     setConsentAccepted(false);
   };
-
-
 
   const experienceLevels: ('Beginner' | 'Intermediate' | 'Advanced')[] = ['Beginner', 'Intermediate', 'Advanced'];
 
@@ -389,15 +416,20 @@ export default function AuthScreen() {
 
               <Text style={styles.label}>DUPR Rating (Optional)</Text>
               <TextInput
-                style={commonStyles.input}
+                style={[commonStyles.input, duprError ? styles.inputError : null]}
                 placeholder="e.g., 3.5"
                 placeholderTextColor={colors.textSecondary}
                 value={duprRating}
-                onChangeText={setDuprRating}
+                onChangeText={handleDuprChange}
                 keyboardType="decimal-pad"
                 maxLength={4}
                 editable={!loading}
               />
+              {duprError ? (
+                <Text style={styles.errorText}>{duprError}</Text>
+              ) : (
+                <Text style={styles.helperText}>Enter a value between 1.0 and 7.0</Text>
+              )}
 
               <Text style={styles.label}>Experience Level</Text>
               <View style={styles.experienceLevelContainer}>
@@ -441,31 +473,27 @@ export default function AuthScreen() {
           {!isForgotPassword && (
             <React.Fragment>
               <Text style={styles.label}>Password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={[commonStyles.input, styles.passwordInput]}
-                  placeholder={isSignUp ? 'At least 6 characters' : 'Enter your password'}
-                  placeholderTextColor={colors.textSecondary}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!loading}
-                />
-                <TouchableOpacity
-                  style={styles.showPasswordButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
-                  <IconSymbol
-                    ios_icon_name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
-                    android_material_icon_name={showPassword ? 'visibility_off' : 'visibility'}
-                    size={20}
-                    color={colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
+              <TextInput
+                style={commonStyles.input}
+                placeholder={isSignUp ? 'At least 6 characters' : 'Enter your password'}
+                placeholderTextColor={colors.textSecondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.seePasswordButton}
+                onPress={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.seePasswordText}>
+                  {showPassword ? 'Hide Password' : 'See Password'}
+                </Text>
+              </TouchableOpacity>
             </React.Fragment>
           )}
 
@@ -645,6 +673,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 12,
   },
+  inputError: {
+    borderColor: colors.accent,
+    borderWidth: 2,
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.accent,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  helperText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+    marginBottom: 8,
+  },
   experienceLevelContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -672,17 +716,16 @@ const styles = StyleSheet.create({
   experienceLevelTextActive: {
     color: colors.card,
   },
-  passwordContainer: {
-    position: 'relative',
+  seePasswordButton: {
+    marginTop: 8,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
   },
-  passwordInput: {
-    paddingRight: 48,
-  },
-  showPasswordButton: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    padding: 8,
+  seePasswordText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   consentContainer: {
     marginTop: 16,
