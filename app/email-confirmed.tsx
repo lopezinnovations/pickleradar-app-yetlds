@@ -1,15 +1,17 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, commonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { supabase } from '@/app/integrations/supabase/client';
+import { BrandingFooter } from '@/components/BrandingFooter';
 
 export default function EmailConfirmedScreen() {
   const router = useRouter();
   const [verifying, setVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
+  const [firstName, setFirstName] = useState<string | null>(null);
 
   useEffect(() => {
     handleEmailConfirmation();
@@ -32,14 +34,20 @@ export default function EmailConfirmedScreen() {
 
       if (session?.user) {
         console.log('EmailConfirmedScreen: User authenticated successfully:', session.user.email);
+        
+        // Fetch user profile to get first name
+        const { data: profile } = await supabase
+          .from('users')
+          .select('first_name')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile?.first_name) {
+          setFirstName(profile.first_name);
+        }
+        
         setSuccess(true);
         setVerifying(false);
-
-        // Show success message for 2 seconds before redirecting
-        setTimeout(() => {
-          console.log('EmailConfirmedScreen: Redirecting to home...');
-          router.replace('/(tabs)/(home)/');
-        }, 2000);
       } else {
         console.log('EmailConfirmedScreen: No session found, redirecting to auth...');
         setVerifying(false);
@@ -54,6 +62,11 @@ export default function EmailConfirmedScreen() {
         router.replace('/auth');
       }, 1500);
     }
+  };
+
+  const handleReturnHome = () => {
+    console.log('EmailConfirmedScreen: Returning to home...');
+    router.replace('/(tabs)/(home)/');
   };
 
   if (verifying) {
@@ -71,31 +84,48 @@ export default function EmailConfirmedScreen() {
     return (
       <View style={commonStyles.container}>
         <View style={styles.content}>
+          <Image 
+            source={require('@/assets/images/d00ee021-be7a-42f9-a115-ea45cb937f7f.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+
           <View style={styles.successIconContainer}>
             <IconSymbol 
               ios_icon_name="checkmark.circle.fill" 
               android_material_icon_name="check_circle" 
-              size={80} 
+              size={64} 
               color={colors.primary} 
             />
           </View>
 
-          <Text style={styles.title}>Your email has been successfully confirmed.</Text>
+          <Text style={styles.title}>Great! Your email has been successfully confirmed.</Text>
 
           <Text style={styles.subtitle}>
-            You now have full functionality and access to PickleRadar.
+            You can now return to your app.
           </Text>
 
-          <View style={styles.welcomeBox}>
-            <Text style={styles.welcomeText}>
-              Welcome to the courts! 🎾
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={[buttonStyles.primary, { marginTop: 32, width: '100%', maxWidth: 300 }]}
+            onPress={handleReturnHome}
+            activeOpacity={0.8}
+          >
+            <Text style={buttonStyles.text}>Return to Home Page</Text>
+          </TouchableOpacity>
 
-          <Text style={[styles.message, { marginTop: 24 }]}>
-            Redirecting you to the app...
-          </Text>
+          {firstName && (
+            <View style={styles.welcomeBox}>
+              <Text style={styles.welcomeText}>
+                Welcome back, {firstName}!
+              </Text>
+              <Text style={styles.welcomeSubtext}>
+                Enjoy PickleRadar.
+              </Text>
+            </View>
+          )}
         </View>
+
+        <BrandingFooter />
       </View>
     );
   }
@@ -116,14 +146,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-  successIconContainer: {
+  logo: {
     width: 120,
     height: 120,
-    borderRadius: 60,
+    marginBottom: 24,
+  },
+  successIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontSize: 24,
@@ -135,8 +170,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: colors.primary,
+    fontWeight: '500',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 26,
   },
@@ -145,18 +180,27 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
+    marginTop: 16,
   },
   welcomeBox: {
     backgroundColor: colors.highlight,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 24,
     borderRadius: 12,
-    marginTop: 24,
+    marginTop: 32,
+    alignItems: 'center',
   },
   welcomeText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: colors.primary,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welcomeSubtext: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
     textAlign: 'center',
   },
 });

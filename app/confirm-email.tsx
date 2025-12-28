@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { supabase } from '@/app/integrations/supabase/client';
+import { BrandingFooter } from '@/components/BrandingFooter';
 
 export default function ConfirmEmailScreen() {
   const router = useRouter();
@@ -62,11 +63,17 @@ export default function ConfirmEmailScreen() {
   return (
     <View style={commonStyles.container}>
       <View style={styles.content}>
+        <Image 
+          source={require('@/assets/images/d00ee021-be7a-42f9-a115-ea45cb937f7f.jpeg')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
         <View style={styles.iconContainer}>
           <IconSymbol 
             ios_icon_name="envelope.fill" 
             android_material_icon_name="mail" 
-            size={80} 
+            size={64} 
             color={colors.primary} 
           />
         </View>
@@ -114,7 +121,7 @@ export default function ConfirmEmailScreen() {
         )}
 
         <TouchableOpacity
-          style={[buttonStyles.primary, { marginTop: 32 }]}
+          style={[buttonStyles.primary, { marginTop: 32, width: '100%', maxWidth: 300 }]}
           onPress={handleResendEmail}
           disabled={loading}
         >
@@ -133,6 +140,8 @@ export default function ConfirmEmailScreen() {
           <Text style={styles.backButtonText}>Back to Sign In</Text>
         </TouchableOpacity>
       </View>
+
+      <BrandingFooter />
     </View>
   );
 }
@@ -145,14 +154,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 48,
   },
-  iconContainer: {
+  logo: {
     width: 120,
     height: 120,
-    borderRadius: 60,
+    marginBottom: 24,
+  },
+  iconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontSize: 24,

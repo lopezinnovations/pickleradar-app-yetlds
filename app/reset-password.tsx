@@ -1,44 +1,43 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
+import { BrandingFooter } from '@/components/BrandingFooter';
 import { supabase } from '@/app/integrations/supabase/client';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const { updatePassword } = useAuth();
-  
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [hasValidSession, setHasValidSession] = useState(false);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
+    // Fetch user's first name for welcome message
+    const fetchUserName = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setHasValidSession(true);
-      } else {
-        Alert.alert(
-          'Invalid Link',
-          'This password reset link is invalid or has expired. Please request a new one.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/auth'),
-            },
-          ]
-        );
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('first_name')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile?.first_name) {
+          setFirstName(profile.first_name);
+        }
       }
     };
-    checkSession();
-  }, [router]);
+    
+    fetchUserName();
+  }, []);
 
   const validatePassword = (password: string) => {
     return password.length >= 6;
@@ -68,125 +67,150 @@ export default function ResetPasswordScreen() {
       const result = await updatePassword(newPassword);
       
       if (result.success) {
-        Alert.alert(
-          'Success',
-          'Your password has been updated successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/(tabs)/(home)/'),
-            },
-          ]
-        );
+        console.log('ResetPasswordScreen: Password updated successfully');
+        setSuccess(true);
+        
+        // Redirect to home after showing success message
+        setTimeout(() => {
+          router.replace('/(tabs)/(home)/');
+        }, 3000);
       } else {
         console.log('ResetPasswordScreen: Password update failed:', result.message);
         Alert.alert('Error', result.message || 'Failed to update password. Please try again.');
       }
     } catch (error: any) {
       console.log('ResetPasswordScreen: Password update error:', error);
-      Alert.alert('Error', error?.message || 'An unexpected error occurred. Please try again.');
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!hasValidSession) {
+  if (success) {
     return (
-      <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>
-          Verifying reset link...
-        </Text>
+      <View style={commonStyles.container}>
+        <View style={styles.content}>
+          <Image 
+            source={require('@/assets/images/d00ee021-be7a-42f9-a115-ea45cb937f7f.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+
+          <View style={styles.successIconContainer}>
+            <IconSymbol 
+              ios_icon_name="checkmark.circle.fill" 
+              android_material_icon_name="check_circle" 
+              size={64} 
+              color={colors.primary} 
+            />
+          </View>
+
+          <Text style={styles.title}>Password Reset Successful!</Text>
+
+          <Text style={styles.subtitle}>
+            Your password has been updated successfully.
+          </Text>
+
+          {firstName && (
+            <View style={styles.welcomeBox}>
+              <Text style={styles.welcomeText}>
+                Welcome back, {firstName}!
+              </Text>
+              <Text style={styles.welcomeSubtext}>
+                Enjoy PickleRadar.
+              </Text>
+            </View>
+          )}
+
+          <Text style={[styles.message, { marginTop: 24 }]}>
+            Redirecting you to the app...
+          </Text>
+        </View>
+
+        <BrandingFooter />
       </View>
     );
   }
 
   return (
     <View style={commonStyles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <IconSymbol 
-              ios_icon_name="lock.shield.fill" 
-              android_material_icon_name="lock_reset" 
-              size={64} 
-              color={colors.primary} 
-            />
-          </View>
-          <Text style={[commonStyles.title, { color: colors.primary }]}>
-            Reset Password
-          </Text>
-          <Text style={commonStyles.textSecondary}>
-            Enter your new password below
-          </Text>
-        </View>
+      <View style={styles.content}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol 
+            ios_icon_name="chevron.left" 
+            android_material_icon_name="chevron_left" 
+            size={24} 
+            color={colors.primary} 
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
+        <Image 
+          source={require('@/assets/images/d00ee021-be7a-42f9-a115-ea45cb937f7f.jpeg')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
+        <Text style={[commonStyles.title, { color: colors.primary }]}>
+          Reset Your Password
+        </Text>
+
+        <Text style={commonStyles.textSecondary}>
+          Enter your new password below
+        </Text>
 
         <View style={styles.form}>
           <Text style={styles.label}>New Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[commonStyles.input, styles.passwordInput]}
-              placeholder="At least 6 characters"
-              placeholderTextColor={colors.textSecondary}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.showPasswordButton}
-              onPress={() => setShowPassword(!showPassword)}
-              disabled={loading}
-            >
-              <IconSymbol
-                ios_icon_name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
-                android_material_icon_name={showPassword ? 'visibility_off' : 'visibility'}
-                size={20}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            style={commonStyles.input}
+            placeholder="At least 6 characters"
+            placeholderTextColor={colors.textSecondary}
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={styles.seePasswordButton}
+            onPress={() => setShowPassword(!showPassword)}
+            disabled={loading}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.seePasswordText}>
+              {showPassword ? 'Hide Password' : 'See Password'}
+            </Text>
+          </TouchableOpacity>
 
           <Text style={styles.label}>Confirm New Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[commonStyles.input, styles.passwordInput]}
-              placeholder="Re-enter your password"
-              placeholderTextColor={colors.textSecondary}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.showPasswordButton}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              disabled={loading}
-            >
-              <IconSymbol
-                ios_icon_name={showConfirmPassword ? 'eye.slash.fill' : 'eye.fill'}
-                android_material_icon_name={showConfirmPassword ? 'visibility_off' : 'visibility'}
-                size={20}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            style={commonStyles.input}
+            placeholder="Re-enter your password"
+            placeholderTextColor={colors.textSecondary}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showConfirmPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={styles.seePasswordButton}
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            disabled={loading}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.seePasswordText}>
+              {showConfirmPassword ? 'Hide Password' : 'See Password'}
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              buttonStyles.primary, 
-              { marginTop: 24 }, 
-              loading && { opacity: 0.6 }
-            ]}
+            style={[buttonStyles.primary, { marginTop: 24 }]}
             onPress={handleResetPassword}
             disabled={loading}
             activeOpacity={0.8}
@@ -194,80 +218,45 @@ export default function ResetPasswordScreen() {
             {loading ? (
               <ActivityIndicator color={colors.card} />
             ) : (
-              <React.Fragment>
-                <IconSymbol 
-                  ios_icon_name="checkmark.circle.fill" 
-                  android_material_icon_name="check_circle" 
-                  size={20} 
-                  color={colors.card} 
-                />
-                <Text style={[buttonStyles.text, { marginLeft: 8 }]}>
-                  Update Password
-                </Text>
-              </React.Fragment>
+              <Text style={buttonStyles.text}>Reset Password</Text>
             )}
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => router.replace('/auth')}
-            disabled={loading}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.cancelText}>
-              Cancel
-            </Text>
-          </TouchableOpacity>
         </View>
+      </View>
 
-        <View style={[commonStyles.card, { backgroundColor: colors.highlight, marginTop: 32 }]}>
-          <View style={styles.tipHeader}>
-            <IconSymbol 
-              ios_icon_name="lightbulb.fill" 
-              android_material_icon_name="lightbulb" 
-              size={20} 
-              color={colors.primary} 
-            />
-            <Text style={[commonStyles.subtitle, { marginLeft: 8 }]}>
-              Password Tips
-            </Text>
-          </View>
-          <Text style={[commonStyles.textSecondary, { marginTop: 12, lineHeight: 22 }]}>
-            - Use at least 6 characters{'\n'}
-            - Mix uppercase and lowercase letters{'\n'}
-            - Include numbers and special characters{'\n'}
-            - Avoid common words or patterns
-          </Text>
-        </View>
-      </ScrollView>
+      <BrandingFooter />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingTop: 48,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  header: {
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    paddingHorizontal: 24,
+    paddingTop: 48,
   },
-  iconContainer: {
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 4,
+  },
+  logo: {
     width: 120,
     height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.highlight,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 24,
   },
   form: {
     width: '100%',
+    marginTop: 32,
   },
   label: {
     fontSize: 16,
@@ -276,29 +265,66 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 12,
   },
-  passwordContainer: {
-    position: 'relative',
+  seePasswordButton: {
+    marginTop: -8,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
   },
-  passwordInput: {
-    paddingRight: 48,
-  },
-  showPasswordButton: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    padding: 8,
-  },
-  cancelButton: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
+  seePasswordText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.primary,
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
-  tipHeader: {
-    flexDirection: 'row',
+  successIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.highlight,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 32,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  message: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  welcomeBox: {
+    backgroundColor: colors.highlight,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welcomeSubtext: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+    textAlign: 'center',
   },
 });
