@@ -13,31 +13,85 @@ export default function ResetPasswordScreen() {
   const { updatePassword } = useAuth();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    // Fetch user's first name for welcome message
-    const fetchUserName = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('first_name')
-          .eq('id', session.user.id)
-          .single();
+    // Check if we have a valid session for password reset
+    const checkSession = async () => {
+      console.log('ResetPasswordScreen: Checking session...');
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (profile?.first_name) {
-          setFirstName(profile.first_name);
+        if (error) {
+          console.log('ResetPasswordScreen: Session error:', error);
+          Alert.alert(
+            'Session Error',
+            'Unable to verify your password reset session. Please request a new password reset link.',
+            [
+              {
+                text: 'OK',
+                onPress: () => router.replace('/auth'),
+              },
+            ]
+          );
+          return;
         }
+
+        if (!session) {
+          console.log('ResetPasswordScreen: No session found');
+          Alert.alert(
+            'Invalid Session',
+            'Your password reset link has expired or is invalid. Please request a new password reset link.',
+            [
+              {
+                text: 'OK',
+                onPress: () => router.replace('/auth'),
+              },
+            ]
+          );
+          return;
+        }
+
+        console.log('ResetPasswordScreen: Valid session found');
+        setSessionReady(true);
+
+        // Fetch user's first name for welcome message
+        if (session.user) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('first_name')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profile?.first_name) {
+            setFirstName(profile.first_name);
+          }
+        }
+      } catch (error) {
+        console.log('ResetPasswordScreen: Error checking session:', error);
+        Alert.alert(
+          'Error',
+          'An error occurred. Please try again.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/auth'),
+            },
+          ]
+        );
+      } finally {
+        setLoading(false);
       }
     };
     
-    fetchUserName();
-  }, []);
+    checkSession();
+  }, [router]);
 
   const validatePassword = (password: string) => {
     return password.length >= 6;
@@ -85,6 +139,18 @@ export default function ResetPasswordScreen() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking session
+  if (loading && !sessionReady) {
+    return (
+      <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>
+          Verifying your password reset link...
+        </Text>
+      </View>
+    );
+  }
 
   if (success) {
     return (
@@ -137,7 +203,7 @@ export default function ResetPasswordScreen() {
       <View style={styles.content}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => router.replace('/auth')}
         >
           <IconSymbol 
             ios_icon_name="chevron.left" 
@@ -145,7 +211,7 @@ export default function ResetPasswordScreen() {
             size={24} 
             color={colors.primary} 
           />
-          <Text style={styles.backText}>Back</Text>
+          <Text style={styles.backText}>Back to Sign In</Text>
         </TouchableOpacity>
 
         <Image 
