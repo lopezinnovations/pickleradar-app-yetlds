@@ -18,57 +18,16 @@ export default function RootLayout() {
       if (url.path === 'reset-password' || url.hostname === 'reset-password') {
         console.log('Password reset link detected');
         
-        // Extract the token from the URL
-        const params = url.queryParams;
-        if (params && typeof params === 'object') {
-          const token = params.token as string;
-          const type = params.type as string;
-          
-          if (token && type === 'recovery') {
-            console.log('Valid recovery token found, verifying...');
-            
-            // Verify the OTP token
-            const { data, error } = await supabase.auth.verifyOtp({
-              token_hash: token,
-              type: 'recovery',
-            });
-            
-            if (error) {
-              console.error('Error verifying recovery token:', error);
-            } else {
-              console.log('Recovery token verified successfully:', data);
-            }
-          }
-        }
+        // The reset-password screen will handle the session
+        // No need to verify OTP here as the session is already established
       }
       
       // Check if this is an email confirmation link
       if (url.path === 'email-confirmed' || url.hostname === 'email-confirmed') {
         console.log('Email confirmation link detected');
         
-        // Extract the token from the URL
-        const params = url.queryParams;
-        if (params && typeof params === 'object') {
-          const token = params.token as string;
-          const type = params.type as string;
-          
-          if (token && type === 'signup') {
-            console.log('Valid signup token found, verifying...');
-            
-            // Verify the OTP token
-            const { data, error } = await supabase.auth.verifyOtp({
-              token_hash: token,
-              type: 'signup',
-            });
-            
-            if (error) {
-              console.error('Error verifying signup token:', error);
-            } else {
-              console.log('Signup token verified successfully:', data);
-              // The email-confirmed screen will handle the redirect
-            }
-          }
-        }
+        // The email-confirmed screen will handle the session
+        // No need to verify OTP here as the session is already established
       }
     };
 

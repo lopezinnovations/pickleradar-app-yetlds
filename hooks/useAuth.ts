@@ -424,9 +424,9 @@ export const useAuth = () => {
     try {
       console.log('useAuth: Requesting password reset for:', email);
       
-      // Use the correct app scheme from app.json
+      // Use the natively.dev redirect URL
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'natively://reset-password',
+        redirectTo: 'https://natively.dev/reset-password',
       });
 
       if (error) {
