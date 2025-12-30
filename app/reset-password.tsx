@@ -242,13 +242,13 @@ export default function ResetPasswordScreen() {
             editable={!loading}
           />
           <TouchableOpacity
-            style={styles.seePasswordButton}
+            style={styles.showPasswordButton}
             onPress={() => setShowPassword(!showPassword)}
             disabled={loading}
             activeOpacity={0.7}
           >
-            <Text style={styles.seePasswordText}>
-              {showPassword ? 'Hide Password' : 'See Password'}
+            <Text style={styles.showPasswordText}>
+              {showPassword ? 'Hide password' : 'Show password'}
             </Text>
           </TouchableOpacity>
 
@@ -265,13 +265,13 @@ export default function ResetPasswordScreen() {
             editable={!loading}
           />
           <TouchableOpacity
-            style={styles.seePasswordButton}
+            style={styles.showPasswordButton}
             onPress={() => setShowConfirmPassword(!showConfirmPassword)}
             disabled={loading}
             activeOpacity={0.7}
           >
-            <Text style={styles.seePasswordText}>
-              {showConfirmPassword ? 'Hide Password' : 'See Password'}
+            <Text style={styles.showPasswordText}>
+              {showConfirmPassword ? 'Hide password' : 'Show password'}
             </Text>
           </TouchableOpacity>
 
@@ -331,12 +331,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 12,
   },
-  seePasswordButton: {
+  showPasswordButton: {
     marginTop: -8,
     marginBottom: 16,
     alignSelf: 'flex-start',
   },
-  seePasswordText: {
+  showPasswordText: {
     fontSize: 14,
     color: colors.primary,
     fontWeight: '600',

@@ -236,7 +236,6 @@ export const useAuth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: 'https://natively.dev/email-confirmed',
           data: {
             terms_accepted: true,
             privacy_accepted: true,
@@ -274,16 +273,16 @@ export const useAuth = () => {
             
             const { error: profileError } = await supabase
               .from('users')
-              .insert([
+              .upsert([
                 {
                   id: data.user.id,
                   email: data.user.email || email,
                   phone: null,
-                  first_name: firstName,
-                  last_name: lastName,
-                  pickleballer_nickname: pickleballerNickname,
-                  experience_level: experienceLevel,
-                  dupr_rating: duprRating,
+                  first_name: firstName || null,
+                  last_name: lastName || null,
+                  pickleballer_nickname: pickleballerNickname || null,
+                  experience_level: experienceLevel || null,
+                  dupr_rating: duprRating || null,
                   privacy_opt_in: false,
                   notifications_enabled: false,
                   location_enabled: false,
@@ -293,18 +292,23 @@ export const useAuth = () => {
                   accepted_at: now,
                   accepted_version: CURRENT_TERMS_VERSION,
                 },
-              ]);
+              ], {
+                onConflict: 'id'
+              });
 
             if (profileError) {
               console.log('useAuth: Profile creation error:', profileError);
+            } else {
+              console.log('useAuth: User profile created/updated successfully');
             }
 
-            // Return success - user can proceed even without email verification
+            // Return success - user can proceed without email verification
             return {
               success: true,
               error: null,
-              message: 'Account created successfully! Please check your email to confirm your account.',
+              message: 'Account created successfully! You can now sign in.',
               email: email,
+              requiresEmailConfirmation: false,
             };
           }
         }
@@ -320,16 +324,16 @@ export const useAuth = () => {
         
         const { error: profileError } = await supabase
           .from('users')
-          .insert([
+          .upsert([
             {
               id: data.user.id,
               email: data.user.email || email,
               phone: null,
-              first_name: firstName,
-              last_name: lastName,
-              pickleballer_nickname: pickleballerNickname,
-              experience_level: experienceLevel,
-              dupr_rating: duprRating,
+              first_name: firstName || null,
+              last_name: lastName || null,
+              pickleballer_nickname: pickleballerNickname || null,
+              experience_level: experienceLevel || null,
+              dupr_rating: duprRating || null,
               privacy_opt_in: false,
               notifications_enabled: false,
               location_enabled: false,
@@ -339,22 +343,25 @@ export const useAuth = () => {
               accepted_at: now,
               accepted_version: CURRENT_TERMS_VERSION,
             },
-          ]);
+          ], {
+            onConflict: 'id'
+          });
 
         if (profileError) {
           console.log('useAuth: Profile creation error:', profileError);
           // Don't throw error, just log it - user is still created
         } else {
-          console.log('useAuth: User profile created successfully with consent and profile fields');
+          console.log('useAuth: User profile created/updated successfully with consent and profile fields');
         }
       }
       
-      // Return success with email for confirmation screen
+      // Return success - no email confirmation required
       return { 
         success: true, 
         error: null, 
-        message: 'Account created successfully! Please check your email to confirm your account.',
+        message: 'Account created successfully! You can now sign in.',
         email: email,
+        requiresEmailConfirmation: false,
       };
     } catch (error: any) {
       console.log('useAuth: Sign up error:', error);
@@ -416,6 +423,54 @@ export const useAuth = () => {
         success: false, 
         error: error?.message || 'Sign in failed', 
         message: 'Incorrect email or password. Please try again.',
+      };
+    }
+  };
+
+  const signInWithOtp = async (email: string) => {
+    try {
+      console.log('useAuth: Sending magic link to:', email);
+      
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: 'https://natively.dev/magic-link',
+        },
+      });
+
+      if (error) {
+        console.log('useAuth: Magic link error:', error);
+        console.log('useAuth: Error details:', JSON.stringify(error, null, 2));
+        
+        // Check for SMTP configuration errors
+        if (error.message.includes('Error sending') || 
+            error.message.includes('authentication failed') ||
+            error.status === 500) {
+          console.log('useAuth: SMTP configuration error detected');
+          return {
+            success: false,
+            error: 'SMTP_NOT_CONFIGURED',
+            message: 'Email service is not configured. Please contact support or try again later.',
+            technicalDetails: 'The email server (SMTP) is not properly configured. This is a server configuration issue that needs to be fixed by the administrator.',
+          };
+        }
+        
+        throw error;
+      }
+
+      console.log('useAuth: Magic link sent successfully');
+      return { 
+        success: true, 
+        error: null, 
+        message: 'Check your email! We sent you a magic link to sign in.',
+      };
+    } catch (error: any) {
+      console.log('useAuth: Magic link error:', error);
+      
+      return { 
+        success: false, 
+        error: error?.message || 'Failed to send magic link', 
+        message: 'Unable to send magic link. Please try again later or contact support.',
       };
     }
   };
@@ -670,6 +725,7 @@ export const useAuth = () => {
     isConfigured,
     signUp,
     signIn,
+    signInWithOtp,
     signOut,
     resetPassword,
     updatePassword,

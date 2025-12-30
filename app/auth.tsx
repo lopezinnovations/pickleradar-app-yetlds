@@ -10,7 +10,7 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { signUp, signIn, resetPassword, isConfigured } = useAuth();
+  const { signUp, signIn, signInWithOtp, isConfigured } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -151,9 +151,6 @@ export default function AuthScreen() {
       );
       
       if (result.success) {
-        // Store email for confirm-email screen
-        const userEmail = email;
-        
         // Clear form
         setEmail('');
         setPassword('');
@@ -165,11 +162,19 @@ export default function AuthScreen() {
         setExperienceLevel('Beginner');
         setConsentAccepted(false);
         
-        // Redirect to confirm-email screen instead of showing modal
-        router.push({
-          pathname: '/confirm-email',
-          params: { email: userEmail }
-        });
+        // Show success message and redirect to sign in
+        Alert.alert(
+          'Account Created!',
+          'Your account has been created successfully. You can now sign in.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setIsSignUp(false);
+              },
+            },
+          ]
+        );
       } else {
         console.log('AuthScreen: Sign up failed:', result.message);
         Alert.alert('Sign Up Failed', result.message || 'Failed to create account. Please try again.');
@@ -254,14 +259,14 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      console.log('AuthScreen: Requesting password reset for:', email);
+      console.log('AuthScreen: Sending magic link to:', email);
       
-      const result = await resetPassword(email);
+      const result = await signInWithOtp(email);
       
       if (result.success) {
         Alert.alert(
           'Check Your Email',
-          result.message || 'If an account exists with this email, you will receive password reset instructions shortly.',
+          result.message || 'We sent you a magic link to sign in. Click the link in your email to access your account.',
           [
             {
               text: 'OK',
@@ -273,13 +278,13 @@ export default function AuthScreen() {
           ]
         );
       } else {
-        console.log('AuthScreen: Password reset failed:', result.message);
+        console.log('AuthScreen: Magic link failed:', result.message);
         
         // Check if it's an SMTP configuration error
         if (result.error === 'SMTP_NOT_CONFIGURED') {
           Alert.alert(
             'Email Service Unavailable',
-            'The email service is currently not configured. Please contact support for assistance with password recovery.\n\nTechnical details: SMTP authentication is not properly set up on the server.',
+            'The email service is currently not configured. Please contact support for assistance.\n\nTechnical details: SMTP authentication is not properly set up on the server.',
             [
               {
                 text: 'OK',
@@ -292,7 +297,7 @@ export default function AuthScreen() {
         } else {
           Alert.alert(
             'Error',
-            result.message || 'Unable to send password reset email. Please try again later.',
+            result.message || 'Unable to send magic link. Please try again later.',
             [
               {
                 text: 'OK',
@@ -302,7 +307,7 @@ export default function AuthScreen() {
         }
       }
     } catch (error: any) {
-      console.log('AuthScreen: Password reset error:', error);
+      console.log('AuthScreen: Magic link error:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
     } finally {
       setLoading(false);
@@ -364,11 +369,11 @@ export default function AuthScreen() {
             resizeMode="contain"
           />
           <Text style={[commonStyles.title, { color: colors.primary }]}>
-            {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isForgotPassword ? 'Forgot Password?' : isSignUp ? 'Create Account' : 'Welcome Back'}
           </Text>
           <Text style={commonStyles.textSecondary}>
             {isForgotPassword 
-              ? 'Enter your email to receive reset instructions' 
+              ? 'Enter your email to receive a magic link' 
               : isSignUp 
                 ? 'Sign up to start finding pickleball courts' 
                 : 'Sign in to continue'}
@@ -485,13 +490,13 @@ export default function AuthScreen() {
                 editable={!loading}
               />
               <TouchableOpacity
-                style={styles.seePasswordButton}
+                style={styles.showPasswordButton}
                 onPress={() => setShowPassword(!showPassword)}
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <Text style={styles.seePasswordText}>
-                  {showPassword ? 'Hide Password' : 'See Password'}
+                <Text style={styles.showPasswordText}>
+                  {showPassword ? 'Hide password' : 'Show password'}
                 </Text>
               </TouchableOpacity>
             </React.Fragment>
@@ -557,7 +562,7 @@ export default function AuthScreen() {
               <ActivityIndicator color={colors.card} />
             ) : (
               <Text style={buttonStyles.text}>
-                {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Sign Up' : 'Sign In'}
+                {isForgotPassword ? 'Send Magic Link' : isSignUp ? 'Sign Up' : 'Sign In'}
               </Text>
             )}
           </TouchableOpacity>
@@ -716,12 +721,12 @@ const styles = StyleSheet.create({
   experienceLevelTextActive: {
     color: colors.card,
   },
-  seePasswordButton: {
+  showPasswordButton: {
     marginTop: 8,
     marginBottom: 8,
     alignSelf: 'flex-start',
   },
-  seePasswordText: {
+  showPasswordText: {
     fontSize: 14,
     color: colors.primary,
     fontWeight: '600',

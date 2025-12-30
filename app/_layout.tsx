@@ -8,13 +8,32 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    // Handle deep links for password reset and email confirmation
+    // Handle deep links for magic link and password reset
     const handleDeepLink = async (event: { url: string }) => {
       console.log('Deep link received:', event.url);
       
       // Parse the URL
       const url = Linking.parse(event.url);
       console.log('Parsed URL:', url);
+      
+      // Check if this is a magic link
+      if (url.path === 'magic-link' || url.hostname === 'magic-link') {
+        console.log('Magic link deep link detected');
+        
+        // Verify we have a valid session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.log('Error getting session:', error);
+        } else if (session) {
+          console.log('Valid session found for magic link');
+          // Navigate directly to home with success message
+          router.replace('/(tabs)/(home)/');
+        } else {
+          console.log('No session found - user may need to click the link again');
+        }
+        return;
+      }
       
       // Check if this is a password reset link
       if (url.path === 'reset-password' || url.hostname === 'reset-password') {
@@ -83,6 +102,7 @@ export default function RootLayout() {
       <Stack.Screen name="confirm-email" />
       <Stack.Screen name="email-confirmed" />
       <Stack.Screen name="reset-password" />
+      <Stack.Screen name="magic-link" />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
