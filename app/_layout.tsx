@@ -1,10 +1,13 @@
 
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { supabase } from '@/app/integrations/supabase/client';
 
 export default function RootLayout() {
+  const router = useRouter();
+  const segments = useSegments();
+
   useEffect(() => {
     // Handle deep links for password reset and email confirmation
     const handleDeepLink = async (event: { url: string }) => {
@@ -29,7 +32,9 @@ export default function RootLayout() {
           console.log('No session found - user may need to click the link again');
         }
         
-        // The reset-password screen will handle session validation
+        // Navigate directly to the reset-password screen
+        console.log('Navigating to reset-password screen...');
+        router.replace('/reset-password');
       }
       
       // Check if this is an email confirmation link
@@ -47,7 +52,9 @@ export default function RootLayout() {
           console.log('No session found - user may need to click the link again');
         }
         
-        // The email-confirmed screen will handle session validation
+        // Navigate directly to the email-confirmed screen
+        console.log('Navigating to email-confirmed screen...');
+        router.replace('/email-confirmed');
       }
     };
 
@@ -65,7 +72,7 @@ export default function RootLayout() {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
