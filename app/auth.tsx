@@ -10,7 +10,7 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { signUp, signIn, signInWithOtp, isConfigured } = useAuth();
+  const { signUp, signIn, isConfigured } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +23,8 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [loginCode, setLoginCode] = useState('');
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -237,7 +239,7 @@ export default function AuthScreen() {
     }
   };
 
-  const handleForgotPassword = async () => {
+  const handleSendCode = async () => {
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email address');
       return;
@@ -259,56 +261,96 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      console.log('AuthScreen: Sending magic link to:', email);
+      console.log('AuthScreen: Sending login code to:', email);
       
-      const result = await signInWithOtp(email);
-      
-      if (result.success) {
-        Alert.alert(
-          'Check Your Email',
-          result.message || 'We sent you a magic link to sign in. Click the link in your email to access your account.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setIsForgotPassword(false);
-                setEmail('');
-              },
-            },
-          ]
-        );
-      } else {
-        console.log('AuthScreen: Magic link failed:', result.message);
-        
-        // Check if it's an SMTP configuration error
-        if (result.error === 'SMTP_NOT_CONFIGURED') {
-          Alert.alert(
-            'Email Service Unavailable',
-            'The email service is currently not configured. Please contact support for assistance.\n\nTechnical details: SMTP authentication is not properly set up on the server.',
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  setIsForgotPassword(false);
-                },
-              },
-            ]
-          );
-        } else {
-          Alert.alert(
-            'Error',
-            result.message || 'Unable to send magic link. Please try again later.',
-            [
-              {
-                text: 'OK',
-              },
-            ]
-          );
-        }
+      const { data, error } = await supabase.functions.invoke('send-login-code', {
+        body: { email },
+      });
+
+      if (error) {
+        console.log('AuthScreen: Error sending code:', error);
+        throw error;
       }
+
+      console.log('AuthScreen: Code sent successfully');
+      setShowCodeInput(true);
+      Alert.alert(
+        'Check Your Email',
+        'We sent a six-digit code to your email. Enter it below to sign in.',
+        [{ text: 'OK' }]
+      );
     } catch (error: any) {
-      console.log('AuthScreen: Magic link error:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
+      console.log('AuthScreen: Send code error:', error);
+      Alert.alert(
+        'Error',
+        'Unable to send login code. Please try again or use password login.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!loginCode.trim() || loginCode.length !== 6) {
+      Alert.alert('Error', 'Please enter the six-digit code from your email');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      console.log('AuthScreen: Verifying login code');
+      
+      const { data, error } = await supabase.functions.invoke('verify-login-code', {
+        body: { email, code: loginCode },
+      });
+
+      if (error || !data.success) {
+        console.log('AuthScreen: Code verification failed:', error || data.error);
+        Alert.alert(
+          'Invalid Code',
+          data?.message || 'The code you entered is incorrect. Please try again.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      console.log('AuthScreen: Code verified successfully');
+
+      // Set the session using the tokens from the response
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+
+      if (sessionError) {
+        console.log('AuthScreen: Error setting session:', sessionError);
+        throw sessionError;
+      }
+
+      // Clear form
+      setEmail('');
+      setLoginCode('');
+      setShowCodeInput(false);
+      setIsForgotPassword(false);
+
+      // Show success message and redirect
+      Alert.alert(
+        'Success',
+        "You're signed in. Welcome back!",
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/(tabs)/(home)/');
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.log('AuthScreen: Verify code error:', error);
+      Alert.alert('Error', 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -321,8 +363,10 @@ export default function AuthScreen() {
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setIsForgotPassword(false);
+    setShowCodeInput(false);
     setEmail('');
     setPassword('');
+    setLoginCode('');
     setFirstName('');
     setLastName('');
     setPickleballerNickname('');
@@ -335,7 +379,9 @@ export default function AuthScreen() {
   const toggleForgotPassword = () => {
     setIsForgotPassword(!isForgotPassword);
     setIsSignUp(false);
+    setShowCodeInput(false);
     setPassword('');
+    setLoginCode('');
     setConsentAccepted(false);
   };
 
@@ -373,7 +419,9 @@ export default function AuthScreen() {
           </Text>
           <Text style={commonStyles.textSecondary}>
             {isForgotPassword 
-              ? 'Enter your email to receive a magic link' 
+              ? showCodeInput 
+                ? 'Enter the six-digit code from your email'
+                : 'Enter your email to receive a login code' 
               : isSignUp 
                 ? 'Sign up to start finding pickleball courts' 
                 : 'Sign in to continue'}
@@ -472,8 +520,27 @@ export default function AuthScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            editable={!loading}
+            editable={!loading && !showCodeInput}
           />
+
+          {isForgotPassword && showCodeInput && (
+            <React.Fragment>
+              <Text style={styles.label}>Six-Digit Code</Text>
+              <TextInput
+                style={[commonStyles.input, styles.codeInput]}
+                placeholder="000000"
+                placeholderTextColor={colors.textSecondary}
+                value={loginCode}
+                onChangeText={(text) => setLoginCode(text.replace(/[^0-9]/g, ''))}
+                keyboardType="number-pad"
+                maxLength={6}
+                editable={!loading}
+              />
+              <Text style={styles.helperText}>
+                Check your email for a six-digit code and enter it here
+              </Text>
+            </React.Fragment>
+          )}
 
           {!isForgotPassword && (
             <React.Fragment>
@@ -496,7 +563,7 @@ export default function AuthScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={styles.showPasswordText}>
-                  {showPassword ? 'Hide password' : 'Show password'}
+                  {showPassword ? 'Hide Password' : 'Show Password'}
                 </Text>
               </TouchableOpacity>
             </React.Fragment>
@@ -554,7 +621,15 @@ export default function AuthScreen() {
               { marginTop: 8 }, 
               (loading || (isSignUp && !consentAccepted)) && { opacity: 0.6 }
             ]}
-            onPress={isForgotPassword ? handleForgotPassword : isSignUp ? handleSignUp : handleSignIn}
+            onPress={
+              isForgotPassword 
+                ? showCodeInput 
+                  ? handleVerifyCode 
+                  : handleSendCode 
+                : isSignUp 
+                  ? handleSignUp 
+                  : handleSignIn
+            }
             disabled={loading || (isSignUp && !consentAccepted)}
             activeOpacity={0.8}
           >
@@ -562,10 +637,29 @@ export default function AuthScreen() {
               <ActivityIndicator color={colors.card} />
             ) : (
               <Text style={buttonStyles.text}>
-                {isForgotPassword ? 'Send Magic Link' : isSignUp ? 'Sign Up' : 'Sign In'}
+                {isForgotPassword 
+                  ? showCodeInput 
+                    ? 'Verify Code' 
+                    : 'Send Code' 
+                  : isSignUp 
+                    ? 'Sign Up' 
+                    : 'Sign In'}
               </Text>
             )}
           </TouchableOpacity>
+
+          {isForgotPassword && showCodeInput && (
+            <TouchableOpacity
+              style={styles.resendButton}
+              onPress={handleSendCode}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.resendText}>
+                Didn&apos;t receive the code? Resend
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {!isForgotPassword && !isSignUp && (
             <TouchableOpacity
@@ -694,6 +788,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 8,
   },
+  codeInput: {
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 8,
+    textAlign: 'center',
+    fontFamily: 'Courier New',
+  },
   experienceLevelContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -777,6 +878,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
     fontWeight: '600',
+  },
+  resendButton: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  resendText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   toggleButton: {
     marginTop: 20,

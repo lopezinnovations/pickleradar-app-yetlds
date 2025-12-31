@@ -174,7 +174,6 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('useAuth: Auth state changed:', event, session ? 'User logged in' : 'User logged out');
       
-      // Handle magic link authentication
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('useAuth: User signed in via:', session.user.app_metadata?.provider || 'unknown');
         
@@ -449,127 +448,6 @@ export const useAuth = () => {
     }
   };
 
-  const signInWithOtp = async (email: string) => {
-    try {
-      console.log('useAuth: Sending magic link to:', email);
-      
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: 'natively://magic-link',
-        },
-      });
-
-      if (error) {
-        console.log('useAuth: Magic link error:', error);
-        console.log('useAuth: Error details:', JSON.stringify(error, null, 2));
-        
-        // Check for SMTP configuration errors
-        if (error.message.includes('Error sending') || 
-            error.message.includes('authentication failed') ||
-            error.status === 500) {
-          console.log('useAuth: SMTP configuration error detected');
-          return {
-            success: false,
-            error: 'SMTP_NOT_CONFIGURED',
-            message: 'Email service is not configured. Please contact support or try again later.',
-            technicalDetails: 'The email server (SMTP) is not properly configured. This is a server configuration issue that needs to be fixed by the administrator.',
-          };
-        }
-        
-        throw error;
-      }
-
-      console.log('useAuth: Magic link sent successfully');
-      return { 
-        success: true, 
-        error: null, 
-        message: 'Check your email! We sent you a magic link to sign in.',
-      };
-    } catch (error: any) {
-      console.log('useAuth: Magic link error:', error);
-      
-      return { 
-        success: false, 
-        error: error?.message || 'Failed to send magic link', 
-        message: 'Unable to send magic link. Please try again later or contact support.',
-      };
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      console.log('useAuth: Requesting password reset for:', email);
-      
-      // Use the natively://magic-link deep link for password reset as well
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'natively://magic-link',
-      });
-
-      if (error) {
-        console.log('useAuth: Password reset error:', error);
-        console.log('useAuth: Error details:', JSON.stringify(error, null, 2));
-        
-        // Check for SMTP configuration errors
-        if (error.message.includes('Error sending recovery email') || 
-            error.message.includes('authentication failed') ||
-            error.status === 500) {
-          console.log('useAuth: SMTP configuration error detected');
-          return {
-            success: false,
-            error: 'SMTP_NOT_CONFIGURED',
-            message: 'Email service is not configured. Please contact support or try again later.',
-            technicalDetails: 'The email server (SMTP) is not properly configured. This is a server configuration issue that needs to be fixed by the administrator.',
-          };
-        }
-        
-        throw error;
-      }
-
-      console.log('useAuth: Password reset email sent successfully');
-      return { 
-        success: true, 
-        error: null, 
-        message: 'If an account exists with this email, you will receive password reset instructions shortly. Click the link in the email to reset your password.',
-      };
-    } catch (error: any) {
-      console.log('useAuth: Password reset error:', error);
-      
-      // Provide a generic message for security (don't reveal if email exists)
-      return { 
-        success: false, 
-        error: error?.message || 'Failed to process password reset request', 
-        message: 'Unable to send password reset email. Please try again later or contact support.',
-      };
-    }
-  };
-
-  const updatePassword = async (newPassword: string) => {
-    try {
-      console.log('useAuth: Updating password...');
-      
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) throw error;
-
-      console.log('useAuth: Password updated successfully');
-      return { 
-        success: true, 
-        error: null, 
-        message: 'Password updated successfully!',
-      };
-    } catch (error: any) {
-      console.log('useAuth: Update password error:', error);
-      return { 
-        success: false, 
-        error: error?.message || 'Failed to update password', 
-        message: 'Failed to update password. Please try again.',
-      };
-    }
-  };
-
   const signOut = async () => {
     try {
       console.log('useAuth: Signing out user');
@@ -747,10 +625,7 @@ export const useAuth = () => {
     isConfigured,
     signUp,
     signIn,
-    signInWithOtp,
     signOut,
-    resetPassword,
-    updatePassword,
     updateUserProfile,
     uploadProfilePicture,
     deleteAccount,
