@@ -16,7 +16,10 @@ serve(async (req) => {
   try {
     const { email } = await req.json();
 
+    console.log('send-login-code: Received request for email:', email);
+
     if (!email) {
+      console.error('send-login-code: Email is missing');
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -26,13 +29,32 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    
+    console.log('send-login-code: Supabase URL configured:', !!supabaseUrl);
+    console.log('send-login-code: Service key configured:', !!supabaseServiceKey);
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check if user exists
-    const { data: existingUser } = await supabase.auth.admin.listUsers();
+    console.log('send-login-code: Checking if user exists');
+    const { data: existingUser, error: userError } = await supabase.auth.admin.listUsers();
+    
+    if (userError) {
+      console.error('send-login-code: Error listing users:', userError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to verify user',
+          message: 'Unable to send login code. Please try again later.',
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const userExists = existingUser?.users?.some(u => u.email === email);
+    console.log('send-login-code: User exists:', userExists);
 
     if (!userExists) {
+      console.log('send-login-code: User not found');
       return new Response(
         JSON.stringify({ 
           error: 'User not found',
@@ -44,11 +66,13 @@ serve(async (req) => {
 
     // Generate a six-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('send-login-code: Generated code');
 
     // Set expiration to 10 minutes from now
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     // Delete any existing unused codes for this email
+    console.log('send-login-code: Deleting old codes');
     await supabase
       .from('login_codes')
       .delete()
@@ -56,6 +80,7 @@ serve(async (req) => {
       .eq('used', false);
 
     // Store the code in the database
+    console.log('send-login-code: Storing new code');
     const { error: insertError } = await supabase
       .from('login_codes')
       .insert({
@@ -68,9 +93,12 @@ serve(async (req) => {
       });
 
     if (insertError) {
-      console.error('Error storing login code:', insertError);
+      console.error('send-login-code: Error storing login code:', insertError);
       return new Response(
-        JSON.stringify({ error: 'Failed to generate login code' }),
+        JSON.stringify({ 
+          error: 'Failed to generate login code',
+          message: 'Unable to send login code. Please try again later.',
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -120,43 +148,57 @@ serve(async (req) => {
     // Try to send email using Resend API if available
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
-    if (resendApiKey) {
-      try {
-        const resendResponse = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'PickleRadar <noreply@pickleradar.com>',
-            to: [email],
-            subject: 'Your PickleRadar Login Code',
-            html: emailHtml,
-          }),
-        });
+    console.log('send-login-code: Resend API key configured:', !!resendApiKey);
+    
+    if (!resendApiKey) {
+      console.error('send-login-code: RESEND_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Email service not configured',
+          message: 'Unable to send login code. Please contact support or use password login.',
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-        if (!resendResponse.ok) {
-          const errorData = await resendResponse.json();
-          console.error('Resend API error:', errorData);
-          throw new Error('Failed to send email');
-        }
-      } catch (resendError) {
-        console.error('Error sending email via Resend:', resendError);
+    try {
+      console.log('send-login-code: Sending email via Resend');
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'PickleRadar <onboarding@resend.dev>',
+          to: [email],
+          subject: 'Your PickleRadar Login Code',
+          html: emailHtml,
+        }),
+      });
+
+      const responseText = await resendResponse.text();
+      console.log('send-login-code: Resend response status:', resendResponse.status);
+      console.log('send-login-code: Resend response:', responseText);
+
+      if (!resendResponse.ok) {
+        console.error('send-login-code: Resend API error:', responseText);
         return new Response(
           JSON.stringify({ 
             error: 'Failed to send email',
-            message: 'Unable to send login code. Please try again later.',
+            message: 'Unable to send login code. Please try again or use password login.',
           }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-    } else {
-      console.error('RESEND_API_KEY not configured');
+
+      console.log('send-login-code: Email sent successfully');
+    } catch (resendError) {
+      console.error('send-login-code: Error sending email via Resend:', resendError);
       return new Response(
         JSON.stringify({ 
-          error: 'Email service not configured',
-          message: 'Unable to send login code. Please contact support.',
+          error: 'Failed to send email',
+          message: 'Unable to send login code. Please try again or use password login.',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -171,9 +213,12 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in send-login-code function:', error);
+    console.error('send-login-code: Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: 'Unable to send login code. Please try again or use password login.',
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

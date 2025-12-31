@@ -267,9 +267,27 @@ export default function AuthScreen() {
         body: { email },
       });
 
+      console.log('AuthScreen: Response data:', data);
+      console.log('AuthScreen: Response error:', error);
+
       if (error) {
-        console.log('AuthScreen: Error sending code:', error);
-        throw error;
+        console.error('AuthScreen: Error sending code:', error);
+        Alert.alert(
+          'Error',
+          'Unable to send login code. Please try again or use password login.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      if (data?.error) {
+        console.error('AuthScreen: API returned error:', data.error, data.message);
+        Alert.alert(
+          'Error',
+          data.message || 'Unable to send login code. Please try again or use password login.',
+          [{ text: 'OK' }]
+        );
+        return;
       }
 
       console.log('AuthScreen: Code sent successfully');
@@ -280,7 +298,7 @@ export default function AuthScreen() {
         [{ text: 'OK' }]
       );
     } catch (error: any) {
-      console.log('AuthScreen: Send code error:', error);
+      console.error('AuthScreen: Send code exception:', error);
       Alert.alert(
         'Error',
         'Unable to send login code. Please try again or use password login.',
