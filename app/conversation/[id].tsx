@@ -131,6 +131,22 @@ export default function ConversationScreen() {
     }
   }, [user, recipientId]);
 
+  const acceptMessageRequest = useCallback(async () => {
+    if (!messageRequest || !user || !isSupabaseConfigured()) return;
+
+    try {
+      const { error } = await supabase
+        .from('message_requests')
+        .update({ status: 'accepted' })
+        .eq('id', messageRequest.id);
+
+      if (error) throw error;
+      await checkMessageRequest();
+    } catch (error) {
+      console.log('Error accepting message request:', error);
+    }
+  }, [messageRequest, user, checkMessageRequest]);
+
   useEffect(() => {
     fetchRecipientProfile();
     fetchMessages();
@@ -172,7 +188,7 @@ export default function ConversationScreen() {
         subscription.unsubscribe();
       };
     }
-  }, [user, recipientId, fetchRecipientProfile, fetchMessages, checkFriendshipStatus, checkMessageRequest, messageRequest]);
+  }, [user, recipientId, fetchRecipientProfile, fetchMessages, checkFriendshipStatus, checkMessageRequest, messageRequest, acceptMessageRequest]);
 
   const createMessageRequest = async () => {
     if (!user || !recipientId || !isSupabaseConfigured()) return;
@@ -213,22 +229,6 @@ export default function ConversationScreen() {
       await checkMessageRequest();
     } catch (error) {
       console.log('Error creating message request:', error);
-    }
-  };
-
-  const acceptMessageRequest = async () => {
-    if (!messageRequest || !user || !isSupabaseConfigured()) return;
-
-    try {
-      const { error } = await supabase
-        .from('message_requests')
-        .update({ status: 'accepted' })
-        .eq('id', messageRequest.id);
-
-      if (error) throw error;
-      await checkMessageRequest();
-    } catch (error) {
-      console.log('Error accepting message request:', error);
     }
   };
 

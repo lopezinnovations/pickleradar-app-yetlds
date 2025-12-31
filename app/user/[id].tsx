@@ -39,14 +39,6 @@ export default function UserProfileScreen() {
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    if (id && currentUser) {
-      fetchUserProfile();
-      fetchCheckInHistory();
-      fetchFriendshipStatus();
-    }
-  }, [id, currentUser]);
-
   const fetchUserProfile = async () => {
     if (!id || !isSupabaseConfigured()) return;
 
@@ -137,6 +129,14 @@ export default function UserProfileScreen() {
       console.log('Error fetching friendship status:', error);
     }
   };
+
+  useEffect(() => {
+    if (id && currentUser) {
+      fetchUserProfile();
+      fetchCheckInHistory();
+      fetchFriendshipStatus();
+    }
+  }, [id, currentUser]);
 
   const handleSendFriendRequest = async () => {
     if (!currentUser || !id || !isSupabaseConfigured()) return;

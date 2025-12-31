@@ -46,7 +46,7 @@ export default function ProfileScreen() {
       refetchUser();
       refetchCheckIns();
       loadCurrentCheckIn();
-    }, [user?.id])
+    }, [user, refetchUser, refetchCheckIns, loadCurrentCheckIn])
   );
 
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function ProfileScreen() {
       setCurrentCheckIn(null);
       setRemainingTime(null);
     }
-  }, [user?.id, getUserCheckIn, getRemainingTime]);
+  }, [user, getUserCheckIn, getRemainingTime]);
 
   useEffect(() => {
     if (user && !hasLoadedCheckIn.current) {

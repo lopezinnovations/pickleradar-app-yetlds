@@ -34,7 +34,7 @@ export default function HomeScreen() {
     useCallback(() => {
       console.log('HomeScreen: Screen focused, refreshing courts data');
       refetch();
-    }, [])
+    }, [refetch])
   );
 
   // Calculate distances and apply sorting/filtering

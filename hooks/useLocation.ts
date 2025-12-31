@@ -8,37 +8,7 @@ export const useLocation = () => {
   const { user, updateUserProfile } = useAuth();
   const [requestingPermission, setRequestingPermission] = useState(false);
 
-  const requestLocationOnFirstLogin = useCallback(async () => {
-    if (!user) return;
-
-    Alert.alert(
-      'Enable Location Services',
-      'PickleRadar would like to access your location to show nearby courts. You can also search by ZIP code if you prefer.',
-      [
-        {
-          text: 'Use ZIP Code',
-          onPress: () => {
-            updateUserProfile({ locationPermissionRequested: true });
-          },
-        },
-        {
-          text: 'Allow Location',
-          onPress: async () => {
-            await requestLocation();
-          },
-        },
-      ]
-    );
-  }, [user, updateUserProfile]);
-
-  // Request location permission on first login
-  useEffect(() => {
-    if (user && !user.locationPermissionRequested && !user.latitude && !user.longitude) {
-      requestLocationOnFirstLogin();
-    }
-  }, [user, requestLocationOnFirstLogin]);
-
-  const requestLocation = async () => {
+  const requestLocation = useCallback(async () => {
     if (!user) return;
 
     setRequestingPermission(true);
@@ -61,7 +31,37 @@ export const useLocation = () => {
     }
     
     setRequestingPermission(false);
-  };
+  }, [user, updateUserProfile]);
+
+  const requestLocationOnFirstLogin = useCallback(async () => {
+    if (!user) return;
+
+    Alert.alert(
+      'Enable Location Services',
+      'PickleRadar would like to access your location to show nearby courts. You can also search by ZIP code if you prefer.',
+      [
+        {
+          text: 'Use ZIP Code',
+          onPress: () => {
+            updateUserProfile({ locationPermissionRequested: true });
+          },
+        },
+        {
+          text: 'Allow Location',
+          onPress: async () => {
+            await requestLocation();
+          },
+        },
+      ]
+    );
+  }, [user, updateUserProfile, requestLocation]);
+
+  // Request location permission on first login
+  useEffect(() => {
+    if (user && !user.locationPermissionRequested && !user.latitude && !user.longitude) {
+      requestLocationOnFirstLogin();
+    }
+  }, [user, requestLocationOnFirstLogin]);
 
   const updateZipCode = async (zipCode: string) => {
     if (!user) return { success: false, error: 'Not logged in' };
