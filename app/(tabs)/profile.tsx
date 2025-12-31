@@ -42,7 +42,6 @@ export default function ProfileScreen() {
     useCallback(() => {
       if (!user) return;
       
-      console.log('ProfileScreen: Screen focused, refreshing data');
       refetchUser();
       refetchCheckIns();
       loadCurrentCheckIn();
@@ -51,7 +50,6 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (user && !hasLoadedUserData.current) {
-      console.log('ProfileScreen: User data loaded:', user);
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setPickleballerNickname(user.pickleballerNickname || '');
@@ -144,11 +142,9 @@ export default function ProfileScreen() {
 
   const handleAcceptConsent = async () => {
     setAcceptingConsent(true);
-    console.log('ProfileScreen: Accepting consent...');
     
     try {
       const result = await acceptConsent();
-      console.log('ProfileScreen: Consent acceptance result:', result);
       
       if (result.success) {
         setShowConsentPrompt(false);
@@ -157,7 +153,6 @@ export default function ProfileScreen() {
         Alert.alert('Error', result.error || 'Failed to update consent. Please try again.');
       }
     } catch (error) {
-      console.log('ProfileScreen: Error accepting consent:', error);
       Alert.alert('Error', 'Failed to update consent. Please try again.');
     } finally {
       setAcceptingConsent(false);
@@ -192,7 +187,6 @@ export default function ProfileScreen() {
         setUploadingImage(false);
       }
     } catch (error) {
-      console.log('ProfileScreen: Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image. Please try again.');
       setUploadingImage(false);
     }
@@ -221,7 +215,6 @@ export default function ProfileScreen() {
                 Alert.alert('Error', result.error || 'Failed to check out. Please try again.');
               }
             } catch (error) {
-              console.log('ProfileScreen: Manual checkout error:', error);
               Alert.alert('Error', 'Failed to check out. Please try again.');
             } finally {
               setCheckingOut(false);
@@ -266,7 +259,6 @@ export default function ProfileScreen() {
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully!');
     } catch (error: any) {
-      console.log('ProfileScreen: Save profile error:', error);
       Alert.alert('Error', error?.message || 'Failed to update profile. Please try again.');
     }
   };
@@ -291,8 +283,6 @@ export default function ProfileScreen() {
 
     setDeletingAccount(true);
     try {
-      console.log('ProfileScreen: Deleting account...');
-      
       // Delete user data from database (cascading deletes will handle related data)
       const { error: deleteError } = await supabase
         .from('users')
@@ -305,7 +295,6 @@ export default function ProfileScreen() {
       const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
       
       if (authError) {
-        console.log('ProfileScreen: Auth deletion error (may require admin privileges):', authError);
         // Continue anyway as the user data is deleted
       }
 
@@ -323,7 +312,6 @@ export default function ProfileScreen() {
         ]
       );
     } catch (error) {
-      console.log('ProfileScreen: Delete account error:', error);
       Alert.alert('Error', 'Failed to delete account. Please try again or contact support.');
     } finally {
       setDeletingAccount(false);
@@ -341,12 +329,18 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('ProfileScreen: Signing out...');
               await signOut();
-              console.log('ProfileScreen: Sign out successful');
-              router.replace('/auth');
+              Alert.alert(
+                'Signed Out',
+                'You have been signed out successfully.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => router.replace('/auth'),
+                  },
+                ]
+              );
             } catch (error) {
-              console.log('ProfileScreen: Sign out error:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
             }
           },

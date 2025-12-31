@@ -43,7 +43,10 @@ export default function MessagesScreen() {
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        Alert.alert('Error', 'Failed to load conversations. Please try again.');
+        throw error;
+      }
 
       // Group messages by conversation partner
       const conversationsMap = new Map<string, Conversation>();
@@ -79,8 +82,7 @@ export default function MessagesScreen() {
 
       setConversations(Array.from(conversationsMap.values()));
     } catch (error) {
-      console.log('Error fetching conversations:', error);
-      Alert.alert('Error', 'Failed to load conversations');
+      // Error already shown via Alert
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,6 @@ export default function MessagesScreen() {
   // Auto-refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      console.log('MessagesScreen: Screen focused, refreshing data');
       fetchConversations();
     }, [fetchConversations])
   );
@@ -189,6 +190,7 @@ export default function MessagesScreen() {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>Loading messages...</Text>
       </View>
     );
   }

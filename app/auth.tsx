@@ -34,11 +34,10 @@ export default function AuthScreen() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user.phone) {
-          console.log('AuthScreen: Clearing old phone session');
           await supabase.auth.signOut();
         }
       } catch (error) {
-        console.log('AuthScreen: Error clearing old sessions:', error);
+        // Silent fail - not critical
       }
     };
     clearOldSessions();
@@ -139,8 +138,6 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      console.log('AuthScreen: Signing up with email:', email);
-      
       const result = await signUp(
         email, 
         password, 
@@ -178,11 +175,9 @@ export default function AuthScreen() {
           ]
         );
       } else {
-        console.log('AuthScreen: Sign up failed:', result.message);
         Alert.alert('Sign Up Failed', result.message || 'Failed to create account. Please try again.');
       }
     } catch (error: any) {
-      console.log('AuthScreen: Sign up error:', error);
       Alert.alert('Error', error?.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -216,23 +211,30 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      console.log('AuthScreen: Signing in with email:', email);
-      
       const result = await signIn(email, password);
       
       if (result.success) {
         // Clear form
         setEmail('');
         setPassword('');
-        // Redirect to home immediately without showing success message
-        router.replace('/(tabs)/(home)/');
+        // Show success message before redirect
+        Alert.alert(
+          'Welcome Back!',
+          'You have successfully signed in.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace('/(tabs)/(home)/');
+              },
+            },
+          ]
+        );
       } else {
-        console.log('AuthScreen: Sign in failed:', result.message);
         // Show generic error message
         Alert.alert('Sign In Failed', 'Incorrect email or password. Please try again.');
       }
     } catch (error: any) {
-      console.log('AuthScreen: Sign in error:', error);
       Alert.alert('Sign In Failed', 'Incorrect email or password. Please try again.');
     } finally {
       setLoading(false);
@@ -261,19 +263,13 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      console.log('AuthScreen: Sending OTP code to:', email);
-      
       // Use Supabase's built-in signInWithOtp function
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: { shouldCreateUser: false }
       });
 
-      console.log('AuthScreen: OTP Response data:', data);
-      console.log('AuthScreen: OTP Response error:', error);
-
       if (error) {
-        console.error('AuthScreen: Error sending OTP code:', error);
         Alert.alert(
           'Error',
           error.message || 'Unable to send login code. Please try again or use password login.',
@@ -282,7 +278,6 @@ export default function AuthScreen() {
         return;
       }
 
-      console.log('AuthScreen: OTP code sent successfully');
       setShowCodeInput(true);
       Alert.alert(
         'Check Your Email',
@@ -290,7 +285,6 @@ export default function AuthScreen() {
         [{ text: 'OK' }]
       );
     } catch (error: any) {
-      console.error('AuthScreen: Send OTP code exception:', error);
       Alert.alert(
         'Error',
         'Unable to send login code. Please try again or use password login.',
@@ -310,8 +304,6 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      console.log('AuthScreen: Verifying OTP code');
-      
       // Use Supabase's built-in verifyOtp function
       const { data, error } = await supabase.auth.verifyOtp({
         email,
@@ -320,7 +312,6 @@ export default function AuthScreen() {
       });
 
       if (error) {
-        console.log('AuthScreen: OTP verification failed:', error);
         Alert.alert(
           'Invalid Code',
           error.message || 'The code you entered is incorrect. Please try again.',
@@ -330,7 +321,6 @@ export default function AuthScreen() {
       }
 
       if (!data.session) {
-        console.log('AuthScreen: No session returned after OTP verification');
         Alert.alert(
           'Error',
           'Failed to verify code. Please try again.',
@@ -338,8 +328,6 @@ export default function AuthScreen() {
         );
         return;
       }
-
-      console.log('AuthScreen: OTP code verified successfully');
 
       // Clear form
       setEmail('');
@@ -361,7 +349,6 @@ export default function AuthScreen() {
         ]
       );
     } catch (error: any) {
-      console.log('AuthScreen: Verify OTP code error:', error);
       Alert.alert('Error', 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);

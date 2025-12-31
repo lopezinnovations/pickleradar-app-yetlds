@@ -53,10 +53,13 @@ export default function ConversationScreen() {
         .eq('id', recipientId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        Alert.alert('Error', 'Failed to load user profile.');
+        throw error;
+      }
       setRecipientProfile(data);
     } catch (error) {
-      console.log('Error fetching recipient profile:', error);
+      // Error already shown via Alert
     }
   }, [recipientId]);
 
@@ -71,10 +74,12 @@ export default function ConversationScreen() {
         .eq('status', 'accepted')
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
       setIsFriend(!!data);
     } catch (error) {
-      console.log('Error checking friendship status:', error);
+      // Silent fail - not critical
     }
   }, [user, recipientId]);
 
@@ -89,10 +94,12 @@ export default function ConversationScreen() {
         .or(`and(sender_id.eq.${user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user.id})`)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
       setMessageRequest(data);
     } catch (error) {
-      console.log('Error checking message request:', error);
+      // Silent fail - not critical
     }
   }, [user, recipientId]);
 
@@ -109,7 +116,10 @@ export default function ConversationScreen() {
         .or(`and(sender_id.eq.${user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user.id})`)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        Alert.alert('Error', 'Failed to load messages. Please try again.');
+        throw error;
+      }
 
       setMessages(data || []);
 
@@ -125,7 +135,7 @@ export default function ConversationScreen() {
           .in('id', unreadMessageIds);
       }
     } catch (error) {
-      console.log('Error fetching messages:', error);
+      // Error already shown via Alert
     } finally {
       setLoading(false);
     }
@@ -143,7 +153,7 @@ export default function ConversationScreen() {
       if (error) throw error;
       await checkMessageRequest();
     } catch (error) {
-      console.log('Error accepting message request:', error);
+      // Silent fail - not critical
     }
   }, [messageRequest, user, checkMessageRequest]);
 
@@ -173,7 +183,7 @@ export default function ConversationScreen() {
                 .from('messages')
                 .update({ read: true })
                 .eq('id', payload.new.id)
-                .then(() => console.log('Message marked as read'));
+                .then(() => {});
               
               // If this is the first message from recipient, accept the message request
               if (messageRequest && messageRequest.status === 'pending' && messageRequest.recipient_id === user.id) {
@@ -228,7 +238,7 @@ export default function ConversationScreen() {
 
       await checkMessageRequest();
     } catch (error) {
-      console.log('Error creating message request:', error);
+      // Silent fail - not critical
     }
   };
 
@@ -257,7 +267,10 @@ export default function ConversationScreen() {
           },
         ]);
 
-      if (error) throw error;
+      if (error) {
+        Alert.alert('Error', 'Failed to send message. Please try again.');
+        throw error;
+      }
 
       setMessageText('');
       await fetchMessages();
@@ -267,8 +280,7 @@ export default function ConversationScreen() {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
-      console.log('Error sending message:', error);
-      Alert.alert('Error', 'Failed to send message');
+      // Error already shown via Alert
     } finally {
       setSending(false);
     }
@@ -330,6 +342,7 @@ export default function ConversationScreen() {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>Loading conversation...</Text>
       </View>
     );
   }
