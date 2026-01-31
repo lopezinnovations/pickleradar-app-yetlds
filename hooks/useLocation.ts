@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './useAuth';
 import { requestLocationPermission, geocodeZipCode } from '@/utils/locationUtils';
@@ -9,74 +9,69 @@ export const useLocation = () => {
   const [requestingPermission, setRequestingPermission] = useState(false);
 
   const requestLocation = useCallback(async () => {
-    if (!user) return;
+    console.log('useLocation: User requested location permission');
+    if (!user) {
+      console.log('useLocation: No user found, cannot request location');
+      return;
+    }
 
     setRequestingPermission(true);
-    const result = await requestLocationPermission();
     
-    if (result.granted && result.latitude && result.longitude) {
-      await updateUserProfile({
-        latitude: result.latitude,
-        longitude: result.longitude,
-        locationEnabled: true,
-        locationPermissionRequested: true,
-      });
-      Alert.alert('Success', 'Location saved! You can now see nearby courts.');
-    } else {
-      await updateUserProfile({ locationPermissionRequested: true });
+    try {
+      console.log('useLocation: Calling requestLocationPermission');
+      const result = await requestLocationPermission();
+      
+      if (result.granted && result.latitude && result.longitude) {
+        console.log('useLocation: Permission granted, updating user profile with location');
+        await updateUserProfile({
+          latitude: result.latitude,
+          longitude: result.longitude,
+          locationEnabled: true,
+          locationPermissionRequested: true,
+        });
+        Alert.alert('Success', 'Location saved! You can now see nearby courts.');
+      } else {
+        console.log('useLocation: Permission denied or location unavailable');
+        await updateUserProfile({ locationPermissionRequested: true });
+        Alert.alert(
+          'Location Access Denied',
+          'You can still use PickleRadar by searching for courts using a ZIP code.'
+        );
+      }
+    } catch (error) {
+      console.error('useLocation: Error requesting location:', error);
       Alert.alert(
-        'Location Access Denied',
-        'You can still use PickleRadar by searching for courts using a ZIP code.'
+        'Location Error',
+        'Unable to access location. You can still search by ZIP code.'
       );
+      await updateUserProfile({ locationPermissionRequested: true });
+    } finally {
+      setRequestingPermission(false);
     }
-    
-    setRequestingPermission(false);
   }, [user, updateUserProfile]);
-
-  const requestLocationOnFirstLogin = useCallback(async () => {
-    if (!user) return;
-
-    Alert.alert(
-      'Enable Location Services',
-      'PickleRadar would like to access your location to show nearby courts. You can also search by ZIP code if you prefer.',
-      [
-        {
-          text: 'Use ZIP Code',
-          onPress: () => {
-            updateUserProfile({ locationPermissionRequested: true });
-          },
-        },
-        {
-          text: 'Allow Location',
-          onPress: async () => {
-            await requestLocation();
-          },
-        },
-      ]
-    );
-  }, [user, updateUserProfile, requestLocation]);
-
-  // Request location permission on first login
-  useEffect(() => {
-    if (user && !user.locationPermissionRequested && !user.latitude && !user.longitude) {
-      requestLocationOnFirstLogin();
-    }
-  }, [user, requestLocationOnFirstLogin]);
 
   const updateZipCode = async (zipCode: string) => {
     if (!user) return { success: false, error: 'Not logged in' };
 
-    const result = await geocodeZipCode(zipCode);
-    
-    if (result.success && result.latitude && result.longitude) {
-      await updateUserProfile({
-        zipCode,
-        latitude: result.latitude,
-        longitude: result.longitude,
-      });
-      return { success: true };
-    } else {
-      return { success: false, error: result.error || 'Invalid ZIP code' };
+    try {
+      console.log('useLocation: Geocoding ZIP code:', zipCode);
+      const result = await geocodeZipCode(zipCode);
+      
+      if (result.success && result.latitude && result.longitude) {
+        console.log('useLocation: ZIP code geocoded successfully');
+        await updateUserProfile({
+          zipCode,
+          latitude: result.latitude,
+          longitude: result.longitude,
+        });
+        return { success: true };
+      } else {
+        console.log('useLocation: ZIP code geocoding failed:', result.error);
+        return { success: false, error: result.error || 'Invalid ZIP code' };
+      }
+    } catch (error) {
+      console.error('useLocation: Error updating ZIP code:', error);
+      return { success: false, error: 'Failed to update ZIP code' };
     }
   };
 

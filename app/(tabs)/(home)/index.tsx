@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { courts, loading, refetch } = useCourts(user?.id);
-  const { hasLocation, userLocation, requestLocation } = useLocation();
+  const { hasLocation, userLocation, requestLocation, requestingPermission } = useLocation();
   
   const [sortBy, setSortBy] = useState<SortOption>('distance');
   const [showFilters, setShowFilters] = useState(false);
@@ -33,107 +33,127 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       console.log('HomeScreen: Screen focused, refreshing courts data');
-      refetch();
+      try {
+        refetch();
+      } catch (error) {
+        console.error('HomeScreen: Error refetching courts:', error);
+      }
     }, [refetch])
   );
 
   // Calculate distances and apply sorting/filtering
   const processedCourts = useMemo(() => {
-    let processed = courts.map(court => {
-      let distance: number | undefined;
-      
-      if (userLocation) {
-        distance = calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          court.latitude,
-          court.longitude
+    try {
+      let processed = courts.map(court => {
+        let distance: number | undefined;
+        
+        if (userLocation) {
+          try {
+            distance = calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              court.latitude,
+              court.longitude
+            );
+          } catch (error) {
+            console.error('HomeScreen: Error calculating distance for court:', court.id, error);
+          }
+        }
+        
+        return { ...court, distance };
+      });
+
+      // Apply unified search filter (ZIP code, city, or court name)
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        processed = processed.filter(court => {
+          const nameMatch = court.name.toLowerCase().includes(query);
+          const addressMatch = court.address.toLowerCase().includes(query);
+          const cityMatch = court.city?.toLowerCase().includes(query);
+          const zipMatch = court.zipCode?.includes(query);
+          
+          return nameMatch || addressMatch || cityMatch || zipMatch;
+        });
+      }
+
+      // Apply distance filter
+      if (filters.maxDistance !== undefined && userLocation) {
+        processed = processed.filter(court => 
+          court.distance !== undefined && court.distance <= filters.maxDistance!
         );
       }
-      
-      return { ...court, distance };
-    });
 
-    // Apply unified search filter (ZIP code, city, or court name)
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      processed = processed.filter(court => {
-        const nameMatch = court.name.toLowerCase().includes(query);
-        const addressMatch = court.address.toLowerCase().includes(query);
-        const cityMatch = court.city?.toLowerCase().includes(query);
-        const zipMatch = court.zipCode?.includes(query);
-        
-        return nameMatch || addressMatch || cityMatch || zipMatch;
-      });
-    }
+      // Apply friends only filter
+      if (filters.friendsOnly) {
+        processed = processed.filter(court => court.friendsPlayingCount > 0);
+      }
 
-    // Apply distance filter
-    if (filters.maxDistance !== undefined && userLocation) {
-      processed = processed.filter(court => 
-        court.distance !== undefined && court.distance <= filters.maxDistance!
-      );
-    }
-
-    // Apply friends only filter
-    if (filters.friendsOnly) {
-      processed = processed.filter(court => court.friendsPlayingCount > 0);
-    }
-
-    // Apply skill level filter
-    if (filters.skillLevels && filters.skillLevels.length > 0) {
-      processed = processed.filter(court => {
-        if (court.currentPlayers === 0) return false;
-        
-        const avgSkill = court.averageSkillLevel;
-        return filters.skillLevels!.some(level => {
-          if (level === 'Beginner') return avgSkill <= 1.5;
-          if (level === 'Intermediate') return avgSkill > 1.5 && avgSkill <= 2.5;
-          if (level === 'Advanced') return avgSkill > 2.5;
-          return false;
-        });
-      });
-    }
-
-    // Apply sorting - default to distance if location is available
-    switch (sortBy) {
-      case 'active-high':
-        processed.sort((a, b) => b.currentPlayers - a.currentPlayers);
-        break;
-      case 'active-low':
-        processed.sort((a, b) => a.currentPlayers - b.currentPlayers);
-        break;
-      case 'skill-high':
-        processed.sort((a, b) => b.averageSkillLevel - a.averageSkillLevel);
-        break;
-      case 'skill-low':
-        processed.sort((a, b) => a.averageSkillLevel - b.averageSkillLevel);
-        break;
-      case 'distance':
-        if (userLocation) {
-          processed.sort((a, b) => {
-            if (a.distance === undefined) return 1;
-            if (b.distance === undefined) return -1;
-            return a.distance - b.distance;
+      // Apply skill level filter
+      if (filters.skillLevels && filters.skillLevels.length > 0) {
+        processed = processed.filter(court => {
+          if (court.currentPlayers === 0) return false;
+          
+          const avgSkill = court.averageSkillLevel;
+          return filters.skillLevels!.some(level => {
+            if (level === 'Beginner') return avgSkill <= 1.5;
+            if (level === 'Intermediate') return avgSkill > 1.5 && avgSkill <= 2.5;
+            if (level === 'Advanced') return avgSkill > 2.5;
+            return false;
           });
-        }
-        break;
-    }
+        });
+      }
 
-    return processed;
+      // Apply sorting - default to distance if location is available
+      switch (sortBy) {
+        case 'active-high':
+          processed.sort((a, b) => b.currentPlayers - a.currentPlayers);
+          break;
+        case 'active-low':
+          processed.sort((a, b) => a.currentPlayers - b.currentPlayers);
+          break;
+        case 'skill-high':
+          processed.sort((a, b) => b.averageSkillLevel - a.averageSkillLevel);
+          break;
+        case 'skill-low':
+          processed.sort((a, b) => a.averageSkillLevel - b.averageSkillLevel);
+          break;
+        case 'distance':
+          if (userLocation) {
+            processed.sort((a, b) => {
+              if (a.distance === undefined) return 1;
+              if (b.distance === undefined) return -1;
+              return a.distance - b.distance;
+            });
+          }
+          break;
+      }
+
+      return processed;
+    } catch (error) {
+      console.error('HomeScreen: Error processing courts:', error);
+      return courts;
+    }
   }, [courts, sortBy, filters, userLocation, searchQuery]);
 
   const displayedCourts = processedCourts.slice(0, displayCount);
   const hasMoreCourts = displayCount < processedCourts.length;
 
   const handleLoadMore = () => {
+    console.log('HomeScreen: Loading more courts');
     setDisplayCount(prev => prev + LOAD_MORE_COUNT);
   };
 
   const openGoogleMaps = () => {
-    const url = 'https://www.google.com/maps/search/pickleball+courts';
-    Linking.openURL(url).catch(err => {
-      console.error('Failed to open Google Maps:', err);
-    });
+    try {
+      console.log('HomeScreen: Opening Google Maps');
+      const url = 'https://www.google.com/maps/search/pickleball+courts';
+      Linking.openURL(url).catch(err => {
+        console.error('HomeScreen: Failed to open Google Maps:', err);
+        Alert.alert('Error', 'Unable to open Google Maps');
+      });
+    } catch (error) {
+      console.error('HomeScreen: Error opening Google Maps:', error);
+    }
   };
 
   const getSkillLevelLabel = (averageSkillLevel: number) => {
@@ -161,6 +181,7 @@ export default function HomeScreen() {
   };
 
   const handleRequestLocation = () => {
+    console.log('HomeScreen: User tapped Enable Location button');
     Alert.alert(
       'Enable Location',
       'Allow PickleRadar to access your location to find nearby courts.',
@@ -168,7 +189,10 @@ export default function HomeScreen() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Enable Location', 
-          onPress: () => requestLocation()
+          onPress: () => {
+            console.log('HomeScreen: User confirmed location request');
+            requestLocation();
+          }
         }
       ]
     );
@@ -187,6 +211,7 @@ export default function HomeScreen() {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>Loading courts...</Text>
       </View>
     );
   }
@@ -255,14 +280,21 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.addCourtButton}
                 onPress={handleRequestLocation}
+                disabled={requestingPermission}
               >
-                <IconSymbol 
-                  ios_icon_name="location.fill" 
-                  android_material_icon_name="location_on" 
-                  size={20} 
-                  color={colors.card} 
-                />
-                <Text style={styles.addCourtButtonText}>Enable Location</Text>
+                {requestingPermission ? (
+                  <ActivityIndicator size="small" color={colors.card} />
+                ) : (
+                  <>
+                    <IconSymbol 
+                      ios_icon_name="location.fill" 
+                      android_material_icon_name="location_on" 
+                      size={20} 
+                      color={colors.card} 
+                    />
+                    <Text style={styles.addCourtButtonText}>Enable Location</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -534,8 +566,15 @@ export default function HomeScreen() {
                           style={styles.courtMapIcon}
                           onPress={(e) => {
                             e.stopPropagation();
-                            const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
-                            Linking.openURL(url);
+                            try {
+                              const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
+                              Linking.openURL(url).catch(err => {
+                                console.error('HomeScreen: Failed to open directions:', err);
+                                Alert.alert('Error', 'Unable to open directions');
+                              });
+                            } catch (error) {
+                              console.error('HomeScreen: Error opening directions:', error);
+                            }
                           }}
                         >
                           <IconSymbol 
@@ -718,6 +757,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 12,
     gap: 8,
+    minHeight: 48,
   },
   addCourtButtonText: {
     fontSize: 16,
