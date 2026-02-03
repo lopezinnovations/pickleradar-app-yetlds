@@ -318,7 +318,7 @@ export default function CourtDetailScreen() {
                   />
                 </View>
                 <View style={styles.statContent}>
-                  <Text style={commonStyles.textSecondary}>Average Skill Level</Text>
+                  <Text style={commonStyles.textSecondary}>Skill Level</Text>
                   <View style={styles.skillLevelContainer}>
                     <SkillLevelBars 
                       averageSkillLevel={court.averageSkillLevel} 
@@ -420,6 +420,8 @@ export default function CourtDetailScreen() {
                   onPress={() => setSelectedSkillLevel(level)}
                 >
                   <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                     style={[
                       styles.skillLevelText,
                       selectedSkillLevel === level && styles.skillLevelTextActive,
@@ -675,19 +677,20 @@ const styles = StyleSheet.create({
   skillLevelButton: {
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.border,
     backgroundColor: colors.background,
     alignItems: 'center',
+    minWidth: 0,
   },
   skillLevelButtonActive: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
   },
   skillLevelText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
   },

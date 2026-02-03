@@ -1,19 +1,20 @@
 
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
-// Pickleball-themed color palette: greens, yellows, and whites
+// Updated color palette to match app icon branding
+// Modern pickleball theme with vibrant teal primary and bright accent colors
 export const colors = {
   background: '#ffffff',
   text: '#1a3d1a',
   textSecondary: '#5a7a5a',
-  primary: '#2C7A7B', // Teal green
-  secondary: '#c6ff00', // Bright yellow-green
-  accent: '#ffb300', // Golden yellow
+  primary: '#00BCD4', // Bright cyan/teal (matches modern pickleball branding)
+  secondary: '#00E676', // Vibrant green
+  accent: '#FFD600', // Bright yellow (pickleball color)
   card: '#ffffff',
-  highlight: '#e8f5e9', // Light green
-  border: '#c8e6c9',
+  highlight: '#E0F7FA', // Light cyan tint
+  border: '#B2EBF2',
   error: '#d32f2f',
-  success: '#388e3c',
+  success: '#00C853',
   orange: '#ff9800', // For heat map gradient
 };
 
@@ -113,7 +114,7 @@ export const commonStyles = StyleSheet.create({
     padding: 16,
     marginVertical: 8,
     width: '100%',
-    boxShadow: '0px 2px 8px rgba(44, 122, 123, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 188, 212, 0.1)',
     elevation: 3,
     borderWidth: 1,
     borderColor: colors.border,

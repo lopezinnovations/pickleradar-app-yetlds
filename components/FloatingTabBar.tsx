@@ -24,9 +24,9 @@ import { colors } from '@/styles/commonStyles';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Tab bar colors as specified by user
+// Updated tab bar colors to match app icon branding
 const TAB_COLORS = {
-  active: '#2C7A7B',
+  active: '#00BCD4', // Bright cyan/teal (matches primary brand color)
   inactive: '#B0B0B0',
   background: '#FFFFFF',
 };
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   blurContainer: {
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(0, 188, 212, 0.2)',
     ...Platform.select({
       ios: {
         backgroundColor: 'rgba(255, 255, 255, 0.85)',
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
         backdropFilter: 'blur(10px)',
       },
     }),
-    boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.12)',
+    boxShadow: '0px 4px 16px rgba(0, 188, 212, 0.15)',
     elevation: 8,
   },
   background: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     left: 8,
     bottom: 6,
     borderRadius: 24,
-    backgroundColor: 'rgba(44, 122, 123, 0.12)',
+    backgroundColor: 'rgba(0, 188, 212, 0.15)',
   },
   tabsContainer: {
     flexDirection: 'row',
