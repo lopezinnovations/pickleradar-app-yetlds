@@ -8,6 +8,7 @@ export const colors = {
   text: '#1a3d1a',
   textSecondary: '#5a7a5a',
   primary: '#2E7D32', // Green from logo text (darker forest green)
+  primaryLight: '#E8F5E9', // Light green tint for backgrounds
   secondary: '#4CAF50', // Lighter green for accents
   accent: '#FFC107', // Yellow from pickleball
   card: '#ffffff',

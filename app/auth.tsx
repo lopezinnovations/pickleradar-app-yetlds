@@ -242,6 +242,8 @@ export default function AuthScreen() {
   };
 
   const handleSendCode = async () => {
+    console.log('User tapped Send Code button for password reset');
+
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email address');
       return;
@@ -263,31 +265,37 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      // Use Supabase's built-in signInWithOtp function
+      console.log('Sending OTP to email:', email);
+      // Use Supabase's built-in signInWithOtp function for password recovery
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: false }
+        options: { 
+          shouldCreateUser: false
+        }
       });
 
       if (error) {
+        console.log('Error sending OTP:', error);
         Alert.alert(
           'Error',
-          error.message || 'Unable to send login code. Please try again or use password login.',
+          error.message || 'Unable to send reset code. Please try again.',
           [{ text: 'OK' }]
         );
         return;
       }
 
+      console.log('OTP sent successfully');
       setShowCodeInput(true);
       Alert.alert(
         'Check Your Email',
-        'We sent a six-digit code to your email. Enter it below to sign in.',
+        'We sent a six-digit code to your email. Enter it below to reset your password.',
         [{ text: 'OK' }]
       );
     } catch (error: any) {
+      console.log('Unexpected error sending OTP:', error);
       Alert.alert(
         'Error',
-        'Unable to send login code. Please try again or use password login.',
+        'Unable to send reset code. Please try again.',
         [{ text: 'OK' }]
       );
     } finally {
@@ -296,6 +304,8 @@ export default function AuthScreen() {
   };
 
   const handleVerifyCode = async () => {
+    console.log('User tapped Verify Code button');
+
     if (!loginCode.trim() || loginCode.length !== 6) {
       Alert.alert('Error', 'Please enter the six-digit code from your email');
       return;
@@ -304,6 +314,7 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
+      console.log('Verifying OTP code');
       // Use Supabase's built-in verifyOtp function
       const { data, error } = await supabase.auth.verifyOtp({
         email,
@@ -312,6 +323,7 @@ export default function AuthScreen() {
       });
 
       if (error) {
+        console.log('OTP verification error:', error);
         Alert.alert(
           'Invalid Code',
           error.message || 'The code you entered is incorrect. Please try again.',
@@ -320,7 +332,8 @@ export default function AuthScreen() {
         return;
       }
 
-      if (!data.session) {
+      if (!data.session && !data.user) {
+        console.log('No session or user after OTP verification');
         Alert.alert(
           'Error',
           'Failed to verify code. Please try again.',
@@ -329,26 +342,19 @@ export default function AuthScreen() {
         return;
       }
 
-      // Clear form
-      setEmail('');
+      console.log('OTP verified successfully, routing to reset password screen');
+
+      // Clear code input
       setLoginCode('');
       setShowCodeInput(false);
-      setIsForgotPassword(false);
 
-      // Show success message and redirect
-      Alert.alert(
-        'Success',
-        "You're signed in. Welcome back!",
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              router.replace('/(tabs)/(home)/');
-            },
-          },
-        ]
-      );
+      // Route to reset password screen with email parameter
+      router.push({
+        pathname: '/reset-password',
+        params: { email }
+      });
     } catch (error: any) {
+      console.log('Unexpected error during OTP verification:', error);
       Alert.alert('Error', 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);
@@ -400,7 +406,7 @@ export default function AuthScreen() {
         >
           <IconSymbol 
             ios_icon_name="chevron.left" 
-            android_material_icon_name="chevron_left" 
+            android_material_icon_name="chevron-left" 
             size={24} 
             color={colors.primary} 
           />
@@ -420,7 +426,7 @@ export default function AuthScreen() {
             {isForgotPassword 
               ? showCodeInput 
                 ? 'Enter the six-digit code from your email'
-                : 'Enter your email to receive a login code' 
+                : 'Enter your email to receive a reset code' 
               : isSignUp 
                 ? 'Sign up to start finding pickleball courts' 
                 : 'Sign in to continue'}
@@ -500,6 +506,8 @@ export default function AuthScreen() {
                         styles.experienceLevelText,
                         experienceLevel === level && styles.experienceLevelTextActive,
                       ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
                       {level}
                     </Text>
@@ -802,21 +810,23 @@ const styles = StyleSheet.create({
   experienceLevelButton: {
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.border,
     backgroundColor: colors.background,
     alignItems: 'center',
+    minWidth: 0,
   },
   experienceLevelButtonActive: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
   },
   experienceLevelText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.text,
+    flexShrink: 1,
   },
   experienceLevelTextActive: {
     color: colors.card,
