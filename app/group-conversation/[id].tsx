@@ -99,6 +99,7 @@ export default function GroupConversationScreen() {
         throw error;
       }
 
+      console.log('Fetched', data?.length || 0, 'messages for group');
       setMessages(data || []);
     } catch (error) {
       console.log('Error in fetchMessages:', error);
@@ -176,9 +177,12 @@ export default function GroupConversationScreen() {
   }, [groupId, fetchGroupInfo, fetchMessages]);
 
   const sendMessage = async () => {
-    if (!messageText.trim() || !user || !groupId || !isSupabaseConfigured()) return;
+    if (!messageText.trim() || !user || !groupId || !isSupabaseConfigured()) {
+      console.log('Cannot send message: missing required data');
+      return;
+    }
 
-    console.log('User sending message to group:', groupId);
+    console.log('User sending message to group:', groupId, 'Content:', messageText.trim());
     const messageContent = messageText.trim();
     const optimisticId = `optimistic-${Date.now()}`;
 
@@ -199,6 +203,7 @@ export default function GroupConversationScreen() {
       optimisticId: optimisticId,
     };
 
+    console.log('Adding optimistic message to UI:', optimisticId);
     setMessages((prev) => [...prev, optimisticMessage]);
     setMessageText('');
     setSending(true);
@@ -209,6 +214,7 @@ export default function GroupConversationScreen() {
     }, 50);
 
     try {
+      console.log('Inserting message into database...');
       const { data, error } = await supabase
         .from('group_messages')
         .insert([
@@ -225,8 +231,9 @@ export default function GroupConversationScreen() {
         .single();
 
       if (error) {
-        console.log('Error sending message:', error);
+        console.error('Error sending message:', error);
         // Remove optimistic message on error
+        console.log('Removing optimistic message due to error');
         setMessages((prev) => prev.filter(m => m.optimisticId !== optimisticId));
         throw error;
       }
@@ -235,10 +242,10 @@ export default function GroupConversationScreen() {
 
       // Replace optimistic message with real message
       setMessages((prev) => 
-        prev.map(m => m.optimisticId === optimisticId ? data : m)
+        prev.map(m => m.optimisticId === optimisticId ? { ...data, isOptimistic: false } : m)
       );
     } catch (error: any) {
-      console.log('Failed to send message:', error);
+      console.error('Failed to send message:', error);
     } finally {
       setSending(false);
     }
@@ -348,7 +355,7 @@ export default function GroupConversationScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <IconSymbol
             ios_icon_name="chevron.left"
-            android_material_icon_name="chevron_left"
+            android_material_icon_name="chevron-left"
             size={24}
             color={colors.primary}
           />

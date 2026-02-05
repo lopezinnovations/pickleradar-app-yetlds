@@ -121,7 +121,7 @@ export default function MessagesScreen() {
         .select(`
           *,
           sender:users!messages_sender_id_fkey(id, first_name, last_name, pickleballer_nickname),
-          recipient:users!messages_recipient_id_fkey(id, first_name, last_name, pickleballer_nickname)
+          recipient:users!messages!messages_recipient_id_fkey(id, first_name, last_name, pickleballer_nickname)
         `)
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -134,38 +134,92 @@ export default function MessagesScreen() {
 
       console.log('MessagesScreen: Fetched', messages?.length || 0, 'direct messages');
 
-      // Fetch group conversations
-      const { data: groupMemberships, error: groupError } = await supabase
+      // Fetch group chats the user is a member of
+      // Use a simpler query that doesn't trigger RLS recursion
+      const { data: userGroups, error: userGroupsError } = await supabase
         .from('group_members')
-        .select(`
-          group_id,
-          group_chats!inner(id, name, created_at, updated_at)
-        `)
+        .select('group_id')
         .eq('user_id', user.id);
 
-      if (groupError && groupError.code !== 'PGRST116') {
-        console.error('MessagesScreen: Error fetching group memberships:', groupError);
+      if (userGroupsError && userGroupsError.code !== 'PGRST116') {
+        console.error('MessagesScreen: Error fetching user groups:', userGroupsError);
         throw new Error('Failed to load group chats');
       }
 
-      console.log('MessagesScreen: Fetched', groupMemberships?.length || 0, 'group memberships');
+      console.log('MessagesScreen: User is member of', userGroups?.length || 0, 'groups');
 
-      // Fetch muted conversations
-      const { data: mutes, error: mutesError } = await supabase
-        .from('conversation_mutes')
-        .select('*')
-        .eq('user_id', user.id);
+      // Now fetch the group details for those groups
+      let groupConversations: Conversation[] = [];
+      if (userGroups && userGroups.length > 0) {
+        const groupIds = userGroups.map(g => g.group_id);
+        
+        const { data: groups, error: groupsError } = await supabase
+          .from('group_chats')
+          .select('*')
+          .in('id', groupIds);
 
-      if (mutesError && mutesError.code !== 'PGRST116') {
-        console.log('MessagesScreen: Error fetching mutes (non-critical):', mutesError);
+        if (groupsError && groupsError.code !== 'PGRST116') {
+          console.error('MessagesScreen: Error fetching groups:', groupsError);
+        } else {
+          console.log('MessagesScreen: Fetched', groups?.length || 0, 'group details');
+
+          // Fetch muted conversations
+          const { data: mutes, error: mutesError } = await supabase
+            .from('conversation_mutes')
+            .select('*')
+            .eq('user_id', user.id);
+
+          if (mutesError && mutesError.code !== 'PGRST116') {
+            console.log('MessagesScreen: Error fetching mutes (non-critical):', mutesError);
+          }
+
+          const mutesMap = new Map<string, boolean>();
+          (mutes || []).forEach((mute: any) => {
+            const key = `${mute.conversation_type}:${mute.conversation_id}`;
+            const isMuted = !mute.muted_until || new Date(mute.muted_until) > new Date();
+            mutesMap.set(key, isMuted);
+          });
+
+          // Process each group
+          for (const group of groups || []) {
+            // Fetch last message for this group
+            const { data: lastMessages, error: lastMsgError } = await supabase
+              .from('group_messages')
+              .select('*')
+              .eq('group_id', group.id)
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (lastMsgError && lastMsgError.code !== 'PGRST116') {
+              console.log('MessagesScreen: Error fetching group messages (non-critical):', lastMsgError);
+            }
+
+            // Count members
+            const { count: memberCount, error: countError } = await supabase
+              .from('group_members')
+              .select('*', { count: 'exact', head: true })
+              .eq('group_id', group.id);
+
+            if (countError && countError.code !== 'PGRST116') {
+              console.log('MessagesScreen: Error counting group members (non-critical):', countError);
+            }
+
+            const lastMessage = lastMessages && lastMessages.length > 0 ? lastMessages[0] : null;
+            const muteKey = `group:${group.id}`;
+
+            groupConversations.push({
+              id: group.id,
+              type: 'group',
+              title: group.name,
+              lastMessage: lastMessage?.content || 'No messages yet',
+              lastMessageTime: lastMessage?.created_at || group.created_at,
+              unreadCount: 0,
+              memberCount: memberCount || 0,
+              isMuted: mutesMap.get(muteKey) || false,
+            });
+          }
+        }
       }
-
-      const mutesMap = new Map<string, boolean>();
-      (mutes || []).forEach((mute: any) => {
-        const key = `${mute.conversation_type}:${mute.conversation_id}`;
-        const isMuted = !mute.muted_until || new Date(mute.muted_until) > new Date();
-        mutesMap.set(key, isMuted);
-      });
 
       // Process direct messages
       const directConversationsMap = new Map<string, Conversation>();
@@ -191,7 +245,7 @@ export default function MessagesScreen() {
             lastMessage: message.content || '',
             lastMessageTime: message.created_at,
             unreadCount: 0,
-            isMuted: mutesMap.get(muteKey) || false,
+            isMuted: false,
           });
         }
 
@@ -203,54 +257,6 @@ export default function MessagesScreen() {
           }
         }
       });
-
-      // Process group conversations
-      const groupConversations: Conversation[] = [];
-      for (const membership of groupMemberships || []) {
-        const groupId = membership.group_chats?.id;
-        const groupName = membership.group_chats?.name;
-
-        if (!groupId || !groupName) {
-          console.log('MessagesScreen: Skipping invalid group membership:', membership);
-          continue;
-        }
-
-        // Fetch last message for this group
-        const { data: lastMessages, error: lastMsgError } = await supabase
-          .from('group_messages')
-          .select('*')
-          .eq('group_id', groupId)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (lastMsgError && lastMsgError.code !== 'PGRST116') {
-          console.log('MessagesScreen: Error fetching group messages (non-critical):', lastMsgError);
-        }
-
-        // Count members
-        const { count: memberCount, error: countError } = await supabase
-          .from('group_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('group_id', groupId);
-
-        if (countError && countError.code !== 'PGRST116') {
-          console.log('MessagesScreen: Error counting group members (non-critical):', countError);
-        }
-
-        const lastMessage = lastMessages && lastMessages.length > 0 ? lastMessages[0] : null;
-        const muteKey = `group:${groupId}`;
-
-        groupConversations.push({
-          id: groupId,
-          type: 'group',
-          title: groupName,
-          lastMessage: lastMessage?.content || 'No messages yet',
-          lastMessageTime: lastMessage?.created_at || membership.group_chats.created_at,
-          unreadCount: 0,
-          memberCount: memberCount || 0,
-          isMuted: mutesMap.get(muteKey) || false,
-        });
-      }
 
       // Combine and sort by last message time
       const allConversations = [
@@ -509,7 +515,7 @@ export default function MessagesScreen() {
               color={colors.error}
             />
             <View style={styles.errorTextContainer}>
-              <Text style={styles.errorTitle}>Couldn't load conversations</Text>
+              <Text style={styles.errorTitle}>Couldn&apos;t load conversations</Text>
               <Text style={styles.errorMessage}>Please try again.</Text>
             </View>
           </View>
