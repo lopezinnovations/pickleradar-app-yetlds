@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, TextInput } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,8 +34,7 @@ export default function MessagesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [visitCount, setVisitCount] = useState(0);
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const checkAndShowNotificationPrompt = useCallback(async () => {
     if (!user || !isSupabaseConfigured()) return;
@@ -257,9 +256,8 @@ export default function MessagesScreen() {
       setConversations(allConversations);
     } catch (error: any) {
       console.log('Error in fetchConversations:', error);
-      // Only show error modal for real network/database failures
-      setErrorMessage(error.message || 'Failed to load conversations');
-      setShowErrorModal(true);
+      // Only show error for real network/database failures
+      setError(error.message || 'Failed to load conversations');
     } finally {
       setLoading(false);
     }
@@ -485,15 +483,42 @@ export default function MessagesScreen() {
         }}
       >
         <IconSymbol
-          ios_icon_name="plus.circle.fill"
-          android_material_icon_name="add_circle"
+          ios_icon_name="person.3.fill"
+          android_material_icon_name="group_add"
           size={24}
           color={colors.primary}
         />
         <Text style={styles.createGroupText}>Create Group Chat</Text>
       </TouchableOpacity>
 
-      {filteredConversations.length === 0 ? (
+      {error && (
+        <View style={styles.errorContainer}>
+          <View style={styles.errorContent}>
+            <IconSymbol
+              ios_icon_name="exclamationmark.triangle.fill"
+              android_material_icon_name="error"
+              size={24}
+              color={colors.error}
+            />
+            <View style={styles.errorTextContainer}>
+              <Text style={styles.errorTitle}>Failed to load conversations</Text>
+              <Text style={styles.errorMessage}>{error}</Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              console.log('User tapped Retry');
+              setError(null);
+              fetchConversations();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {filteredConversations.length === 0 && !error ? (
         <View style={styles.emptyState}>
           <IconSymbol
             ios_icon_name="envelope"
@@ -527,7 +552,7 @@ export default function MessagesScreen() {
             </TouchableOpacity>
           )}
         </View>
-      ) : (
+      ) : !error ? (
         <FlatList
           data={filteredConversations}
           renderItem={renderConversation}
@@ -535,53 +560,13 @@ export default function MessagesScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
-      )}
+      ) : null}
 
       <NotificationPermissionModal
         visible={showNotificationPrompt}
         onEnable={handleEnableNotifications}
         onNotNow={handleNotNow}
       />
-
-      {/* Error Modal - Only for real failures */}
-      <Modal
-        visible={showErrorModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowErrorModal(false)}
-      >
-        <View style={styles.errorModalOverlay}>
-          <View style={styles.errorModalContainer}>
-            <View style={styles.errorIconContainer}>
-              <IconSymbol
-                ios_icon_name="exclamationmark.triangle.fill"
-                android_material_icon_name="error"
-                size={48}
-                color={colors.error}
-              />
-            </View>
-            <Text style={styles.errorModalTitle}>Connection Error</Text>
-            <Text style={styles.errorModalMessage}>
-              {errorMessage}
-            </Text>
-            <TouchableOpacity
-              style={styles.errorModalButton}
-              onPress={() => {
-                setShowErrorModal(false);
-                fetchConversations();
-              }}
-            >
-              <Text style={styles.errorModalButtonText}>Try Again</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.errorModalCancelButton}
-              onPress={() => setShowErrorModal(false)}
-            >
-              <Text style={styles.errorModalCancelButtonText}>Dismiss</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -733,67 +718,45 @@ const styles = StyleSheet.create({
     color: colors.card,
     marginLeft: 8,
   },
-  errorModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorModalContainer: {
-    backgroundColor: colors.background,
-    borderRadius: 20,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-  },
-  errorIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  errorContainer: {
     backgroundColor: '#ffebee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  errorModalTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  errorModalMessage: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  errorModalButton: {
-    backgroundColor: colors.primary,
     borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    width: '100%',
-    alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+  },
+  errorContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  errorModalButtonText: {
+  errorTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  errorTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.error,
+    marginBottom: 4,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#c62828',
+    lineHeight: 20,
+  },
+  retryButton: {
+    backgroundColor: colors.error,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: colors.card,
-  },
-  errorModalCancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    width: '100%',
-    alignItems: 'center',
-  },
-  errorModalCancelButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
   },
 });
