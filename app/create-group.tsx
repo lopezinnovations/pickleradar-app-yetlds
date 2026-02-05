@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -166,12 +166,21 @@ export default function CreateGroupScreen() {
     return friend.nickname || 'Unknown User';
   };
 
-  const filteredFriends = friends.filter(f => {
-    if (!searchQuery.trim()) return true;
+  // Live type-ahead search - filters as user types
+  const filteredFriends = useMemo(() => {
+    if (!searchQuery.trim()) return friends;
+    
     const query = searchQuery.toLowerCase();
-    const name = formatFriendName(f).toLowerCase();
-    return name.includes(query);
-  });
+    return friends.filter(f => {
+      const firstName = f.firstName?.toLowerCase() || '';
+      const lastName = f.lastName?.toLowerCase() || '';
+      const nickname = f.nickname?.toLowerCase() || '';
+      
+      return firstName.includes(query) || 
+             lastName.includes(query) || 
+             nickname.includes(query);
+    });
+  }, [friends, searchQuery]);
 
   const selectedCount = friends.filter(f => f.selected).length;
 
@@ -264,6 +273,16 @@ export default function CreateGroupScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <IconSymbol
+                  ios_icon_name="xmark.circle.fill"
+                  android_material_icon_name="cancel"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
           {filteredFriends.length === 0 ? (

@@ -483,8 +483,8 @@ export default function MessagesScreen() {
         }}
       >
         <IconSymbol
-          ios_icon_name="person.3.fill"
-          android_material_icon_name="group_add"
+          ios_icon_name="plus.circle.fill"
+          android_material_icon_name="add_circle"
           size={24}
           color={colors.primary}
         />
@@ -522,7 +522,7 @@ export default function MessagesScreen() {
         <View style={styles.emptyState}>
           <IconSymbol
             ios_icon_name="envelope"
-            android_material_icon_name="mail"
+            android_material_icon_name="email"
             size={64}
             color={colors.textSecondary}
           />
@@ -534,23 +534,6 @@ export default function MessagesScreen() {
               ? 'No conversations match your search'
               : 'Create a group or message friends to get started.'}
           </Text>
-          {!searchQuery.trim() && (
-            <TouchableOpacity
-              style={styles.emptyStateButton}
-              onPress={() => {
-                console.log('User tapped Create Group from empty state');
-                router.push('/create-group');
-              }}
-            >
-              <IconSymbol
-                ios_icon_name="plus.circle.fill"
-                android_material_icon_name="add_circle"
-                size={20}
-                color={colors.card}
-              />
-              <Text style={styles.emptyStateButtonText}>Create Group Chat</Text>
-            </TouchableOpacity>
-          )}
         </View>
       ) : !error ? (
         <FlatList
@@ -702,21 +685,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
-  },
-  emptyStateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    marginTop: 24,
-  },
-  emptyStateButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.card,
-    marginLeft: 8,
   },
   errorContainer: {
     backgroundColor: '#ffebee',

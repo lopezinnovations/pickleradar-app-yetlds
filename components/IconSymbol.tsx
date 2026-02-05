@@ -31,6 +31,7 @@ export function IconSymbol({
     'person.crop.circle': 'account-circle',
     'person.crop.circle.fill': 'account-circle',
     'person.2.fill': 'people',
+    'person.3.fill': 'group',
     'location.fill': 'location-on',
     'checkmark.circle.fill': 'check-circle',
     'checkmark': 'check',
@@ -40,6 +41,7 @@ export function IconSymbol({
     'chevron.up': 'expand-less',
     'arrow.clockwise': 'refresh',
     'bell.fill': 'notifications',
+    'bell.slash.fill': 'notifications-off',
     'lock.shield.fill': 'lock',
     'exclamationmark.triangle.fill': 'warning',
     'phone.fill': 'phone',
@@ -54,7 +56,7 @@ export function IconSymbol({
     'xmark.circle.fill': 'cancel',
     'xmark.circle': 'cancel',
     'chart.bar.fill': 'bar-chart',
-    'line.3.horizontal.decrease.circle': 'filter-list',
+    'line.3.horizontal.decrease.circle': 'tune',
     'slider.horizontal.2': 'tune',
     'magnifyingglass': 'search',
     'plus.circle.fill': 'add-circle',
@@ -64,9 +66,11 @@ export function IconSymbol({
     'map.circle.fill': 'map',
     'person.badge.minus': 'person-remove',
     'person.badge.plus': 'person-add',
-    'person.crop.circle.badge.questionmark': 'help',
+    'person.crop.circle.badge.questionmark': 'person-search',
     'doc.text.fill': 'description',
     'pencil': 'edit',
+    'person.2.slash': 'people-outline',
+    'person.2': 'group',
   };
 
   // Check if we need to map the icon name

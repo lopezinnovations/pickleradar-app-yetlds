@@ -172,10 +172,10 @@ export default function FriendsScreen() {
     return Array.from(courts).sort();
   }, [allUsers]);
 
-  // Filter users based on search query and filters
+  // Filter users based on search query and filters (live type-ahead)
   const filteredUsers = useMemo(() => {
     return allUsers.filter(u => {
-      // Search query filter
+      // Search query filter - case-insensitive, matches first name, last name, nickname, email
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const firstName = u.first_name?.toLowerCase() || '';
@@ -494,7 +494,7 @@ export default function FriendsScreen() {
           >
             <IconSymbol 
               ios_icon_name="line.3.horizontal.decrease.circle" 
-              android_material_icon_name="filter_list" 
+              android_material_icon_name="tune" 
               size={20} 
               color={hasActiveFilters ? colors.card : colors.text} 
             />
@@ -640,7 +640,7 @@ export default function FriendsScreen() {
                 color={colors.textSecondary} 
               />
               <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
-                {searchQuery.trim() || hasActiveFilters ? 'No users found matching your criteria' : 'No other users in the app yet'}
+                {searchQuery.trim() || hasActiveFilters ? 'No users match your search' : 'No other users in the app yet'}
               </Text>
             </View>
           ) : (
