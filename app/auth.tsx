@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,17 +35,11 @@ export default function AuthScreen() {
   const [resendDisabled, setResendDisabled] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [isSendingCode, setIsSendingCode] = useState(false);
-  const [showSkipResetModal, setShowSkipResetModal] = useState(false);
 
   // Refs to track loading states for timeout checks
-  const isVerifyingRef = useRef(false);
+  const isVerificationSuccessfulRef = useRef(false);
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resendIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Update refs when state changes
-  useEffect(() => {
-    isVerifyingRef.current = isVerifying;
-  }, [isVerifying]);
 
   // Show success message if present
   useEffect(() => {
@@ -389,15 +383,16 @@ export default function AuthScreen() {
 
     setIsVerifying(true);
     setVerificationError(null);
+    isVerificationSuccessfulRef.current = false;
 
-    // Set timeout for verification (12 seconds)
+    // Set timeout for verification (15 seconds)
     verificationTimeoutRef.current = setTimeout(() => {
-      if (isVerifyingRef.current) {
+      if (!isVerificationSuccessfulRef.current) {
         console.log('OTP verification timeout exceeded');
         setVerificationError('This is taking longer than expected. Please try again.');
         setIsVerifying(false);
       }
-    }, 12000);
+    }, 15000);
 
     try {
       console.log('Verifying OTP code');
@@ -414,34 +409,41 @@ export default function AuthScreen() {
         const errorMessage = error.message.toLowerCase();
         
         if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
-          setVerificationError('Please wait a moment and try again.');
+          setVerificationError('Too many attempts. Please wait 30-60 seconds before retrying.');
         } else if (errorMessage.includes('invalid') || errorMessage.includes('token')) {
-          setVerificationError('Invalid code. Please try again.');
+          setVerificationError('Invalid code. Please check your email and try again.');
         } else if (errorMessage.includes('expired')) {
-          setVerificationError('Code expired. Please request a new one.');
+          setVerificationError('The code has expired. Please request a new one.');
         } else {
           setVerificationError(error.message || 'Failed to verify code. Please try again.');
         }
+        isVerificationSuccessfulRef.current = false;
         return;
       }
 
       if (!data.session && !data.user) {
         console.log('No session or user after OTP verification');
         setVerificationError('Verification successful, but no session found. Please try again.');
+        isVerificationSuccessfulRef.current = false;
         return;
       }
 
-      console.log('OTP verified successfully, showing skip reset modal');
+      console.log('OTP verified successfully, routing to Reset Password screen');
+      isVerificationSuccessfulRef.current = true;
 
       // Clear code input
       setLoginCode('');
       setVerificationError(null);
 
-      // Show modal to choose between resetting password or continuing with code
-      setShowSkipResetModal(true);
+      // Route directly to Reset Password screen (no modal)
+      router.replace({
+        pathname: '/reset-password',
+        params: { email }
+      });
     } catch (error: any) {
       console.log('Unexpected error during OTP verification:', error);
       setVerificationError(error.message || 'An unexpected error occurred during verification.');
+      isVerificationSuccessfulRef.current = false;
     } finally {
       // Clear timeout
       if (verificationTimeoutRef.current) {
@@ -449,28 +451,6 @@ export default function AuthScreen() {
       }
       setIsVerifying(false);
     }
-  };
-
-  const handleContinueWithCode = async () => {
-    console.log('User chose to continue with code (skip reset)');
-    setShowSkipResetModal(false);
-    setShowCodeInput(false);
-    setIsForgotPassword(false);
-    
-    // Navigate to app
-    router.replace('/(tabs)/(home)/');
-  };
-
-  const handleGoToResetPassword = () => {
-    console.log('User chose to reset password');
-    setShowSkipResetModal(false);
-    setShowCodeInput(false);
-    
-    // Route to reset password screen with email parameter
-    router.push({
-      pathname: '/reset-password',
-      params: { email }
-    });
   };
 
   const handleBack = () => {
@@ -881,46 +861,6 @@ export default function AuthScreen() {
 
         <LegalFooter />
       </ScrollView>
-
-      {/* Skip Reset Modal */}
-      <Modal
-        visible={showSkipResetModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowSkipResetModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Sign in without changing your password?</Text>
-            <Text style={styles.modalBody}>
-              You&apos;ll be signed in using a one-time code. You can reset your password anytime by using &apos;Forgot password&apos; from the sign-in screen.
-            </Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSecondary]}
-                onPress={() => setShowSkipResetModal(false)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalButtonTextSecondary}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={handleContinueWithCode}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalButtonTextPrimary}>Continue</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.resetPasswordLink}
-              onPress={handleGoToResetPassword}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.resetPasswordLinkText}>Reset Password Instead</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -1120,76 +1060,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  modalBody: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  modalButtonPrimary: {
-    backgroundColor: colors.primary,
-  },
-  modalButtonSecondary: {
-    backgroundColor: colors.background,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  modalButtonTextPrimary: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.card,
-  },
-  modalButtonTextSecondary: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  resetPasswordLink: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  resetPasswordLinkText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
   },
 });
