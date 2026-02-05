@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,6 +34,8 @@ export default function MessagesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [visitCount, setVisitCount] = useState(0);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const checkAndShowNotificationPrompt = useCallback(async () => {
     if (!user || !isSupabaseConfigured()) return;
@@ -109,6 +111,8 @@ export default function MessagesScreen() {
     }
 
     try {
+      console.log('Fetching conversations for user:', user.id);
+
       // Fetch direct message conversations
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
@@ -122,7 +126,10 @@ export default function MessagesScreen() {
 
       if (messagesError) {
         console.log('Error fetching messages:', messagesError);
-        throw messagesError;
+        // Only show error if it's a real network/database error, not empty results
+        if (messagesError.code !== 'PGRST116') {
+          throw messagesError;
+        }
       }
 
       // Fetch group conversations
@@ -136,7 +143,10 @@ export default function MessagesScreen() {
 
       if (groupError) {
         console.log('Error fetching group memberships:', groupError);
-        throw groupError;
+        // Only show error if it's a real network/database error, not empty results
+        if (groupError.code !== 'PGRST116') {
+          throw groupError;
+        }
       }
 
       // Fetch muted conversations
@@ -145,7 +155,7 @@ export default function MessagesScreen() {
         .select('*')
         .eq('user_id', user.id);
 
-      if (mutesError) {
+      if (mutesError && mutesError.code !== 'PGRST116') {
         console.log('Error fetching mutes:', mutesError);
       }
 
@@ -205,7 +215,7 @@ export default function MessagesScreen() {
           .order('created_at', { ascending: false })
           .limit(1);
 
-        if (lastMsgError) {
+        if (lastMsgError && lastMsgError.code !== 'PGRST116') {
           console.log('Error fetching group messages:', lastMsgError);
           continue;
         }
@@ -216,7 +226,7 @@ export default function MessagesScreen() {
           .select('*', { count: 'exact', head: true })
           .eq('group_id', groupId);
 
-        if (countError) {
+        if (countError && countError.code !== 'PGRST116') {
           console.log('Error counting group members:', countError);
         }
 
@@ -243,10 +253,13 @@ export default function MessagesScreen() {
         return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
       });
 
+      console.log('Loaded conversations:', allConversations.length);
       setConversations(allConversations);
-    } catch (error) {
+    } catch (error: any) {
       console.log('Error in fetchConversations:', error);
-      Alert.alert('Error', 'Failed to load conversations. Please try again.');
+      // Only show error modal for real network/database failures
+      setErrorMessage(error.message || 'Failed to load conversations');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -491,11 +504,28 @@ export default function MessagesScreen() {
           <Text style={[commonStyles.title, { marginTop: 16, textAlign: 'center' }]}>
             No Messages Yet
           </Text>
-          <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
+          <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center', paddingHorizontal: 40 }]}>
             {searchQuery.trim()
               ? 'No conversations match your search'
-              : 'Start a conversation by visiting a friend\'s profile or create a group chat'}
+              : 'Create a group or message friends to get started.'}
           </Text>
+          {!searchQuery.trim() && (
+            <TouchableOpacity
+              style={styles.emptyStateButton}
+              onPress={() => {
+                console.log('User tapped Create Group from empty state');
+                router.push('/create-group');
+              }}
+            >
+              <IconSymbol
+                ios_icon_name="plus.circle.fill"
+                android_material_icon_name="add_circle"
+                size={20}
+                color={colors.card}
+              />
+              <Text style={styles.emptyStateButtonText}>Create Group Chat</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <FlatList
@@ -512,6 +542,46 @@ export default function MessagesScreen() {
         onEnable={handleEnableNotifications}
         onNotNow={handleNotNow}
       />
+
+      {/* Error Modal - Only for real failures */}
+      <Modal
+        visible={showErrorModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowErrorModal(false)}
+      >
+        <View style={styles.errorModalOverlay}>
+          <View style={styles.errorModalContainer}>
+            <View style={styles.errorIconContainer}>
+              <IconSymbol
+                ios_icon_name="exclamationmark.triangle.fill"
+                android_material_icon_name="error"
+                size={48}
+                color={colors.error}
+              />
+            </View>
+            <Text style={styles.errorModalTitle}>Connection Error</Text>
+            <Text style={styles.errorModalMessage}>
+              {errorMessage}
+            </Text>
+            <TouchableOpacity
+              style={styles.errorModalButton}
+              onPress={() => {
+                setShowErrorModal(false);
+                fetchConversations();
+              }}
+            >
+              <Text style={styles.errorModalButtonText}>Try Again</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.errorModalCancelButton}
+              onPress={() => setShowErrorModal(false)}
+            >
+              <Text style={styles.errorModalCancelButtonText}>Dismiss</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -647,5 +717,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+  },
+  emptyStateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 24,
+  },
+  emptyStateButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
+    marginLeft: 8,
+  },
+  errorModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorModalContainer: {
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  errorIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#ffebee',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  errorModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorModalMessage: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  errorModalButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  errorModalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  errorModalCancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    width: '100%',
+    alignItems: 'center',
+  },
+  errorModalCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.textSecondary,
   },
 });
