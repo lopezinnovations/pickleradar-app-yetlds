@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Alert, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -27,9 +27,9 @@ export default function AddGroupMembersScreen() {
 
   useEffect(() => {
     fetchFriendsAndMembers();
-  }, [user, groupId]);
+  }, [user, groupId, fetchFriendsAndMembers]);
 
-  const fetchFriendsAndMembers = async () => {
+  const fetchFriendsAndMembers = useCallback(async () => {
     if (!user || !groupId || !isSupabaseConfigured()) {
       setLoading(false);
       return;
@@ -80,7 +80,7 @@ export default function AddGroupMembersScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, groupId]);
 
   const toggleFriendSelection = (friendId: string) => {
     console.log('User toggled friend selection:', friendId);
@@ -182,7 +182,7 @@ export default function AddGroupMembersScreen() {
         ) : item.selected ? (
           <IconSymbol
             ios_icon_name="checkmark.circle.fill"
-            android_material_icon_name="check_circle"
+            android_material_icon_name="check-circle"
             size={24}
             color={colors.card}
           />
@@ -206,7 +206,7 @@ export default function AddGroupMembersScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <IconSymbol
             ios_icon_name="chevron.left"
-            android_material_icon_name="chevron_left"
+            android_material_icon_name="chevron-left"
             size={24}
             color={colors.primary}
           />

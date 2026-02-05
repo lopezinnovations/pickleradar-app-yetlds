@@ -107,6 +107,17 @@ export function IconSymbol({
     // Charts & Data
     'bar-chart': 'chart.bar.fill',
     'trending-up': 'chart.line.uptrend.xyaxis',
+    
+    // Fix underscore variants (Material Icons with underscores)
+    'check_circle': 'checkmark.circle.fill',
+    'chevron_left': 'chevron.left',
+    'chevron_right': 'chevron.right',
+    'person_add': 'person.badge.plus',
+    'person_remove': 'person.badge.minus',
+    'person_off': 'person.crop.circle.badge.xmark',
+    'account_circle': 'person.crop.circle.fill',
+    'location_on': 'location.fill',
+    'mail_outline': 'envelope',
   };
 
   // Determine which icon name to use

@@ -105,12 +105,14 @@ export default function MessagesScreen() {
 
   const fetchConversations = useCallback(async () => {
     if (!user || !isSupabaseConfigured()) {
+      console.log('MessagesScreen: No user or Supabase not configured');
       setLoading(false);
+      setConversations([]);
       return;
     }
 
     try {
-      console.log('Fetching conversations for user:', user.id);
+      console.log('MessagesScreen: Fetching conversations for user:', user.id);
       setError(null);
 
       // Fetch direct message conversations
@@ -124,10 +126,13 @@ export default function MessagesScreen() {
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
+      // PGRST116 means no rows found, which is not an error
       if (messagesError && messagesError.code !== 'PGRST116') {
-        console.log('Error fetching messages:', messagesError);
+        console.error('MessagesScreen: Error fetching messages:', messagesError);
         throw new Error('Failed to load direct messages');
       }
+
+      console.log('MessagesScreen: Fetched', messages?.length || 0, 'direct messages');
 
       // Fetch group conversations
       const { data: groupMemberships, error: groupError } = await supabase
@@ -139,9 +144,11 @@ export default function MessagesScreen() {
         .eq('user_id', user.id);
 
       if (groupError && groupError.code !== 'PGRST116') {
-        console.log('Error fetching group memberships:', groupError);
+        console.error('MessagesScreen: Error fetching group memberships:', groupError);
         throw new Error('Failed to load group chats');
       }
+
+      console.log('MessagesScreen: Fetched', groupMemberships?.length || 0, 'group memberships');
 
       // Fetch muted conversations
       const { data: mutes, error: mutesError } = await supabase
@@ -150,7 +157,7 @@ export default function MessagesScreen() {
         .eq('user_id', user.id);
 
       if (mutesError && mutesError.code !== 'PGRST116') {
-        console.log('Error fetching mutes:', mutesError);
+        console.log('MessagesScreen: Error fetching mutes (non-critical):', mutesError);
       }
 
       const mutesMap = new Map<string, boolean>();
@@ -168,9 +175,9 @@ export default function MessagesScreen() {
         const partner = isFromMe ? message.recipient : message.sender;
 
         if (!directConversationsMap.has(partnerId)) {
-          const displayName = partner.first_name && partner.last_name
+          const displayName = partner?.first_name && partner?.last_name
             ? `${partner.first_name} ${partner.last_name.charAt(0)}.`
-            : partner.pickleballer_nickname || 'Unknown User';
+            : partner?.pickleballer_nickname || 'Unknown User';
 
           const muteKey = `direct:${partnerId}`;
           directConversationsMap.set(partnerId, {
@@ -178,10 +185,10 @@ export default function MessagesScreen() {
             type: 'direct',
             title: displayName,
             userId: partnerId,
-            userFirstName: partner.first_name,
-            userLastName: partner.last_name,
-            userNickname: partner.pickleballer_nickname,
-            lastMessage: message.content,
+            userFirstName: partner?.first_name,
+            userLastName: partner?.last_name,
+            userNickname: partner?.pickleballer_nickname,
+            lastMessage: message.content || '',
             lastMessageTime: message.created_at,
             unreadCount: 0,
             isMuted: mutesMap.get(muteKey) || false,
@@ -190,16 +197,23 @@ export default function MessagesScreen() {
 
         // Count unread messages
         if (!isFromMe && !message.read) {
-          const conv = directConversationsMap.get(partnerId)!;
-          conv.unreadCount += 1;
+          const conv = directConversationsMap.get(partnerId);
+          if (conv) {
+            conv.unreadCount += 1;
+          }
         }
       });
 
       // Process group conversations
       const groupConversations: Conversation[] = [];
       for (const membership of groupMemberships || []) {
-        const groupId = membership.group_chats.id;
-        const groupName = membership.group_chats.name;
+        const groupId = membership.group_chats?.id;
+        const groupName = membership.group_chats?.name;
+
+        if (!groupId || !groupName) {
+          console.log('MessagesScreen: Skipping invalid group membership:', membership);
+          continue;
+        }
 
         // Fetch last message for this group
         const { data: lastMessages, error: lastMsgError } = await supabase
@@ -210,8 +224,7 @@ export default function MessagesScreen() {
           .limit(1);
 
         if (lastMsgError && lastMsgError.code !== 'PGRST116') {
-          console.log('Error fetching group messages:', lastMsgError);
-          continue;
+          console.log('MessagesScreen: Error fetching group messages (non-critical):', lastMsgError);
         }
 
         // Count members
@@ -221,7 +234,7 @@ export default function MessagesScreen() {
           .eq('group_id', groupId);
 
         if (countError && countError.code !== 'PGRST116') {
-          console.log('Error counting group members:', countError);
+          console.log('MessagesScreen: Error counting group members (non-critical):', countError);
         }
 
         const lastMessage = lastMessages && lastMessages.length > 0 ? lastMessages[0] : null;
@@ -247,10 +260,11 @@ export default function MessagesScreen() {
         return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
       });
 
-      console.log('Loaded conversations:', allConversations.length);
+      console.log('MessagesScreen: Loaded', allConversations.length, 'total conversations');
       setConversations(allConversations);
+      setError(null);
     } catch (error: any) {
-      console.log('Error in fetchConversations:', error);
+      console.error('MessagesScreen: Error in fetchConversations:', error);
       setError(error.message || 'Failed to load conversations');
     } finally {
       setLoading(false);
@@ -259,6 +273,7 @@ export default function MessagesScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      console.log('MessagesScreen: Screen focused, fetching conversations');
       fetchConversations();
       checkAndShowNotificationPrompt();
     }, [fetchConversations, checkAndShowNotificationPrompt])
@@ -279,7 +294,7 @@ export default function MessagesScreen() {
             table: 'messages',
           },
           () => {
-            console.log('Message change detected, refreshing conversations');
+            console.log('MessagesScreen: Message change detected, refreshing conversations');
             fetchConversations();
           }
         )
@@ -295,7 +310,7 @@ export default function MessagesScreen() {
             table: 'group_messages',
           },
           () => {
-            console.log('Group message change detected, refreshing conversations');
+            console.log('MessagesScreen: Group message change detected, refreshing conversations');
             fetchConversations();
           }
         )
@@ -411,7 +426,7 @@ export default function MessagesScreen() {
             {item.isMuted && (
               <IconSymbol
                 ios_icon_name="bell.slash.fill"
-                android_material_icon_name="notifications_off"
+                android_material_icon_name="notifications-off"
                 size={16}
                 color={colors.textSecondary}
               />
@@ -477,7 +492,7 @@ export default function MessagesScreen() {
       >
         <IconSymbol
           ios_icon_name="plus.circle.fill"
-          android_material_icon_name="add_circle"
+          android_material_icon_name="add-circle"
           size={24}
           color={colors.primary}
         />

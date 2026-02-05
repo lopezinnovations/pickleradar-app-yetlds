@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
@@ -39,7 +39,7 @@ export default function UserProfileScreen() {
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!id || !isSupabaseConfigured()) return;
 
     try {
@@ -58,9 +58,9 @@ export default function UserProfileScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchCheckInHistory = async () => {
+  const fetchCheckInHistory = useCallback(async () => {
     if (!id || !isSupabaseConfigured()) return;
 
     try {
@@ -83,9 +83,9 @@ export default function UserProfileScreen() {
     } catch (error) {
       console.log('Error fetching check-in history:', error);
     }
-  };
+  }, [id]);
 
-  const fetchFriendshipStatus = async () => {
+  const fetchFriendshipStatus = useCallback(async () => {
     if (!id || !currentUser || !isSupabaseConfigured()) return;
 
     try {
@@ -128,7 +128,7 @@ export default function UserProfileScreen() {
     } catch (error) {
       console.log('Error fetching friendship status:', error);
     }
-  };
+  }, [id, currentUser]);
 
   useEffect(() => {
     if (id && currentUser) {
@@ -136,7 +136,7 @@ export default function UserProfileScreen() {
       fetchCheckInHistory();
       fetchFriendshipStatus();
     }
-  }, [id, currentUser]);
+  }, [id, currentUser, fetchUserProfile, fetchCheckInHistory, fetchFriendshipStatus]);
 
   const handleSendFriendRequest = async () => {
     if (!currentUser || !id || !isSupabaseConfigured()) return;
@@ -273,7 +273,7 @@ export default function UserProfileScreen() {
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
         <IconSymbol 
           ios_icon_name="person.crop.circle.badge.xmark" 
-          android_material_icon_name="person_off" 
+          android_material_icon_name="person-off" 
           size={64} 
           color={colors.textSecondary} 
         />
@@ -311,7 +311,7 @@ export default function UserProfileScreen() {
         >
           <IconSymbol 
             ios_icon_name="chevron.left" 
-            android_material_icon_name="chevron_left" 
+            android_material_icon_name="chevron-left" 
             size={24} 
             color={colors.primary} 
           />
@@ -335,7 +335,7 @@ export default function UserProfileScreen() {
             ) : (
               <IconSymbol 
                 ios_icon_name="person.crop.circle.fill" 
-                android_material_icon_name="account_circle" 
+                android_material_icon_name="account-circle" 
                 size={64} 
                 color={colors.primary} 
               />
@@ -418,7 +418,7 @@ export default function UserProfileScreen() {
                     <React.Fragment>
                       <IconSymbol 
                         ios_icon_name="person.badge.plus" 
-                        android_material_icon_name="person_add" 
+                        android_material_icon_name="person-add" 
                         size={20} 
                         color={colors.card} 
                       />
@@ -440,7 +440,7 @@ export default function UserProfileScreen() {
                     <React.Fragment>
                       <IconSymbol 
                         ios_icon_name="person.badge.minus" 
-                        android_material_icon_name="person_remove" 
+                        android_material_icon_name="person-remove" 
                         size={20} 
                         color={colors.card} 
                       />
@@ -492,7 +492,7 @@ export default function UserProfileScreen() {
                       <React.Fragment>
                         <IconSymbol 
                           ios_icon_name="person.badge.minus" 
-                          android_material_icon_name="person_remove" 
+                          android_material_icon_name="person-remove" 
                           size={20} 
                           color={colors.card} 
                         />

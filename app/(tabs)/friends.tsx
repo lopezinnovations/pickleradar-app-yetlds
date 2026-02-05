@@ -238,7 +238,7 @@ export default function FriendsScreen() {
         <View style={styles.emptyStateIcon}>
           <IconSymbol 
             ios_icon_name="person.2.slash" 
-            android_material_icon_name="people_outline" 
+            android_material_icon_name="people-outline" 
             size={64} 
             color={colors.textSecondary} 
           />
@@ -288,7 +288,7 @@ export default function FriendsScreen() {
             <View style={[commonStyles.card, { marginTop: 12, alignItems: 'center', padding: 32 }]}>
               <IconSymbol 
                 ios_icon_name="person.2.slash" 
-                android_material_icon_name="people_outline" 
+                android_material_icon_name="people-outline" 
                 size={48} 
                 color={colors.textSecondary} 
               />
@@ -334,7 +334,7 @@ export default function FriendsScreen() {
                           <View style={styles.atCourtBadge}>
                             <IconSymbol 
                               ios_icon_name="location.fill" 
-                              android_material_icon_name="location_on" 
+                              android_material_icon_name="location-on" 
                               size={16} 
                               color={colors.card} 
                             />
@@ -372,7 +372,7 @@ export default function FriendsScreen() {
                     >
                       <IconSymbol 
                         ios_icon_name="person.badge.minus" 
-                        android_material_icon_name="person_remove" 
+                        android_material_icon_name="person-remove" 
                         size={32} 
                         color={colors.accent} 
                       />
@@ -503,7 +503,7 @@ export default function FriendsScreen() {
             </Text>
             <IconSymbol 
               ios_icon_name={showFilters ? "chevron.up" : "chevron.down"} 
-              android_material_icon_name={showFilters ? "expand_less" : "expand_more"} 
+              android_material_icon_name={showFilters ? "expand-less" : "expand-more"} 
               size={20} 
               color={hasActiveFilters ? colors.card : colors.text} 
             />
@@ -635,7 +635,7 @@ export default function FriendsScreen() {
             <View style={[commonStyles.card, { marginTop: 12, alignItems: 'center', padding: 32 }]}>
               <IconSymbol 
                 ios_icon_name="person.crop.circle.badge.questionmark" 
-                android_material_icon_name="person_search" 
+                android_material_icon_name="person-search" 
                 size={48} 
                 color={colors.textSecondary} 
               />
@@ -682,7 +682,7 @@ export default function FriendsScreen() {
                         <View style={styles.courtsPlayedContainer}>
                           <IconSymbol 
                             ios_icon_name="location.fill" 
-                            android_material_icon_name="location_on" 
+                            android_material_icon_name="location-on" 
                             size={12} 
                             color={colors.textSecondary} 
                           />
@@ -718,7 +718,7 @@ export default function FriendsScreen() {
                         ) : (
                           <IconSymbol 
                             ios_icon_name="plus.circle.fill" 
-                            android_material_icon_name="add_circle" 
+                            android_material_icon_name="add-circle" 
                             size={32} 
                             color={colors.primary} 
                           />
@@ -736,7 +736,7 @@ export default function FriendsScreen() {
                       >
                         <IconSymbol 
                           ios_icon_name="minus.circle.fill" 
-                          android_material_icon_name="remove_circle" 
+                          android_material_icon_name="remove-circle" 
                           size={32} 
                           color={colors.accent} 
                         />
@@ -747,7 +747,7 @@ export default function FriendsScreen() {
                       <View style={styles.friendBadge}>
                         <IconSymbol 
                           ios_icon_name="checkmark.circle.fill" 
-                          android_material_icon_name="check_circle" 
+                          android_material_icon_name="check-circle" 
                           size={24} 
                           color={colors.success} 
                         />

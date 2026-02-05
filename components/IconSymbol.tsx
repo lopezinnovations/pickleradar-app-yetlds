@@ -45,6 +45,7 @@ export function IconSymbol({
     'group.fill': 'group',
     'group-add': 'group-add',
     'group_add': 'group-add',
+    'person-add-alt': 'person-add',
     'people': 'people',
     'people-outline': 'people-outline',
     
@@ -131,6 +132,17 @@ export function IconSymbol({
     'close': 'close',
     'menu': 'menu',
     'home': 'home',
+    
+    // Fix underscore variants to use hyphens (Material Icons standard)
+    'check_circle': 'check-circle',
+    'chevron_left': 'chevron-left',
+    'chevron_right': 'chevron-right',
+    'person_add': 'person-add',
+    'person_remove': 'person-remove',
+    'person_off': 'person-off',
+    'account_circle': 'account-circle',
+    'location_on': 'location-on',
+    'mail_outline': 'mail-outline',
   };
 
   // Determine which icon name to use

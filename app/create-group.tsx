@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -27,9 +27,9 @@ export default function CreateGroupScreen() {
 
   useEffect(() => {
     fetchFriends();
-  }, [user]);
+  }, [user, fetchFriends]);
 
-  const fetchFriends = async () => {
+  const fetchFriends = useCallback(async () => {
     if (!user || !isSupabaseConfigured()) {
       setLoading(false);
       return;
@@ -65,7 +65,7 @@ export default function CreateGroupScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const toggleFriendSelection = (friendId: string) => {
     console.log('User toggled friend selection:', friendId);
@@ -191,7 +191,7 @@ export default function CreateGroupScreen() {
         {item.selected && (
           <IconSymbol
             ios_icon_name="checkmark.circle.fill"
-            android_material_icon_name="check_circle"
+            android_material_icon_name="check-circle"
             size={24}
             color={colors.card}
           />
@@ -215,7 +215,7 @@ export default function CreateGroupScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <IconSymbol
             ios_icon_name="chevron.left"
-            android_material_icon_name="chevron_left"
+            android_material_icon_name="chevron-left"
             size={24}
             color={colors.primary}
           />
