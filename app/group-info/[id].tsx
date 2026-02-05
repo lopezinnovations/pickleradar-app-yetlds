@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Alert, TextInput, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +35,9 @@ export default function GroupInfoScreen() {
   const [showMuteModal, setShowMuteModal] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [muteUntil, setMuteUntil] = useState<string | null>(null);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageModalText, setMessageModalText] = useState('');
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const fetchGroupInfo = useCallback(async () => {
     if (!groupId || !isSupabaseConfigured()) {
@@ -43,6 +46,8 @@ export default function GroupInfoScreen() {
     }
 
     try {
+      console.log('Fetching group info for:', groupId);
+      
       // Fetch group info
       const { data: groupData, error: groupError } = await supabase
         .from('group_chats')
@@ -55,6 +60,7 @@ export default function GroupInfoScreen() {
         throw groupError;
       }
 
+      console.log('Group info fetched:', groupData);
       setGroupInfo(groupData);
       setNewGroupName(groupData.name);
 
@@ -73,6 +79,7 @@ export default function GroupInfoScreen() {
         throw membersError;
       }
 
+      console.log('Members fetched:', membersData?.length || 0);
       const membersList: GroupMember[] = (membersData || []).map((item: any) => ({
         id: item.id,
         userId: item.user_id,
@@ -106,7 +113,8 @@ export default function GroupInfoScreen() {
       }
     } catch (error) {
       console.log('Error in fetchGroupInfo:', error);
-      Alert.alert('Error', 'Failed to load group information.');
+      setMessageModalText('Failed to load group information.');
+      setShowMessageModal(true);
     } finally {
       setLoading(false);
     }
@@ -124,7 +132,8 @@ export default function GroupInfoScreen() {
 
   const handleRenameGroup = async () => {
     if (!newGroupName.trim() || !groupId || !isSupabaseConfigured()) {
-      Alert.alert('Invalid Name', 'Please enter a valid group name.');
+      setMessageModalText('Please enter a valid group name.');
+      setShowMessageModal(true);
       return;
     }
 
@@ -144,56 +153,46 @@ export default function GroupInfoScreen() {
 
       setGroupInfo(prev => prev ? { ...prev, name: newGroupName.trim() } : null);
       setShowRenameModal(false);
-      Alert.alert('Success', 'Group name updated successfully!');
+      setMessageModalText('Group name updated successfully!');
+      setShowMessageModal(true);
     } catch (error: any) {
       console.log('Error in handleRenameGroup:', error);
-      Alert.alert('Error', `Failed to rename group: ${error.message}`);
+      setMessageModalText(`Failed to rename group: ${error.message}`);
+      setShowMessageModal(true);
     } finally {
       setRenaming(false);
     }
   };
 
-  const handleLeaveGroup = () => {
-    Alert.alert(
-      'Leave Group',
-      'Are you sure you want to leave this group? You won\'t be able to see messages or rejoin unless someone adds you back.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Leave',
-          style: 'destructive',
-          onPress: async () => {
-            console.log('User leaving group:', groupId);
-            try {
-              if (!user || !groupId || !isSupabaseConfigured()) return;
+  const handleLeaveGroup = async () => {
+    console.log('User leaving group:', groupId);
+    setShowLeaveConfirm(false);
+    
+    try {
+      if (!user || !groupId || !isSupabaseConfigured()) return;
 
-              const { error } = await supabase
-                .from('group_members')
-                .delete()
-                .eq('group_id', groupId)
-                .eq('user_id', user.id);
+      const { error } = await supabase
+        .from('group_members')
+        .delete()
+        .eq('group_id', groupId)
+        .eq('user_id', user.id);
 
-              if (error) {
-                console.log('Error leaving group:', error);
-                throw error;
-              }
+      if (error) {
+        console.log('Error leaving group:', error);
+        throw error;
+      }
 
-              Alert.alert('Left Group', 'You have left the group.', [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    router.replace('/(tabs)/messages');
-                  },
-                },
-              ]);
-            } catch (error: any) {
-              console.log('Error in handleLeaveGroup:', error);
-              Alert.alert('Error', `Failed to leave group: ${error.message}`);
-            }
-          },
-        },
-      ]
-    );
+      setMessageModalText('You have left the group.');
+      setShowMessageModal(true);
+      
+      setTimeout(() => {
+        router.replace('/(tabs)/messages');
+      }, 1500);
+    } catch (error: any) {
+      console.log('Error in handleLeaveGroup:', error);
+      setMessageModalText(`Failed to leave group: ${error.message}`);
+      setShowMessageModal(true);
+    }
   };
 
   const handleMuteConversation = async (minutes: number | null) => {
@@ -225,10 +224,12 @@ export default function GroupInfoScreen() {
       const muteMessage = minutes 
         ? `Muted for ${minutes >= 1440 ? '24 hours' : minutes >= 480 ? '8 hours' : '1 hour'}`
         : 'Muted until you turn it back on';
-      Alert.alert('Muted', muteMessage);
+      setMessageModalText(muteMessage);
+      setShowMessageModal(true);
     } catch (error: any) {
       console.log('Error in handleMuteConversation:', error);
-      Alert.alert('Error', `Failed to mute conversation: ${error.message}`);
+      setMessageModalText(`Failed to mute conversation: ${error.message}`);
+      setShowMessageModal(true);
     }
   };
 
@@ -251,10 +252,12 @@ export default function GroupInfoScreen() {
 
       setIsMuted(false);
       setMuteUntil(null);
-      Alert.alert('Unmuted', 'Notifications enabled for this group.');
+      setMessageModalText('Notifications enabled for this group.');
+      setShowMessageModal(true);
     } catch (error: any) {
       console.log('Error in handleUnmute:', error);
-      Alert.alert('Error', `Failed to unmute conversation: ${error.message}`);
+      setMessageModalText(`Failed to unmute conversation: ${error.message}`);
+      setShowMessageModal(true);
     }
   };
 
@@ -400,7 +403,7 @@ export default function GroupInfoScreen() {
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveGroup}>
+          <TouchableOpacity style={styles.leaveButton} onPress={() => setShowLeaveConfirm(true)}>
             <IconSymbol
               ios_icon_name="rectangle.portrait.and.arrow.right"
               android_material_icon_name="exit-to-app"
@@ -450,6 +453,57 @@ export default function GroupInfoScreen() {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Leave Confirmation Modal */}
+      <Modal
+        visible={showLeaveConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLeaveConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Leave Group</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to leave this group? You won&apos;t be able to see messages or rejoin unless someone adds you back.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowLeaveConfirm(false)}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonDanger]}
+                onPress={handleLeaveGroup}
+              >
+                <Text style={styles.modalButtonTextConfirm}>Leave</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Message Modal */}
+      <Modal
+        visible={showMessageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMessageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalMessage}>{messageModalText}</Text>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonConfirm]}
+              onPress={() => setShowMessageModal(false)}
+            >
+              <Text style={styles.modalButtonTextConfirm}>OK</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -596,6 +650,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 16,
   },
+  modalMessage: {
+    fontSize: 16,
+    color: colors.text,
+    lineHeight: 24,
+    marginBottom: 20,
+  },
   modalInput: {
     backgroundColor: colors.card,
     borderWidth: 1,
@@ -624,6 +684,9 @@ const styles = StyleSheet.create({
   },
   modalButtonConfirm: {
     backgroundColor: colors.primary,
+  },
+  modalButtonDanger: {
+    backgroundColor: colors.error,
   },
   modalButtonDisabled: {
     opacity: 0.6,

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, ScrollView, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +24,8 @@ export default function CreateGroupScreen() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   useEffect(() => {
     fetchFriends();
@@ -61,7 +63,8 @@ export default function CreateGroupScreen() {
       setFriends(friendsList);
     } catch (error) {
       console.log('Error in fetchFriends:', error);
-      Alert.alert('Error', 'Failed to load friends. Please try again.');
+      setModalMessage('Failed to load friends. Please try again.');
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
@@ -74,16 +77,18 @@ export default function CreateGroupScreen() {
     );
   };
 
-  const handleCreateGroup = async () => {
+  const handleCreateGroup = useCallback(async () => {
     const selectedFriends = friends.filter(f => f.selected);
     
     if (!groupName.trim()) {
-      Alert.alert('Group Name Required', 'Please enter a name for your group.');
+      setModalMessage('Please enter a name for your group.');
+      setShowModal(true);
       return;
     }
 
     if (selectedFriends.length === 0) {
-      Alert.alert('Add Members', 'Please select at least one friend to add to the group.');
+      setModalMessage('Please select at least one friend to add to the group.');
+      setShowModal(true);
       return;
     }
 
@@ -97,7 +102,9 @@ export default function CreateGroupScreen() {
 
       // Use RPC function to create group and add members atomically
       // This bypasses RLS policies using SECURITY DEFINER
-      const memberIds = [user.id, ...selectedFriends.map(f => f.id)];
+      const memberIds = selectedFriends.map(f => f.id);
+      
+      console.log('Calling create_group_with_members RPC with:', { groupName: groupName.trim(), memberIds });
       
       const { data: groupId, error: rpcError } = await supabase
         .rpc('create_group_with_members', {
@@ -127,21 +134,21 @@ export default function CreateGroupScreen() {
       }
 
       console.log('Group created successfully:', groupId);
-      Alert.alert('Success', 'Group created successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            router.replace(`/group-conversation/${groupId}`);
-          },
-        },
-      ]);
+      setModalMessage('Group created successfully!');
+      setShowModal(true);
+      
+      // Navigate after a short delay
+      setTimeout(() => {
+        router.replace(`/group-conversation/${groupId}`);
+      }, 1000);
     } catch (error: any) {
       console.log('Error in handleCreateGroup:', error);
-      Alert.alert('Error', "Can't create group yet. Please try again in a moment.");
+      setModalMessage("Can't create group yet. Please try again in a moment.");
+      setShowModal(true);
     } finally {
       setCreating(false);
     }
-  };
+  }, [groupName, friends, user, router, showModal]);
 
   const formatFriendName = (friend: Friend) => {
     if (friend.firstName && friend.lastName) {
@@ -307,6 +314,26 @@ export default function CreateGroupScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Custom Modal for messages */}
+      <Modal
+        visible={showModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalMessage}>{modalMessage}</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -428,6 +455,41 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   createButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.card,
