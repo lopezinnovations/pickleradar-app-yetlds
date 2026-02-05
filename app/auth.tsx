@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -10,9 +10,11 @@ import { supabase } from '@/app/integrations/supabase/client';
 
 export default function AuthScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const prefilledEmail = params.email as string;
   const { signUp, signIn, isConfigured } = useAuth();
   
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(prefilledEmail || '');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -27,6 +29,21 @@ export default function AuthScreen() {
   const [loginCode, setLoginCode] = useState('');
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [resendDisabled, setResendDisabled] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+
+  // Refs to track loading states for timeout checks
+  const isVerifyingRef = useRef(false);
+  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resendIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update refs when state changes
+  useEffect(() => {
+    isVerifyingRef.current = isVerifying;
+  }, [isVerifying]);
 
   // Clear any existing sessions on mount to ensure clean state
   useEffect(() => {
@@ -37,10 +54,22 @@ export default function AuthScreen() {
           await supabase.auth.signOut();
         }
       } catch (error) {
-        // Silent fail - not critical
+        console.log('Error clearing old sessions:', error);
       }
     };
     clearOldSessions();
+  }, []);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
+      if (resendIntervalRef.current) {
+        clearInterval(resendIntervalRef.current);
+      }
+    };
   }, []);
 
   const validateEmail = (email: string) => {
@@ -178,6 +207,7 @@ export default function AuthScreen() {
         Alert.alert('Sign Up Failed', result.message || 'Failed to create account. Please try again.');
       }
     } catch (error: any) {
+      console.log('Sign up error:', error);
       Alert.alert('Error', error?.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -214,6 +244,7 @@ export default function AuthScreen() {
       const result = await signIn(email, password);
       
       if (result.success) {
+        console.log('User signed in successfully');
         // Clear form
         setEmail('');
         setPassword('');
@@ -235,6 +266,7 @@ export default function AuthScreen() {
         Alert.alert('Sign In Failed', 'Incorrect email or password. Please try again.');
       }
     } catch (error: any) {
+      console.log('Sign in error:', error);
       Alert.alert('Sign In Failed', 'Incorrect email or password. Please try again.');
     } finally {
       setLoading(false);
@@ -262,11 +294,30 @@ export default function AuthScreen() {
       return;
     }
 
-    setLoading(true);
+    setIsSendingCode(true);
+    setResendDisabled(true);
+    setResendCountdown(30);
+
+    // Start countdown timer
+    if (resendIntervalRef.current) {
+      clearInterval(resendIntervalRef.current);
+    }
+    
+    resendIntervalRef.current = setInterval(() => {
+      setResendCountdown((prev) => {
+        if (prev <= 1) {
+          if (resendIntervalRef.current) {
+            clearInterval(resendIntervalRef.current);
+          }
+          setResendDisabled(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     try {
       console.log('Sending OTP to email:', email);
-      // Use Supabase's built-in signInWithOtp function for password recovery
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: { 
@@ -276,6 +327,14 @@ export default function AuthScreen() {
 
       if (error) {
         console.log('Error sending OTP:', error);
+        
+        // Clear countdown on error
+        if (resendIntervalRef.current) {
+          clearInterval(resendIntervalRef.current);
+        }
+        setResendDisabled(false);
+        setResendCountdown(0);
+        
         Alert.alert(
           'Error',
           error.message || 'Unable to send reset code. Please try again.',
@@ -293,13 +352,21 @@ export default function AuthScreen() {
       );
     } catch (error: any) {
       console.log('Unexpected error sending OTP:', error);
+      
+      // Clear countdown on error
+      if (resendIntervalRef.current) {
+        clearInterval(resendIntervalRef.current);
+      }
+      setResendDisabled(false);
+      setResendCountdown(0);
+      
       Alert.alert(
         'Error',
         'Unable to send reset code. Please try again.',
         [{ text: 'OK' }]
       );
     } finally {
-      setLoading(false);
+      setIsSendingCode(false);
     }
   };
 
@@ -311,11 +378,20 @@ export default function AuthScreen() {
       return;
     }
 
-    setLoading(true);
+    setIsVerifying(true);
+    setVerificationError(null);
+
+    // Set timeout for verification (15 seconds)
+    verificationTimeoutRef.current = setTimeout(() => {
+      if (isVerifyingRef.current) {
+        console.log('OTP verification timeout exceeded');
+        setVerificationError('This is taking longer than expected. Please try again.');
+        setIsVerifying(false);
+      }
+    }, 15000);
 
     try {
       console.log('Verifying OTP code');
-      // Use Supabase's built-in verifyOtp function
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: loginCode,
@@ -324,21 +400,25 @@ export default function AuthScreen() {
 
       if (error) {
         console.log('OTP verification error:', error);
-        Alert.alert(
-          'Invalid Code',
-          error.message || 'The code you entered is incorrect. Please try again.',
-          [{ text: 'OK' }]
-        );
+        
+        // Check for specific error types
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
+          setVerificationError('Too many attempts. Please wait 30-60 seconds before retrying.');
+        } else if (errorMessage.includes('invalid') || errorMessage.includes('token')) {
+          setVerificationError('Invalid code. Please try again.');
+        } else if (errorMessage.includes('expired')) {
+          setVerificationError('Code expired. Please request a new one.');
+        } else {
+          setVerificationError(error.message || 'Failed to verify code. Please try again.');
+        }
         return;
       }
 
       if (!data.session && !data.user) {
         console.log('No session or user after OTP verification');
-        Alert.alert(
-          'Error',
-          'Failed to verify code. Please try again.',
-          [{ text: 'OK' }]
-        );
+        setVerificationError('Verification successful, but no session found. Please try again.');
         return;
       }
 
@@ -347,6 +427,7 @@ export default function AuthScreen() {
       // Clear code input
       setLoginCode('');
       setShowCodeInput(false);
+      setVerificationError(null);
 
       // Route to reset password screen with email parameter
       router.push({
@@ -355,9 +436,13 @@ export default function AuthScreen() {
       });
     } catch (error: any) {
       console.log('Unexpected error during OTP verification:', error);
-      Alert.alert('Error', 'Failed to verify code. Please try again.');
+      setVerificationError(error.message || 'An unexpected error occurred during verification.');
     } finally {
-      setLoading(false);
+      // Clear timeout
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
+      setIsVerifying(false);
     }
   };
 
@@ -379,6 +464,7 @@ export default function AuthScreen() {
     setDuprError('');
     setExperienceLevel('Beginner');
     setConsentAccepted(false);
+    setVerificationError(null);
   };
 
   const toggleForgotPassword = () => {
@@ -388,9 +474,18 @@ export default function AuthScreen() {
     setPassword('');
     setLoginCode('');
     setConsentAccepted(false);
+    setVerificationError(null);
   };
 
   const experienceLevels: ('Beginner' | 'Intermediate' | 'Advanced')[] = ['Beginner', 'Intermediate', 'Advanced'];
+
+  // Compute button text and disabled state
+  const verifyButtonText = isVerifying ? 'Verifying...' : 'Verify Code';
+  const verifyButtonDisabled = isVerifying || !loginCode || loginCode.length !== 6;
+  
+  const resendButtonText = resendDisabled && resendCountdown > 0 
+    ? `Resend (${resendCountdown}s)` 
+    : 'Resend Code';
 
   return (
     <View style={commonStyles.container}>
@@ -527,7 +622,7 @@ export default function AuthScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            editable={!loading && !showCodeInput}
+            editable={!loading && !showCodeInput && !isVerifying}
           />
 
           {isForgotPassword && showCodeInput && (
@@ -541,11 +636,23 @@ export default function AuthScreen() {
                 onChangeText={(text) => setLoginCode(text.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
                 maxLength={6}
-                editable={!loading}
+                editable={!isVerifying}
               />
               <Text style={styles.helperText}>
                 Check your email for a six-digit code and enter it here
               </Text>
+              
+              {verificationError && (
+                <View style={styles.errorContainer}>
+                  <IconSymbol 
+                    ios_icon_name="exclamationmark.triangle.fill" 
+                    android_material_icon_name="warning" 
+                    size={20} 
+                    color={colors.accent} 
+                  />
+                  <Text style={styles.errorMessage}>{verificationError}</Text>
+                </View>
+              )}
             </React.Fragment>
           )}
 
@@ -626,7 +733,7 @@ export default function AuthScreen() {
             style={[
               buttonStyles.primary, 
               { marginTop: 8 }, 
-              (loading || (isSignUp && !consentAccepted)) && { opacity: 0.6 }
+              ((loading || isVerifying || isSendingCode) || (isSignUp && !consentAccepted) || (isForgotPassword && showCodeInput && verifyButtonDisabled)) && { opacity: 0.6 }
             ]}
             onPress={
               isForgotPassword 
@@ -637,16 +744,27 @@ export default function AuthScreen() {
                   ? handleSignUp 
                   : handleSignIn
             }
-            disabled={loading || (isSignUp && !consentAccepted)}
+            disabled={
+              loading || 
+              isVerifying || 
+              isSendingCode || 
+              (isSignUp && !consentAccepted) || 
+              (isForgotPassword && showCodeInput && verifyButtonDisabled)
+            }
             activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.card} />
+            {(loading || isVerifying || isSendingCode) ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color={colors.card} size="small" />
+                <Text style={[buttonStyles.text, { marginLeft: 8 }]}>
+                  {isForgotPassword && showCodeInput ? verifyButtonText : isSendingCode ? 'Sending...' : 'Loading...'}
+                </Text>
+              </View>
             ) : (
               <Text style={buttonStyles.text}>
                 {isForgotPassword 
                   ? showCodeInput 
-                    ? 'Verify Code' 
+                    ? verifyButtonText
                     : 'Send Code' 
                   : isSignUp 
                     ? 'Sign Up' 
@@ -659,11 +777,11 @@ export default function AuthScreen() {
             <TouchableOpacity
               style={styles.resendButton}
               onPress={handleSendCode}
-              disabled={loading}
+              disabled={resendDisabled || isSendingCode}
               activeOpacity={0.7}
             >
-              <Text style={styles.resendText}>
-                Didn&apos;t receive the code? Resend
+              <Text style={[styles.resendText, (resendDisabled || isSendingCode) && { opacity: 0.5 }]}>
+                {resendButtonText}
               </Text>
             </TouchableOpacity>
           )}
@@ -802,6 +920,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Courier New',
   },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 12,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: colors.accent,
+    marginLeft: 8,
+    flex: 1,
+    fontWeight: '500',
+  },
   experienceLevelContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -913,5 +1048,10 @@ const styles = StyleSheet.create({
   warningHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

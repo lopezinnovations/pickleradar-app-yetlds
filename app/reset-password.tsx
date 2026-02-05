@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
@@ -15,7 +15,27 @@ export default function ResetPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Refs to track loading state for timeout checks
+  const isLoadingRef = useRef(false);
+  const resetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update ref when state changes
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const validatePassword = (password: string) => {
     return password.length >= 8;
@@ -23,6 +43,12 @@ export default function ResetPasswordScreen() {
 
   const handleResetPassword = async () => {
     console.log('User tapped Reset Password button');
+
+    // Prevent double submits
+    if (isSubmitting || isLoading) {
+      console.log('Already submitting, ignoring duplicate request');
+      return;
+    }
 
     if (!newPassword.trim()) {
       Alert.alert('Error', 'Please enter a new password');
@@ -44,7 +70,18 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
+    setIsSubmitting(true);
+    setResetError(null);
+
+    // Set timeout for password reset (15 seconds)
+    resetTimeoutRef.current = setTimeout(() => {
+      if (isLoadingRef.current) {
+        console.log('Password reset timeout exceeded');
+        setResetError('Unable to finish resetting password. Please try again.');
+        setIsLoading(false);
+      }
+    }, 15000);
 
     try {
       console.log('Updating password in Supabase');
@@ -54,7 +91,17 @@ export default function ResetPasswordScreen() {
 
       if (error) {
         console.log('Password update error:', error);
-        Alert.alert('Error', error.message || 'Failed to reset password. Please try again.');
+        
+        // Check for specific error types
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
+          setResetError('Too many attempts. Please wait 30-60 seconds before retrying.');
+        } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+          setResetError('Network error. Please check your connection and try again.');
+        } else {
+          setResetError(error.message || 'Failed to reset password. Please try again.');
+        }
         return;
       }
 
@@ -63,51 +110,44 @@ export default function ResetPasswordScreen() {
       // Clear form
       setNewPassword('');
       setConfirmPassword('');
+      setResetError(null);
 
-      // Show success message and redirect to login
+      // Show success message and redirect to sign in
       Alert.alert(
-        'Password Changed',
-        'Your password has been changed successfully. You can now sign in with your new password.',
+        'Password Updated Successfully',
+        'Your password has been changed. You can now sign in with your new password.',
         [
           {
             text: 'OK',
             onPress: () => {
-              router.replace('/auth');
+              // Navigate to sign in screen with prefilled email
+              router.replace({
+                pathname: '/auth',
+                params: { email: email || '' }
+              });
             },
           },
         ]
       );
     } catch (error: any) {
       console.log('Unexpected error during password reset:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      setResetError(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
-      setLoading(false);
+      // Clear timeout
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+      }
+      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  };
-
-  const handleContinueWithoutResetting = () => {
-    console.log('User chose to continue without resetting password');
-    Alert.alert(
-      'Continue Without Resetting?',
-      'You can reset your password later from the Profile screen.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Continue',
-          onPress: () => {
-            router.replace('/(tabs)/(home)/');
-          },
-        },
-      ]
-    );
   };
 
   const handleBack = () => {
     router.back();
   };
+
+  // Compute button disabled state
+  const resetButtonDisabled = isLoading || isSubmitting || !newPassword || !confirmPassword;
 
   return (
     <View style={commonStyles.container}>
@@ -120,6 +160,7 @@ export default function ResetPasswordScreen() {
         <TouchableOpacity 
           style={styles.backButton}
           onPress={handleBack}
+          disabled={isLoading}
         >
           <IconSymbol 
             ios_icon_name="chevron.left" 
@@ -163,12 +204,12 @@ export default function ResetPasswordScreen() {
             secureTextEntry={!showNewPassword}
             autoCapitalize="none"
             autoCorrect={false}
-            editable={!loading}
+            editable={!isLoading}
           />
           <TouchableOpacity
             style={styles.showPasswordButton}
             onPress={() => setShowNewPassword(!showNewPassword)}
-            disabled={loading}
+            disabled={isLoading}
             activeOpacity={0.7}
           >
             <Text style={styles.showPasswordText}>
@@ -186,12 +227,12 @@ export default function ResetPasswordScreen() {
             secureTextEntry={!showConfirmPassword}
             autoCapitalize="none"
             autoCorrect={false}
-            editable={!loading}
+            editable={!isLoading}
           />
           <TouchableOpacity
             style={styles.showPasswordButton}
             onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            disabled={loading}
+            disabled={isLoading}
             activeOpacity={0.7}
           >
             <Text style={styles.showPasswordText}>
@@ -225,34 +266,40 @@ export default function ResetPasswordScreen() {
             </View>
           </View>
 
+          {resetError && (
+            <View style={styles.errorContainer}>
+              <IconSymbol 
+                ios_icon_name="exclamationmark.triangle.fill" 
+                android_material_icon_name="warning" 
+                size={20} 
+                color={colors.accent} 
+              />
+              <Text style={styles.errorMessage}>{resetError}</Text>
+            </View>
+          )}
+
           <TouchableOpacity
             style={[
               buttonStyles.primary, 
               { marginTop: 24 }, 
-              loading && { opacity: 0.6 }
+              resetButtonDisabled && { opacity: 0.6 }
             ]}
             onPress={handleResetPassword}
-            disabled={loading}
+            disabled={resetButtonDisabled}
             activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.card} />
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color={colors.card} size="small" />
+                <Text style={[buttonStyles.text, { marginLeft: 8 }]}>
+                  Resetting...
+                </Text>
+              </View>
             ) : (
               <Text style={buttonStyles.text}>
                 Reset Password
               </Text>
             )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handleContinueWithoutResetting}
-            disabled={loading}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.secondaryButtonText}>
-              Continue Without Resetting
-            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -348,14 +395,26 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '500',
   },
-  secondaryButton: {
-    marginTop: 12,
-    paddingVertical: 16,
+  errorContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
   },
-  secondaryButtonText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontWeight: '600',
+  errorMessage: {
+    fontSize: 14,
+    color: colors.accent,
+    marginLeft: 8,
+    flex: 1,
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
