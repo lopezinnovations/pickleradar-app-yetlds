@@ -1,6 +1,6 @@
 
 import { Stack } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '@/styles/commonStyles';
 import * as Notifications from 'expo-notifications';
@@ -85,11 +85,16 @@ export default function RootLayout() {
         responseListener.current.remove();
       }
     };
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
+
+  // Memoize screenOptions to prevent recreation on every render
+  const screenOptions = useMemo(() => ({
+    headerShown: false,
+  }), []); // Empty dependency array - options never change
 
   return (
     <ErrorBoundary>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={screenOptions}>
         <Stack.Screen name="index" />
         <Stack.Screen name="welcome" />
         <Stack.Screen name="auth" />

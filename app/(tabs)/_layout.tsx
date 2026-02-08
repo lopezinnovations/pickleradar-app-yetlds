@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  const tabs: TabBarItem[] = [
+  // Memoize tabs array to prevent recreation on every render
+  const tabs: TabBarItem[] = useMemo(() => [
     {
       name: '(home)',
       route: '/(tabs)/(home)/',
@@ -30,16 +31,17 @@ export default function TabLayout() {
       icon: 'person',
       label: 'Profile',
     },
-  ];
+  ], []); // Empty dependency array - tabs never change
+
+  // Memoize screenOptions to prevent recreation on every render
+  const screenOptions = useMemo(() => ({
+    headerShown: false,
+    animation: 'none' as const,
+  }), []); // Empty dependency array - options never change
 
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'none',
-        }}
-      >
+      <Stack screenOptions={screenOptions}>
         <Stack.Screen key="home" name="(home)" />
         <Stack.Screen key="friends" name="friends" />
         <Stack.Screen key="messages" name="messages" />
