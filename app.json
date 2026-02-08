@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "PickleRadar",
@@ -24,7 +25,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#1B4D3E"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.PickleRadar",
