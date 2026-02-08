@@ -104,6 +104,12 @@ export function IconSymbol({
     'exit-to-app': 'rectangle.portrait.and.arrow.right',
     'logout': 'rectangle.portrait.and.arrow.right',
     
+    // Favorites & Stars
+    'star': 'star',
+    'star-border': 'star',
+    'favorite': 'star.fill',
+    'favorite-border': 'star',
+    
     // Charts & Data
     'bar-chart': 'chart.bar.fill',
     'trending-up': 'chart.line.uptrend.xyaxis',

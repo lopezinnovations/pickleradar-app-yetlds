@@ -118,6 +118,11 @@ export function IconSymbol({
     'rectangle.portrait.and.arrow.right': 'exit-to-app',
     'logout': 'exit-to-app',
     
+    // Favorites & Stars
+    'star': 'star-border',
+    'star.fill': 'star',
+    'star-border': 'star-border',
+    
     // Charts & Data
     'chart.bar.fill': 'bar-chart',
     'chart.line.uptrend.xyaxis': 'trending-up',

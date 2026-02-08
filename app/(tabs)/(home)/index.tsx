@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, TextInput, Linking, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -12,6 +12,7 @@ import { AddCourtModal } from '@/components/AddCourtModal';
 import { LegalFooter } from '@/components/LegalFooter';
 import { SortOption, FilterOptions } from '@/types';
 import { calculateDistance } from '@/utils/locationUtils';
+import { supabase } from '@/app/integrations/supabase/client';
 
 const INITIAL_DISPLAY_COUNT = 10;
 const LOAD_MORE_COUNT = 10;
@@ -28,17 +29,56 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [showAddCourtModal, setShowAddCourtModal] = useState(false);
+  const [favoriteCourtIds, setFavoriteCourtIds] = useState<Set<string>>(new Set());
+  const [loadingFavorites, setLoadingFavorites] = useState(true);
+
+  // Fetch user's favorites on mount and when screen comes into focus
+  const fetchFavorites = useCallback(async () => {
+    if (!user?.id) {
+      console.log('HomeScreen: No user ID, skipping favorites fetch');
+      setLoadingFavorites(false);
+      return;
+    }
+
+    try {
+      console.log('HomeScreen: Fetching user favorites');
+      const { data, error } = await supabase
+        .from('court_favorites')
+        .select('court_id')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('HomeScreen: Error fetching favorites:', error);
+        setLoadingFavorites(false);
+        return;
+      }
+
+      const favoriteIds = new Set(data?.map(fav => fav.court_id) || []);
+      console.log('HomeScreen: Loaded favorites:', favoriteIds.size);
+      setFavoriteCourtIds(favoriteIds);
+      setLoadingFavorites(false);
+    } catch (error) {
+      console.error('HomeScreen: Exception fetching favorites:', error);
+      setLoadingFavorites(false);
+    }
+  }, [user?.id]);
+
+  // Fetch favorites on mount
+  useEffect(() => {
+    fetchFavorites();
+  }, [fetchFavorites]);
 
   // Only refetch when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      console.log('HomeScreen: Screen focused, refreshing courts data');
+      console.log('HomeScreen: Screen focused, refreshing courts data and favorites');
       try {
         refetch();
+        fetchFavorites();
       } catch (error) {
-        console.error('HomeScreen: Error refetching courts:', error);
+        console.error('HomeScreen: Error refetching data:', error);
       }
-    }, [refetch])
+    }, [refetch, fetchFavorites])
   );
 
   // Calculate distances and apply sorting/filtering
@@ -88,6 +128,11 @@ export default function HomeScreen() {
         processed = processed.filter(court => court.friendsPlayingCount > 0);
       }
 
+      // Apply favorites only filter
+      if (filters.favoritesOnly) {
+        processed = processed.filter(court => favoriteCourtIds.has(court.id));
+      }
+
       // Apply skill level filter
       if (filters.skillLevels && filters.skillLevels.length > 0) {
         processed = processed.filter(court => {
@@ -105,6 +150,22 @@ export default function HomeScreen() {
 
       // Apply sorting - default to distance if location is available
       switch (sortBy) {
+        case 'favorites':
+          // Sort favorites first, then by distance if available
+          processed.sort((a, b) => {
+            const aFavorited = favoriteCourtIds.has(a.id);
+            const bFavorited = favoriteCourtIds.has(b.id);
+
+            if (aFavorited && !bFavorited) return -1;
+            if (!aFavorited && bFavorited) return 1;
+
+            // Secondary sort by distance if available
+            if (userLocation && a.distance !== undefined && b.distance !== undefined) {
+              return a.distance - b.distance;
+            }
+            return 0;
+          });
+          break;
         case 'active-high':
           processed.sort((a, b) => b.currentPlayers - a.currentPlayers);
           break;
@@ -133,7 +194,7 @@ export default function HomeScreen() {
       console.error('HomeScreen: Error processing courts:', error);
       return courts;
     }
-  }, [courts, sortBy, filters, userLocation, searchQuery]);
+  }, [courts, sortBy, filters, userLocation, searchQuery, favoriteCourtIds]);
 
   const displayedCourts = processedCourts.slice(0, displayCount);
   const hasMoreCourts = displayCount < processedCourts.length;
@@ -196,6 +257,71 @@ export default function HomeScreen() {
         }
       ]
     );
+  };
+
+  const handleToggleFavorite = async (courtId: string, e: any) => {
+    e.stopPropagation();
+    
+    if (!user?.id) {
+      console.log('HomeScreen: User not logged in, cannot toggle favorite');
+      Alert.alert('Sign In Required', 'Please sign in to save favorite courts.');
+      return;
+    }
+
+    const wasFavorited = favoriteCourtIds.has(courtId);
+    console.log('HomeScreen: Toggling favorite for court:', courtId, 'wasFavorited:', wasFavorited);
+
+    // Optimistic UI update
+    setFavoriteCourtIds(prev => {
+      const newSet = new Set(prev);
+      if (wasFavorited) {
+        newSet.delete(courtId);
+      } else {
+        newSet.add(courtId);
+      }
+      return newSet;
+    });
+
+    try {
+      if (wasFavorited) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('court_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('court_id', courtId);
+
+        if (error) {
+          throw error;
+        }
+        console.log('HomeScreen: Successfully removed favorite');
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('court_favorites')
+          .insert({ user_id: user.id, court_id: courtId });
+
+        if (error) {
+          throw error;
+        }
+        console.log('HomeScreen: Successfully added favorite');
+      }
+    } catch (error) {
+      console.error('HomeScreen: Error toggling favorite:', error);
+      
+      // Revert optimistic update on error
+      setFavoriteCourtIds(prev => {
+        const newSet = new Set(prev);
+        if (wasFavorited) {
+          newSet.add(courtId);
+        } else {
+          newSet.delete(courtId);
+        }
+        return newSet;
+      });
+
+      Alert.alert('Error', "Couldn't update favorite. Try again.");
+    }
   };
 
   // Show empty state if no courts and no search query
@@ -353,8 +479,8 @@ export default function HomeScreen() {
                   onPress={() => setShowFilters(!showFilters)}
                 >
                   <IconSymbol 
-                    ios_icon_name="line.3.horizontal.decrease.circle" 
-                    android_material_icon_name="filter_list" 
+                    ios_icon_name="slider.horizontal.2" 
+                    android_material_icon_name="tune" 
                     size={20} 
                     color={colors.primary} 
                   />
@@ -380,6 +506,14 @@ export default function HomeScreen() {
                 <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>Sort by:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={styles.sortButtons}>
+                    <TouchableOpacity
+                      style={[styles.sortButton, sortBy === 'favorites' && styles.sortButtonActive]}
+                      onPress={() => setSortBy('favorites')}
+                    >
+                      <Text style={[styles.sortButtonText, sortBy === 'favorites' && styles.sortButtonTextActive]}>
+                        Favorites
+                      </Text>
+                    </TouchableOpacity>
                     {userLocation && (
                       <TouchableOpacity
                         style={[styles.sortButton, sortBy === 'distance' && styles.sortButtonActive]}
@@ -425,6 +559,10 @@ export default function HomeScreen() {
                   </View>
                 </ScrollView>
               </View>
+              
+              {favoriteCourtIds.size === 0 && sortBy === 'favorites' && (
+                <Text style={styles.helperText}>Star courts to save favorites.</Text>
+              )}
 
               {showFilters && (
                 <View style={styles.filtersContainer}>
@@ -471,6 +609,25 @@ export default function HomeScreen() {
                         )}
                       </View>
                       <Text style={commonStyles.text}>Friends only</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.filterSection}>
+                    <TouchableOpacity
+                      style={styles.filterCheckbox}
+                      onPress={() => setFilters({ ...filters, favoritesOnly: !filters.favoritesOnly })}
+                    >
+                      <View style={[styles.checkbox, filters.favoritesOnly && styles.checkboxActive]}>
+                        {filters.favoritesOnly && (
+                          <IconSymbol 
+                            ios_icon_name="checkmark" 
+                            android_material_icon_name="check" 
+                            size={16} 
+                            color={colors.card} 
+                          />
+                        )}
+                      </View>
+                      <Text style={commonStyles.text}>Favorites only</Text>
                     </TouchableOpacity>
                   </View>
 
@@ -546,45 +703,61 @@ export default function HomeScreen() {
                 </View>
               ) : (
                 <>
-                  {displayedCourts.map((court, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={commonStyles.card}
-                      onPress={() => router.push(`/(tabs)/(home)/court/${court.id}`)}
-                    >
-                      <View style={styles.courtHeader}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.courtName}>{court.name}</Text>
-                          <Text style={commonStyles.textSecondary}>{court.address}</Text>
-                          {court.distance !== undefined && (
-                            <Text style={[commonStyles.textSecondary, { marginTop: 4, fontWeight: '600' }]}>
-                              📍 {court.distance.toFixed(1)} miles away
-                            </Text>
-                          )}
+                  {displayedCourts.map((court, index) => {
+                    const isFavorited = favoriteCourtIds.has(court.id);
+                    
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={commonStyles.card}
+                        onPress={() => router.push(`/(tabs)/(home)/court/${court.id}`)}
+                      >
+                        <View style={styles.courtHeader}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.courtName}>{court.name}</Text>
+                            <Text style={commonStyles.textSecondary}>{court.address}</Text>
+                            {court.distance !== undefined && (
+                              <Text style={[commonStyles.textSecondary, { marginTop: 4, fontWeight: '600' }]}>
+                                📍 {court.distance.toFixed(1)} miles away
+                              </Text>
+                            )}
+                          </View>
+                          <View style={styles.courtActions}>
+                            <TouchableOpacity
+                              style={styles.courtActionIcon}
+                              onPress={(e) => handleToggleFavorite(court.id, e)}
+                            >
+                              <IconSymbol 
+                                ios_icon_name={isFavorited ? "star.fill" : "star"}
+                                android_material_icon_name={isFavorited ? "star" : "star-border"}
+                                size={24} 
+                                color={isFavorited ? colors.accent : colors.textSecondary} 
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.courtActionIcon}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                try {
+                                  const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
+                                  Linking.openURL(url).catch(err => {
+                                    console.error('HomeScreen: Failed to open directions:', err);
+                                    Alert.alert('Error', 'Unable to open directions');
+                                  });
+                                } catch (error) {
+                                  console.error('HomeScreen: Error opening directions:', error);
+                                }
+                              }}
+                            >
+                              <IconSymbol 
+                                ios_icon_name="map.fill" 
+                                android_material_icon_name="map" 
+                                size={24} 
+                                color={colors.primary} 
+                              />
+                            </TouchableOpacity>
+                          </View>
                         </View>
-                        <TouchableOpacity
-                          style={styles.courtMapIcon}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            try {
-                              const url = `https://www.google.com/maps/dir/?api=1&destination=${court.latitude},${court.longitude}`;
-                              Linking.openURL(url).catch(err => {
-                                console.error('HomeScreen: Failed to open directions:', err);
-                                Alert.alert('Error', 'Unable to open directions');
-                              });
-                            } catch (error) {
-                              console.error('HomeScreen: Error opening directions:', error);
-                            }
-                          }}
-                        >
-                          <IconSymbol 
-                            ios_icon_name="map.fill" 
-                            android_material_icon_name="map" 
-                            size={24} 
-                            color={colors.primary} 
-                          />
-                        </TouchableOpacity>
-                      </View>
                       
                       <View style={styles.courtFooter}>
                         <View style={styles.playerInfoContainer}>
@@ -650,7 +823,8 @@ export default function HomeScreen() {
                         />
                       </View>
                     </TouchableOpacity>
-                  ))}
+                    );
+                  })}
 
                   {hasMoreCourts && (
                     <TouchableOpacity
@@ -956,6 +1130,19 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 4,
   },
+  courtActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 12,
+  },
+  courtActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.highlight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   courtMapIcon: {
     width: 40,
     height: 40,
@@ -964,6 +1151,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
+  },
+  helperText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    marginTop: 8,
+    textAlign: 'center',
   },
   courtFooter: {
     flexDirection: 'row',
