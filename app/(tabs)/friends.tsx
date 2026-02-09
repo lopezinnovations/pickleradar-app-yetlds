@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,19 +9,23 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { FriendCardSkeleton } from '@/components/SkillLevelBars';
 import { debounce } from '@/utils/performanceLogger';
 import { LegalFooter } from '@/components/LegalFooter';
+import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 
 export default function FriendsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   
-  // REACT QUERY: Use the new query hook
   const { friends, pendingRequests, allUsers, loading, refetch, isRefetching } = useFriendsQuery(user?.id);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'search'>('friends');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [notificationPrefsModalVisible, setNotificationPrefsModalVisible] = useState(false);
+  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+  const [notifyCheckin, setNotifyCheckin] = useState(true);
+  const [notifyMessages, setNotifyMessages] = useState(true);
 
-  // Debounced search handler
   const debouncedSearch = useCallback(
     debounce((query: string) => {
       console.log('FriendsScreen: Debounced search query:', query);
@@ -34,12 +38,128 @@ export default function FriendsScreen() {
     debouncedSearch(searchQuery);
   }, [searchQuery, debouncedSearch]);
 
-  // PULL-TO-REFRESH: Refetch on focus
   useFocusEffect(
     useCallback(() => {
       console.log('FriendsScreen: Screen focused');
     }, [])
   );
+
+  const handleAcceptRequest = async (requestId: string, friendId: string) => {
+    if (!isSupabaseConfigured()) {
+      console.log('FriendsScreen: Supabase not configured');
+      return;
+    }
+
+    setActionLoading(requestId);
+    try {
+      console.log('FriendsScreen: Accepting friend request:', requestId);
+      
+      const { error } = await supabase
+        .from('friends')
+        .update({ status: 'accepted' })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      console.log('FriendsScreen: Friend request accepted successfully');
+      await refetch();
+    } catch (error: any) {
+      console.error('FriendsScreen: Error accepting friend request:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeclineRequest = async (requestId: string) => {
+    if (!isSupabaseConfigured()) {
+      console.log('FriendsScreen: Supabase not configured');
+      return;
+    }
+
+    setActionLoading(requestId);
+    try {
+      console.log('FriendsScreen: Declining friend request:', requestId);
+      
+      const { error } = await supabase
+        .from('friends')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      console.log('FriendsScreen: Friend request declined successfully');
+      await refetch();
+    } catch (error: any) {
+      console.error('FriendsScreen: Error declining friend request:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleOpenNotificationPrefs = async (friendId: string) => {
+    setSelectedFriendId(friendId);
+    
+    if (!isSupabaseConfigured() || !user?.id) {
+      setNotificationPrefsModalVisible(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('friend_notification_preferences')
+        .select('notify_checkin, notify_messages')
+        .eq('user_id', user.id)
+        .eq('friend_id', friendId)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('FriendsScreen: Error fetching notification preferences:', error);
+      }
+
+      if (data) {
+        setNotifyCheckin(data.notify_checkin);
+        setNotifyMessages(data.notify_messages);
+      } else {
+        setNotifyCheckin(true);
+        setNotifyMessages(true);
+      }
+    } catch (error) {
+      console.error('FriendsScreen: Error loading notification preferences:', error);
+    }
+
+    setNotificationPrefsModalVisible(true);
+  };
+
+  const handleSaveNotificationPrefs = async () => {
+    if (!isSupabaseConfigured() || !user?.id || !selectedFriendId) {
+      setNotificationPrefsModalVisible(false);
+      return;
+    }
+
+    try {
+      console.log('FriendsScreen: Saving notification preferences for friend:', selectedFriendId);
+      
+      const { error } = await supabase
+        .from('friend_notification_preferences')
+        .upsert({
+          user_id: user.id,
+          friend_id: selectedFriendId,
+          notify_checkin: notifyCheckin,
+          notify_messages: notifyMessages,
+        }, {
+          onConflict: 'user_id,friend_id',
+        });
+
+      if (error) throw error;
+
+      console.log('FriendsScreen: Notification preferences saved successfully');
+    } catch (error: any) {
+      console.error('FriendsScreen: Error saving notification preferences:', error);
+    } finally {
+      setNotificationPrefsModalVisible(false);
+      setSelectedFriendId(null);
+    }
+  };
 
   const filteredFriends = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return friends;
@@ -71,7 +191,6 @@ export default function FriendsScreen() {
     );
   }, [allUsers, debouncedSearchQuery]);
 
-  // Show skeleton loaders while loading
   if (loading) {
     return (
       <View style={commonStyles.container}>
@@ -263,21 +382,38 @@ export default function FriendsScreen() {
                           </Text>
                         )}
                       </View>
-                      <TouchableOpacity
-                        style={styles.messageButton}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          console.log('User tapped message button for:', displayName);
-                          router.push(`/conversation/${friend.userId}`);
-                        }}
-                      >
-                        <IconSymbol
-                          ios_icon_name="message.fill"
-                          android_material_icon_name="message"
-                          size={20}
-                          color={colors.primary}
-                        />
-                      </TouchableOpacity>
+                      <View style={styles.friendActions}>
+                        <TouchableOpacity
+                          style={styles.iconButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            console.log('User tapped notification settings for:', displayName);
+                            handleOpenNotificationPrefs(friend.userId);
+                          }}
+                        >
+                          <IconSymbol
+                            ios_icon_name="bell.fill"
+                            android_material_icon_name="notifications"
+                            size={20}
+                            color={colors.textSecondary}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.iconButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            console.log('User tapped message button for:', displayName);
+                            router.push(`/conversation/${friend.userId}`);
+                          }}
+                        >
+                          <IconSymbol
+                            ios_icon_name="message.fill"
+                            android_material_icon_name="message"
+                            size={20}
+                            color={colors.primary}
+                          />
+                        </TouchableOpacity>
+                      </View>
                     </TouchableOpacity>
                   );
                 })
@@ -307,6 +443,8 @@ export default function FriendsScreen() {
                   const displayName = request.firstName && request.lastName
                     ? `${request.firstName} ${request.lastName}`
                     : request.pickleballerNickname || 'Unknown User';
+
+                  const isLoading = actionLoading === request.id;
 
                   return (
                     <View key={request.id} style={styles.requestCard}>
@@ -339,29 +477,39 @@ export default function FriendsScreen() {
                           style={[styles.actionButton, { backgroundColor: colors.success }]}
                           onPress={() => {
                             console.log('User accepted friend request from:', displayName);
-                            Alert.alert('Coming Soon', 'Accept friend request functionality will be available soon!');
+                            handleAcceptRequest(request.id, request.userId);
                           }}
+                          disabled={isLoading}
                         >
-                          <IconSymbol
-                            ios_icon_name="checkmark"
-                            android_material_icon_name="check"
-                            size={20}
-                            color={colors.card}
-                          />
+                          {isLoading ? (
+                            <ActivityIndicator size="small" color={colors.card} />
+                          ) : (
+                            <IconSymbol
+                              ios_icon_name="checkmark"
+                              android_material_icon_name="check"
+                              size={20}
+                              color={colors.card}
+                            />
+                          )}
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={[styles.actionButton, { backgroundColor: colors.accent }]}
                           onPress={() => {
                             console.log('User declined friend request from:', displayName);
-                            Alert.alert('Coming Soon', 'Decline friend request functionality will be available soon!');
+                            handleDeclineRequest(request.id);
                           }}
+                          disabled={isLoading}
                         >
-                          <IconSymbol
-                            ios_icon_name="xmark"
-                            android_material_icon_name="close"
-                            size={20}
-                            color={colors.card}
-                          />
+                          {isLoading ? (
+                            <ActivityIndicator size="small" color={colors.card} />
+                          ) : (
+                            <IconSymbol
+                              ios_icon_name="xmark"
+                              android_material_icon_name="close"
+                              size={20}
+                              color={colors.card}
+                            />
+                          )}
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -446,6 +594,83 @@ export default function FriendsScreen() {
 
         <LegalFooter />
       </ScrollView>
+
+      <Modal
+        visible={notificationPrefsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNotificationPrefsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={[commonStyles.title, { fontSize: 20, marginBottom: 8 }]}>
+              Notification Preferences
+            </Text>
+            <Text style={[commonStyles.textSecondary, { marginBottom: 24 }]}>
+              Choose what notifications you want to receive from this friend
+            </Text>
+
+            <TouchableOpacity
+              style={styles.preferenceRow}
+              onPress={() => setNotifyCheckin(!notifyCheckin)}
+            >
+              <View style={styles.preferenceInfo}>
+                <Text style={commonStyles.subtitle}>Check-in Notifications</Text>
+                <Text style={commonStyles.textSecondary}>
+                  Get notified when this friend checks in or out
+                </Text>
+              </View>
+              <View style={[styles.checkbox, notifyCheckin && styles.checkboxActive]}>
+                {notifyCheckin && (
+                  <IconSymbol
+                    ios_icon_name="checkmark"
+                    android_material_icon_name="check"
+                    size={16}
+                    color={colors.card}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.preferenceRow}
+              onPress={() => setNotifyMessages(!notifyMessages)}
+            >
+              <View style={styles.preferenceInfo}>
+                <Text style={commonStyles.subtitle}>Message Notifications</Text>
+                <Text style={commonStyles.textSecondary}>
+                  Get notified when this friend sends you a message
+                </Text>
+              </View>
+              <View style={[styles.checkbox, notifyMessages && styles.checkboxActive]}>
+                {notifyMessages && (
+                  <IconSymbol
+                    ios_icon_name="checkmark"
+                    android_material_icon_name="check"
+                    size={16}
+                    color={colors.card}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[buttonStyles.secondary, { flex: 1, marginRight: 8 }]}
+                onPress={() => setNotificationPrefsModalVisible(false)}
+              >
+                <Text style={[buttonStyles.text, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[buttonStyles.primary, { flex: 1, marginLeft: 8 }]}
+                onPress={handleSaveNotificationPrefs}
+              >
+                <Text style={buttonStyles.text}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -556,14 +781,17 @@ const styles = StyleSheet.create({
   friendInfo: {
     flex: 1,
   },
-  messageButton: {
+  friendActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     backgroundColor: colors.highlight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
   },
   requestActions: {
     flexDirection: 'row',
@@ -593,5 +821,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  preferenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  preferenceInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    marginTop: 24,
   },
 });

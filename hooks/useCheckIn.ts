@@ -89,7 +89,6 @@ export const useCheckIn = (userId?: string) => {
       return { success: true, message: 'Notifications not available' };
     }
 
-    // Only send notifications if push is supported
     if (!isPushNotificationSupported()) {
       console.log('useCheckIn: Push notifications not supported in this environment, skipping friend notifications');
       return { success: true, message: 'Push notifications not available in this build' };
@@ -136,6 +135,59 @@ export const useCheckIn = (userId?: string) => {
     }
   };
 
+  const notifyFriendsCheckout = async (
+    courtId: string,
+    courtName: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    if (!isSupabaseConfigured()) {
+      console.log('useCheckIn: Supabase not configured, skipping checkout notifications');
+      return { success: true, message: 'Notifications not available' };
+    }
+
+    if (!isPushNotificationSupported()) {
+      console.log('useCheckIn: Push notifications not supported in this environment');
+      return { success: true, message: 'Push notifications not available in this build' };
+    }
+
+    try {
+      console.log('useCheckIn: Notifying friends of check-out from', courtName);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('useCheckIn: No session, cannot notify friends');
+        return { success: false, message: 'Not authenticated' };
+      }
+
+      const response = await fetch(
+        `${supabase.supabaseUrl}/functions/v1/notify-friends-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            courtId,
+            courtName,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('useCheckIn: Error notifying friends of checkout:', result.error);
+        return { success: false, message: result.error };
+      }
+
+      console.log('useCheckIn: Friend checkout notification result:', result);
+      return { success: true, message: result.message };
+    } catch (error: any) {
+      console.error('useCheckIn: Error calling notify-friends-checkout function:', error);
+      return { success: false, message: error.message || 'Failed to notify friends' };
+    }
+  };
+
   const checkIn = async (
     userId: string,
     courtId: string,
@@ -149,7 +201,6 @@ export const useCheckIn = (userId?: string) => {
 
     setLoading(true);
     try {
-      // Check if user is already checked in at this court
       const { data: existing } = await supabase
         .from('check_ins')
         .select('*')
@@ -163,16 +214,13 @@ export const useCheckIn = (userId?: string) => {
         return { success: false, error: 'Already checked in at this court' };
       }
 
-      // Check if user is checked in at any other court
       const { data: otherCheckIns } = await supabase
         .from('check_ins')
         .select('*')
         .eq('user_id', userId)
         .gte('expires_at', new Date().toISOString());
 
-      // If user is checked in elsewhere, remove those check-ins first
       if (otherCheckIns && otherCheckIns.length > 0) {
-        // Cancel any scheduled notifications
         for (const checkIn of otherCheckIns) {
           if (checkIn.notification_id) {
             await cancelCheckOutNotification(checkIn.notification_id);
@@ -186,7 +234,6 @@ export const useCheckIn = (userId?: string) => {
           .gte('expires_at', new Date().toISOString());
       }
 
-      // Get court name for notification
       const { data: courtData } = await supabase
         .from('courts')
         .select('name')
@@ -195,13 +242,11 @@ export const useCheckIn = (userId?: string) => {
 
       const courtName = courtData?.name || 'Unknown Court';
 
-      // Schedule local notifications (only if supported)
       let notificationId: string | null = null;
       if (isPushNotificationSupported()) {
         notificationId = await scheduleCheckInNotification(courtName, durationMinutes);
       }
 
-      // Create check-in with custom duration
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + durationMinutes);
 
@@ -220,21 +265,17 @@ export const useCheckIn = (userId?: string) => {
 
       if (error) throw error;
       
-      // Refresh check-in history
       await fetchCheckInHistory(userId);
 
-      // Notify friends (non-blocking - don't fail check-in if this fails)
       notifyFriends(courtId, courtName, skillLevel, durationMinutes)
         .then((result) => {
           if (result.success && result.message) {
             console.log('useCheckIn: Friend notification success:', result.message);
-            // Show toast confirmation
             Alert.alert('Friends Notified', "Friends notified you're here.", [{ text: 'OK' }]);
           }
         })
         .catch((err) => {
           console.error('useCheckIn: Friend notification failed (non-blocking):', err);
-          // Don't show error to user - check-in was successful
         });
       
       return { success: true, error: null };
@@ -254,7 +295,6 @@ export const useCheckIn = (userId?: string) => {
 
     setLoading(true);
     try {
-      // Get the check-in to cancel notification and get court name
       const { data: checkInData } = await supabase
         .from('check_ins')
         .select('notification_id, courts(name)')
@@ -276,10 +316,19 @@ export const useCheckIn = (userId?: string) => {
 
       if (error) throw error;
 
-      // Send manual check-out notification (only if supported)
       if (isPushNotificationSupported()) {
         await sendManualCheckOutNotification(courtName);
       }
+
+      notifyFriendsCheckout(courtId, courtName)
+        .then((result) => {
+          if (result.success && result.message) {
+            console.log('useCheckIn: Friend checkout notification success:', result.message);
+          }
+        })
+        .catch((err) => {
+          console.error('useCheckIn: Friend checkout notification failed (non-blocking):', err);
+        });
 
       return { success: true, error: null };
     } catch (error: any) {
@@ -304,7 +353,6 @@ export const useCheckIn = (userId?: string) => {
         .single();
 
       if (error) {
-        // If no check-in found, return null (not an error)
         if (error.code === 'PGRST116') {
           return null;
         }

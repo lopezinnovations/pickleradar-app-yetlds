@@ -7,14 +7,12 @@ import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Court } from '@/types';
 
-// Detect if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
 
-// Conditionally import react-native-maps ONLY if NOT in Expo Go
-let MapView: any = null;
-let Marker: any = null;
-let Callout: any = null;
-let PROVIDER_GOOGLE: any = null;
+let MapView: any;
+let Marker: any;
+let Callout: any;
+let PROVIDER_GOOGLE: any;
 
 if (!isExpoGo) {
   try {
@@ -23,9 +21,9 @@ if (!isExpoGo) {
     Marker = maps.Marker;
     Callout = maps.Callout;
     PROVIDER_GOOGLE = maps.PROVIDER_GOOGLE;
-    console.log('CourtsMapScreen: react-native-maps loaded successfully');
-  } catch (error) {
-    console.warn('CourtsMapScreen: Failed to load react-native-maps:', error);
+  } catch (e) {
+    console.warn("Failed to load react-native-maps:", e);
+    MapView = null;
   }
 }
 
@@ -33,234 +31,210 @@ export default function CourtsMapScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const mapRef = useRef<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Parse courts from navigation params
   const courts = useMemo(() => {
     try {
-      if (params.courts && typeof params.courts === 'string') {
-        const parsed = JSON.parse(params.courts) as Court[];
-        console.log('CourtsMapScreen: Loaded', parsed.length, 'courts from params');
-        return parsed;
-      }
-      return [];
+      const courtsParam = params.courts;
+      if (!courtsParam) return [];
+      
+      const parsed = typeof courtsParam === 'string' ? JSON.parse(courtsParam) : courtsParam;
+      return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
       console.error('CourtsMapScreen: Error parsing courts:', error);
+      setHasError(true);
+      setErrorMessage('Failed to load courts data');
       return [];
     }
   }, [params.courts]);
 
-  // Parse user location from params
   const userLocation = useMemo(() => {
     try {
-      if (params.userLocation && typeof params.userLocation === 'string') {
-        return JSON.parse(params.userLocation) as { latitude: number; longitude: number };
-      }
-      return null;
+      const locationParam = params.userLocation;
+      if (!locationParam) return null;
+      
+      const parsed = typeof locationParam === 'string' ? JSON.parse(locationParam) : locationParam;
+      return parsed;
     } catch (error) {
       console.error('CourtsMapScreen: Error parsing user location:', error);
       return null;
     }
   }, [params.userLocation]);
 
-  // Calculate initial region
-  const initialRegion = useMemo(() => {
-    // If user location is available, center on user
-    if (userLocation) {
-      console.log('CourtsMapScreen: Centering on user location');
-      return {
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
-      };
-    }
-
-    // Otherwise, center on first court
-    if (courts.length > 0) {
-      console.log('CourtsMapScreen: Centering on first court');
-      return {
-        latitude: courts[0].latitude,
-        longitude: courts[0].longitude,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
-      };
-    }
-
-    // Default to NYC if no data
-    console.log('CourtsMapScreen: Using default NYC location');
-    return {
-      latitude: 40.7128,
-      longitude: -74.0060,
-      latitudeDelta: 0.1,
-      longitudeDelta: 0.1,
-    };
-  }, [courts, userLocation]);
-
-  // Fit map to show all markers after mount
   useEffect(() => {
-    // Set loading to false after component mounts
-    setIsLoading(false);
+    if (!courts || courts.length === 0) {
+      console.log('CourtsMapScreen: No courts to display');
+      return;
+    }
 
-    if (courts.length > 0 && mapRef.current && MapView) {
-      const timeout = setTimeout(() => {
-        const coordinates = courts.map(court => ({
-          latitude: court.latitude,
-          longitude: court.longitude,
-        }));
+    if (!mapRef.current || !userLocation) {
+      return;
+    }
 
-        // Add user location if available
-        if (userLocation) {
-          coordinates.push(userLocation);
-        }
+    try {
+      const validCourts = courts.filter((court: Court) => 
+        court.latitude && 
+        court.longitude && 
+        !isNaN(court.latitude) && 
+        !isNaN(court.longitude)
+      );
 
-        mapRef.current?.fitToCoordinates(coordinates, {
-          edgePadding: { top: 100, right: 50, bottom: 100, left: 50 },
-          animated: true,
+      if (validCourts.length === 0) {
+        console.log('CourtsMapScreen: No valid courts with coordinates');
+        return;
+      }
+
+      const coordinates = validCourts.map((court: Court) => ({
+        latitude: court.latitude,
+        longitude: court.longitude,
+      }));
+
+      if (userLocation.latitude && userLocation.longitude) {
+        coordinates.push({
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
         });
-      }, 500);
+      }
 
-      return () => clearTimeout(timeout);
+      mapRef.current.fitToCoordinates(coordinates, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    } catch (error) {
+      console.error('CourtsMapScreen: Error fitting map to coordinates:', error);
     }
   }, [courts, userLocation]);
 
   const handleMarkerPress = (court: Court) => {
-    console.log('User tapped marker for court:', court.name);
+    console.log('CourtsMapScreen: Marker pressed for court:', court.name);
   };
 
   const handleCalloutPress = (court: Court) => {
-    console.log('User tapped callout for court:', court.name);
-    router.push(`/(tabs)/(home)/court/${court.id}`);
+    console.log('CourtsMapScreen: Callout pressed for court:', court.name);
+    router.push(`/court/${court.id}`);
   };
 
   const handleBackToList = () => {
-    console.log('User tapped Back to List button');
+    console.log('CourtsMapScreen: Back to list pressed');
     router.back();
   };
 
   const getMarkerColor = (activityLevel: 'low' | 'medium' | 'high') => {
-    switch (activityLevel) {
-      case 'high':
-        return colors.success;
-      case 'medium':
-        return colors.warning;
-      case 'low':
-      default:
-        return colors.textSecondary;
-    }
+    const colorMap = {
+      low: '#4CAF50',
+      medium: '#FF9800',
+      high: '#F44336',
+    };
+    return colorMap[activityLevel] || colorMap.low;
   };
 
-  const courtsCountText = `${courts.length} ${courts.length === 1 ? 'Court' : 'Courts'}`;
-  const mapNotAvailableTitle = 'Map View Not Available';
-  const mapNotAvailableMessage = "Map view isn't available in Expo Go. Please install an EAS Development Build or TestFlight build to use map features.";
-  const backToListText = 'Back to List';
-  const useListViewText = 'Use List View';
-  const devBuildInfoText = 'To enable maps, create an Expo Development Build with EAS:';
-  const devBuildCommandText = 'eas build --profile development --platform ios';
+  if (hasError) {
+    return (
+      <View style={styles.fallbackContainer}>
+        <Stack.Screen options={{ title: 'Map Error' }} />
+        <IconSymbol
+          ios_icon_name="exclamationmark.triangle"
+          android_material_icon_name="error"
+          size={64}
+          color={colors.accent}
+        />
+        <Text style={styles.fallbackTitle}>Unable to Load Map</Text>
+        <Text style={styles.fallbackText}>{errorMessage}</Text>
+        <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
+          <Text style={styles.fallbackButtonText}>Back to List View</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
-  // Show fallback UI if in Expo Go or MapView failed to load
   if (isExpoGo || !MapView) {
     return (
-      <View style={styles.container}>
-        <Stack.Screen
-          options={{
-            headerShown: true,
-            title: 'Map View',
-            headerBackTitle: 'Back',
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerTintColor: colors.text,
-          }}
+      <View style={styles.fallbackContainer}>
+        <Stack.Screen options={{ title: 'Map View Not Available' }} />
+        <IconSymbol
+          ios_icon_name="map"
+          android_material_icon_name="map"
+          size={64}
+          color={colors.textSecondary}
         />
-
-        <View style={styles.fallbackContainer}>
-          <IconSymbol
-            ios_icon_name="map"
-            android_material_icon_name="map"
-            size={80}
-            color={colors.textSecondary}
-          />
-          <Text style={styles.fallbackTitle}>{mapNotAvailableTitle}</Text>
-          <Text style={styles.fallbackMessage}>{mapNotAvailableMessage}</Text>
-
-          <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
-            <IconSymbol
-              ios_icon_name="list.bullet"
-              android_material_icon_name="list"
-              size={20}
-              color={colors.card}
-            />
-            <Text style={styles.fallbackButtonText}>{useListViewText}</Text>
-          </TouchableOpacity>
-
-          <View style={styles.fallbackInfoBox}>
-            <IconSymbol
-              ios_icon_name="info.circle.fill"
-              android_material_icon_name="info"
-              size={20}
-              color={colors.primary}
-            />
-            <Text style={styles.fallbackInfoText}>{devBuildInfoText}</Text>
-            <Text style={styles.fallbackCodeText}>{devBuildCommandText}</Text>
-          </View>
+        <Text style={styles.fallbackTitle}>Map View Not Available</Text>
+        <Text style={styles.fallbackText}>
+          Map view isn&apos;t available in Expo Go. It requires native modules not included in the Expo Go app.
+        </Text>
+        <Text style={styles.fallbackText}>
+          To use the map, please run this app in an Expo Development Build (EAS dev client) or a production build.
+        </Text>
+        <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
+          <Text style={styles.fallbackButtonText}>Use List View</Text>
+        </TouchableOpacity>
+        <View style={styles.devInfo}>
+          <Text style={styles.devInfoText}>For developers:</Text>
+          <Text style={styles.devInfoText}>`eas build --profile development --platform all`</Text>
+          <Text style={styles.devInfoText}>Then open with `expo start --dev-client`</Text>
         </View>
       </View>
     );
   }
 
-  // Show loading state
-  if (isLoading) {
+  if (!courts || courts.length === 0) {
     return (
-      <View style={styles.container}>
-        <Stack.Screen
-          options={{
-            headerShown: true,
-            title: 'Map View',
-            headerBackTitle: 'Back',
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerTintColor: colors.text,
-          }}
+      <View style={styles.fallbackContainer}>
+        <Stack.Screen options={{ title: 'No Courts' }} />
+        <IconSymbol
+          ios_icon_name="map"
+          android_material_icon_name="map"
+          size={64}
+          color={colors.textSecondary}
         />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>Loading map...</Text>
-        </View>
+        <Text style={styles.fallbackTitle}>No Courts to Display</Text>
+        <Text style={styles.fallbackText}>
+          No courts match your current filters.
+        </Text>
+        <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
+          <Text style={styles.fallbackButtonText}>Back to List View</Text>
+        </TouchableOpacity>
       </View>
     );
   }
+
+  const initialRegion = userLocation && userLocation.latitude && userLocation.longitude
+    ? {
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }
+    : courts[0] && courts[0].latitude && courts[0].longitude
+    ? {
+        latitude: courts[0].latitude,
+        longitude: courts[0].longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }
+    : {
+        latitude: 37.78825,
+        longitude: -122.4324,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      };
 
   return (
     <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: 'Map View',
-          headerBackTitle: 'Back',
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text,
-        }}
-      />
-
+      <Stack.Screen options={{ title: 'Courts Map' }} />
       <MapView
         ref={mapRef}
+        provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={initialRegion}
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        showsUserLocation={userLocation !== null}
+        showsUserLocation={true}
         showsMyLocationButton={true}
-        showsCompass={true}
-        toolbarEnabled={false}
       >
-        {courts.map((court) => {
-          const distanceText = court.distance !== undefined
-            ? `${court.distance.toFixed(1)} mi`
-            : '';
-          const playersText = `${court.currentPlayers} ${court.currentPlayers === 1 ? 'player' : 'players'}`;
+        {courts.map((court: Court) => {
+          if (!court.latitude || !court.longitude || isNaN(court.latitude) || isNaN(court.longitude)) {
+            return null;
+          }
 
           return (
             <Marker
@@ -274,30 +248,16 @@ export default function CourtsMapScreen() {
             >
               <Callout onPress={() => handleCalloutPress(court)}>
                 <View style={styles.calloutContainer}>
-                  <Text style={styles.calloutTitle} numberOfLines={1}>
-                    {court.name}
+                  <Text style={styles.calloutTitle}>{court.name}</Text>
+                  <Text style={styles.calloutText}>{court.address}</Text>
+                  <Text style={styles.calloutText}>
+                    Activity: {court.activityLevel.charAt(0).toUpperCase() + court.activityLevel.slice(1)}
                   </Text>
-                  {distanceText && (
-                    <View style={styles.calloutRow}>
-                      <IconSymbol
-                        ios_icon_name="location.fill"
-                        android_material_icon_name="location-on"
-                        size={12}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.calloutDistance}>{distanceText}</Text>
-                    </View>
+                  {court.currentPlayers > 0 && (
+                    <Text style={styles.calloutText}>
+                      {court.currentPlayers} player{court.currentPlayers !== 1 ? 's' : ''} checked in
+                    </Text>
                   )}
-                  <View style={styles.calloutRow}>
-                    <View
-                      style={[
-                        styles.activityDot,
-                        { backgroundColor: getMarkerColor(court.activityLevel) },
-                      ]}
-                    />
-                    <Text style={styles.calloutText}>{playersText}</Text>
-                  </View>
-                  <Text style={styles.calloutTapHint}>Tap for details</Text>
                 </View>
               </Callout>
             </Marker>
@@ -305,23 +265,15 @@ export default function CourtsMapScreen() {
         })}
       </MapView>
 
-      {/* Back to List Button */}
-      <View style={styles.backButtonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
-          <IconSymbol
-            ios_icon_name="list.bullet"
-            android_material_icon_name="list"
-            size={20}
-            color={colors.card}
-          />
-          <Text style={styles.backButtonText}>{backToListText}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Courts Count Badge */}
-      <View style={styles.countBadge}>
-        <Text style={styles.countBadgeText}>{courtsCountText}</Text>
-      </View>
+      <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
+        <IconSymbol
+          ios_icon_name="list.bullet"
+          android_material_icon_name="list"
+          size={20}
+          color={colors.card}
+        />
+        <Text style={styles.backButtonText}>List View</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -329,167 +281,93 @@ export default function CourtsMapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   map: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background,
   },
   fallbackContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
     backgroundColor: colors.background,
-    paddingHorizontal: 40,
   },
   fallbackTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 10,
     color: colors.text,
-    marginTop: 24,
     textAlign: 'center',
   },
-  fallbackMessage: {
+  fallbackText: {
     fontSize: 16,
-    color: colors.textSecondary,
-    marginTop: 12,
     textAlign: 'center',
-    lineHeight: 24,
+    marginBottom: 10,
+    color: colors.textSecondary,
+    paddingHorizontal: 20,
   },
   fallbackButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: 14,
     paddingHorizontal: 24,
+    paddingVertical: 12,
     borderRadius: 12,
-    marginTop: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    marginTop: 20,
   },
   fallbackButtonText: {
+    color: colors.card,
     fontSize: 16,
     fontWeight: '600',
-    color: colors.card,
-    marginLeft: 8,
   },
-  fallbackInfoBox: {
-    backgroundColor: colors.highlight,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 16,
+  devInfo: {
     marginTop: 40,
-    alignItems: 'flex-start',
-  },
-  fallbackInfoText: {
-    fontSize: 14,
-    color: colors.text,
-    marginTop: 8,
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  fallbackCodeText: {
-    fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: colors.primary,
-    backgroundColor: colors.card,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginTop: 4,
-    alignSelf: 'stretch',
-  },
-  backButtonContainer: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 20,
-    left: 20,
-    right: 20,
-    alignItems: 'flex-start',
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    padding: 16,
+    backgroundColor: colors.highlight,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    width: '100%',
   },
-  backButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.card,
-    marginLeft: 8,
-  },
-  countBadge: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 120 : 80,
-    right: 20,
-    backgroundColor: colors.card,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  countBadgeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  calloutContainer: {
-    width: 200,
-    padding: 8,
-  },
-  calloutTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 6,
-  },
-  calloutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  devInfoText: {
+    fontSize: 12,
+    color: colors.textSecondary,
     marginBottom: 4,
   },
-  calloutDistance: {
-    fontSize: 12,
+  backButton: {
+    position: 'absolute',
+    bottom: 24,
+    left: 20,
+    right: 20,
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  backButtonText: {
+    color: colors.card,
+    fontSize: 16,
     fontWeight: '600',
-    color: colors.primary,
-    marginLeft: 4,
+    marginLeft: 8,
   },
-  activityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+  calloutContainer: {
+    padding: 10,
+    minWidth: 200,
   },
-  calloutText: {
-    fontSize: 13,
+  calloutTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
     color: colors.text,
   },
-  calloutTapHint: {
-    fontSize: 11,
+  calloutText: {
+    fontSize: 14,
     color: colors.textSecondary,
-    marginTop: 4,
-    fontStyle: 'italic',
+    marginTop: 2,
   },
 });

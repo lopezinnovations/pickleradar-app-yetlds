@@ -27,6 +27,13 @@ interface CheckInHistory {
   skillLevel: string;
 }
 
+interface CurrentCheckIn {
+  courtName: string;
+  skillLevel: string;
+  expiresAt: string;
+  remainingMinutes: number;
+}
+
 export default function UserProfileScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -34,6 +41,7 @@ export default function UserProfileScreen() {
   
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [checkInHistory, setCheckInHistory] = useState<CheckInHistory[]>([]);
+  const [currentCheckIn, setCurrentCheckIn] = useState<CurrentCheckIn | null>(null);
   const [loading, setLoading] = useState(true);
   const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'pending_sent' | 'pending_received' | 'accepted'>('none');
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
@@ -57,6 +65,46 @@ export default function UserProfileScreen() {
       Alert.alert('Error', 'Failed to load user profile');
     } finally {
       setLoading(false);
+    }
+  }, [id]);
+
+  const fetchCurrentCheckIn = useCallback(async () => {
+    if (!id || !isSupabaseConfigured()) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('check_ins')
+        .select('skill_level, expires_at, courts(name)')
+        .eq('user_id', id)
+        .gte('expires_at', new Date().toISOString())
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          setCurrentCheckIn(null);
+          return;
+        }
+        throw error;
+      }
+
+      if (data) {
+        const expiresAt = new Date(data.expires_at);
+        const now = new Date();
+        const diffMs = expiresAt.getTime() - now.getTime();
+        const remainingMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+        setCurrentCheckIn({
+          courtName: (data as any).courts?.name || 'Unknown Court',
+          skillLevel: data.skill_level,
+          expiresAt: data.expires_at,
+          remainingMinutes,
+        });
+      } else {
+        setCurrentCheckIn(null);
+      }
+    } catch (error) {
+      console.log('Error fetching current check-in:', error);
+      setCurrentCheckIn(null);
     }
   }, [id]);
 
@@ -91,7 +139,6 @@ export default function UserProfileScreen() {
     try {
       console.log('UserProfile: Checking friendship status between', currentUser.id, 'and', id);
       
-      // Check both directions of the friendship
       const { data, error } = await supabase
         .from('friends')
         .select('*')
@@ -108,11 +155,9 @@ export default function UserProfileScreen() {
         const friendship = data[0];
         setFriendshipId(friendship.id);
         
-        // Determine the status based on who sent the request
         if (friendship.status === 'accepted') {
           setFriendshipStatus('accepted');
         } else if (friendship.status === 'pending') {
-          // Check if current user sent the request or received it
           if (friendship.user_id === currentUser.id) {
             setFriendshipStatus('pending_sent');
           } else {
@@ -133,10 +178,11 @@ export default function UserProfileScreen() {
   useEffect(() => {
     if (id && currentUser) {
       fetchUserProfile();
+      fetchCurrentCheckIn();
       fetchCheckInHistory();
       fetchFriendshipStatus();
     }
-  }, [id, currentUser, fetchUserProfile, fetchCheckInHistory, fetchFriendshipStatus]);
+  }, [id, currentUser, fetchUserProfile, fetchCurrentCheckIn, fetchCheckInHistory, fetchFriendshipStatus]);
 
   const handleSendFriendRequest = async () => {
     if (!currentUser || !id || !isSupabaseConfigured()) return;
@@ -260,6 +306,16 @@ export default function UserProfileScreen() {
     });
   };
 
+  const formatRemainingTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${mins}m remaining`;
+    }
+    return `${mins}m remaining`;
+  };
+
   if (loading) {
     return (
       <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -290,10 +346,7 @@ export default function UserProfileScreen() {
     );
   }
 
-  // Determine what information to show based on friendship status
   const isFriend = friendshipStatus === 'accepted';
-  
-  // Format display name - always show first name, last initial, and nickname
   const displayName = formatUserName(
     userProfile.first_name,
     userProfile.last_name,
@@ -360,8 +413,45 @@ export default function UserProfileScreen() {
               </View>
             </View>
           )}
+
+          {isFriend && currentCheckIn && (
+            <View style={[commonStyles.card, { marginTop: 16, backgroundColor: colors.success + '20', borderColor: colors.success }]}>
+              <View style={styles.presenceHeader}>
+                <IconSymbol 
+                  ios_icon_name="location.fill" 
+                  android_material_icon_name="location_on" 
+                  size={20} 
+                  color={colors.success} 
+                />
+                <Text style={[commonStyles.subtitle, { color: colors.success, marginLeft: 8 }]}>
+                  Currently Playing
+                </Text>
+              </View>
+              <Text style={[commonStyles.text, { marginTop: 8, fontWeight: '600' }]}>
+                {currentCheckIn.courtName}
+              </Text>
+              <Text style={[commonStyles.textSecondary, { marginTop: 4 }]}>
+                {currentCheckIn.skillLevel} • {formatRemainingTime(currentCheckIn.remainingMinutes)}
+              </Text>
+            </View>
+          )}
+
+          {isFriend && !currentCheckIn && (
+            <View style={[commonStyles.card, { marginTop: 16, backgroundColor: colors.highlight }]}>
+              <View style={styles.presenceHeader}>
+                <IconSymbol 
+                  ios_icon_name="location.slash" 
+                  android_material_icon_name="location-off" 
+                  size={20} 
+                  color={colors.textSecondary} 
+                />
+                <Text style={[commonStyles.textSecondary, { marginLeft: 8 }]}>
+                  Not checked in
+                </Text>
+              </View>
+            </View>
+          )}
           
-          {/* Always show skill level and DUPR */}
           {userProfile.experience_level && (
             <View style={styles.userStats}>
               {isFriend && (
@@ -391,7 +481,6 @@ export default function UserProfileScreen() {
             </View>
           )}
 
-          {/* Always show skill level bars */}
           {userProfile.experience_level && (
             <View style={styles.skillLevelBarContainer}>
               <SkillLevelBars 
@@ -403,7 +492,6 @@ export default function UserProfileScreen() {
             </View>
           )}
 
-          {/* Friend Action Buttons */}
           {currentUser && currentUser.id !== id && (
             <View style={styles.actionButtonContainer}>
               {friendshipStatus === 'none' && (
@@ -450,7 +538,6 @@ export default function UserProfileScreen() {
                 </TouchableOpacity>
               )}
 
-              {/* Message button - always available */}
               {(friendshipStatus === 'none' || friendshipStatus === 'pending_sent' || friendshipStatus === 'pending_received') && (
                 <TouchableOpacity
                   style={[buttonStyles.secondary, { marginTop: 12 }]}
@@ -506,7 +593,6 @@ export default function UserProfileScreen() {
           )}
         </View>
 
-        {/* Check-In History - Only show for friends */}
         {isFriend && (
           <View style={commonStyles.card}>
             <View style={styles.historyHeader}>
@@ -547,7 +633,6 @@ export default function UserProfileScreen() {
           </View>
         )}
 
-        {/* Member Since - Only show for friends */}
         {isFriend && userProfile.created_at && (
           <View style={commonStyles.card}>
             <Text style={commonStyles.subtitle}>Member Since</Text>
@@ -605,6 +690,10 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: '100%',
     height: '100%',
+  },
+  presenceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   userStats: {
     flexDirection: 'row',
