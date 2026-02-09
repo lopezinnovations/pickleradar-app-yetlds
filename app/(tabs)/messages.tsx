@@ -9,6 +9,7 @@ import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/clie
 import { NotificationPermissionModal } from '@/components/NotificationPermissionModal';
 import { requestNotificationPermissions, checkNotificationPermissionStatus } from '@/utils/notifications';
 import { logPerformance, logSupabaseQuery } from '@/utils/performanceLogger';
+import { useRealtimeManager } from '@/utils/realtimeManager';
 
 interface Conversation {
   id: string;
@@ -37,6 +38,9 @@ export default function MessagesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [visitCount, setVisitCount] = useState(0);
+  
+  // Initialize realtime manager
+  const realtimeManager = useRealtimeManager('MessagesScreen');
 
   const checkAndShowNotificationPrompt = useCallback(async () => {
     if (!user || !isSupabaseConfigured()) return;
@@ -120,6 +124,7 @@ export default function MessagesScreen() {
 
       // OPTIMIZED: Fetch direct message conversations WITHOUT embedded joins
       // Only select needed fields and limit results
+      // FILTER: Only fetch messages involving this user
       const messagesResult = await logSupabaseQuery(
         supabase
           .from('messages')
@@ -335,67 +340,63 @@ export default function MessagesScreen() {
     }
   }, [loading, conversations.length]);
 
-  // FIXED: Separate effect for real-time subscriptions with stable dependencies
+  // IMPROVED: Use RealtimeManager for robust subscription management
   useEffect(() => {
-    // Set up real-time subscriptions
     if (!user || !isSupabaseConfigured()) {
       return;
     }
 
-    console.log('MessagesScreen: Setting up real-time subscriptions');
-    logPerformance('REALTIME_SUBSCRIBE', 'MessagesScreen', 'messages_list_updates');
-    logPerformance('REALTIME_SUBSCRIBE', 'MessagesScreen', 'group_messages_list_updates');
+    console.log('MessagesScreen: Setting up realtime subscriptions with RealtimeManager');
 
-    const messagesSubscription = supabase
-      .channel('messages_list_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-        },
-        () => {
-          console.log('MessagesScreen: Message change detected, refreshing conversations');
-          fetchConversations();
-        }
-      )
-      .subscribe((status, err) => {
-        console.log('MessagesScreen: Messages subscription status:', status);
-        if (status === 'TIMED_OUT') {
-          logPerformance('REALTIME_SUBSCRIBE', 'MessagesScreen', 'messages_list_updates', { status: 'TIMED_OUT', error: err });
-        }
-      });
+    // Subscribe to direct messages with filter for this user
+    const unsubscribeMessages = realtimeManager.subscribe({
+      table: 'messages',
+      filter: `sender_id=eq.${user.id}`, // NARROW FILTER: Only messages from/to this user
+      event: '*',
+      onUpdate: () => {
+        console.log('MessagesScreen: Direct message change detected, refreshing');
+        fetchConversations();
+      },
+      fallbackFetch: fetchConversations,
+      timeoutMs: 10000,
+      maxRetries: 3,
+    });
 
-    const groupMessagesSubscription = supabase
-      .channel('group_messages_list_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'group_messages',
-        },
-        () => {
-          console.log('MessagesScreen: Group message change detected, refreshing conversations');
-          fetchConversations();
-        }
-      )
-      .subscribe((status, err) => {
-        console.log('MessagesScreen: Group messages subscription status:', status);
-        if (status === 'TIMED_OUT') {
-          logPerformance('REALTIME_SUBSCRIBE', 'MessagesScreen', 'group_messages_list_updates', { status: 'TIMED_OUT', error: err });
-        }
-      });
+    // Also subscribe to messages where user is recipient
+    const unsubscribeMessagesReceived = realtimeManager.subscribe({
+      table: 'messages',
+      filter: `recipient_id=eq.${user.id}`, // NARROW FILTER: Messages received by this user
+      event: '*',
+      onUpdate: () => {
+        console.log('MessagesScreen: Received message change detected, refreshing');
+        fetchConversations();
+      },
+      fallbackFetch: fetchConversations,
+      timeoutMs: 10000,
+      maxRetries: 3,
+    });
 
+    // Subscribe to group messages (no filter needed as we'll check group membership)
+    const unsubscribeGroupMessages = realtimeManager.subscribe({
+      table: 'group_messages',
+      event: 'INSERT', // Only care about new messages
+      onUpdate: () => {
+        console.log('MessagesScreen: Group message change detected, refreshing');
+        fetchConversations();
+      },
+      fallbackFetch: fetchConversations,
+      timeoutMs: 10000,
+      maxRetries: 3,
+    });
+
+    // Cleanup on unmount/blur
     return () => {
-      console.log('MessagesScreen: Cleaning up real-time subscriptions');
-      logPerformance('REALTIME_UNSUBSCRIBE', 'MessagesScreen', 'messages_list_updates');
-      logPerformance('REALTIME_UNSUBSCRIBE', 'MessagesScreen', 'group_messages_list_updates');
-      messagesSubscription.unsubscribe();
-      groupMessagesSubscription.unsubscribe();
+      console.log('MessagesScreen: Cleaning up realtime subscriptions');
+      unsubscribeMessages();
+      unsubscribeMessagesReceived();
+      unsubscribeGroupMessages();
     };
-  }, [user, fetchConversations]);
+  }, [user, fetchConversations, realtimeManager]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
