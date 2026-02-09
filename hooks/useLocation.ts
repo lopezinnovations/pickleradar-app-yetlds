@@ -8,8 +8,9 @@ export const useLocation = () => {
   const { user, updateUserProfile } = useAuth();
   const [requestingPermission, setRequestingPermission] = useState(false);
 
+  // FIXED: Only request location when user explicitly taps a button
   const requestLocation = useCallback(async () => {
-    console.log('useLocation: User requested location permission');
+    console.log('useLocation: User explicitly requested location permission');
     if (!user) {
       console.log('useLocation: No user found, cannot request location');
       Alert.alert('Error', 'You must be logged in to enable location services.');

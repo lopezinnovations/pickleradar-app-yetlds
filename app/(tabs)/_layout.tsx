@@ -4,48 +4,51 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Memoize tabs array to prevent recreation on every render
+  // FIXED: Memoize tabs array with empty dependency array to prevent recreation
   const tabs: TabBarItem[] = useMemo(() => [
     {
       name: '(home)',
       route: '/(tabs)/(home)/',
       icon: 'map',
       label: 'Map',
+      iosIcon: 'map.fill',
     },
     {
       name: 'friends',
       route: '/(tabs)/friends',
       icon: 'people',
       label: 'Friends',
-      iosIcon: 'person.2.fill', // Explicitly set guaranteed SF Symbol for iOS
+      iosIcon: 'person.2.fill',
     },
     {
       name: 'messages',
       route: '/(tabs)/messages',
       icon: 'mail',
       label: 'Messages',
+      iosIcon: 'envelope.fill',
     },
     {
       name: 'profile',
       route: '/(tabs)/profile',
       icon: 'person',
       label: 'Profile',
+      iosIcon: 'person.fill',
     },
-  ], []); // Empty dependency array - tabs never change
+  ], []); // CRITICAL: Empty dependency array - tabs never change
 
-  // Memoize screenOptions to prevent recreation on every render
+  // FIXED: Memoize screenOptions with empty dependency array
   const screenOptions = useMemo(() => ({
     headerShown: false,
     animation: 'none' as const,
-  }), []); // Empty dependency array - options never change
+  }), []); // CRITICAL: Empty dependency array - options never change
 
   return (
     <>
       <Stack screenOptions={screenOptions}>
-        <Stack.Screen key="home" name="(home)" />
-        <Stack.Screen key="friends" name="friends" />
-        <Stack.Screen key="messages" name="messages" />
-        <Stack.Screen key="profile" name="profile" />
+        <Stack.Screen name="(home)" />
+        <Stack.Screen name="friends" />
+        <Stack.Screen name="messages" />
+        <Stack.Screen name="profile" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>

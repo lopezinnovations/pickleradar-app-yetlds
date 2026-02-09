@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 import { Court } from '@/types';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { logPerformance, getCachedData, setCachedData } from '@/utils/performanceLogger';
+import { useRealtimeManager } from '@/utils/realtimeManager';
 
 const MOCK_COURTS: Court[] = [
   {
@@ -62,25 +63,49 @@ const skillLevelToNumber = (skillLevel: string): number => {
 export const useCourts = (userId?: string) => {
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const realtimeManager = useRealtimeManager('useCourts');
   const hasSetupRealtime = useRef(false);
 
   const fetchCourts = useCallback(async () => {
     console.log('useCourts: Fetching courts...');
-    setLoading(true);
+    logPerformance('QUERY_START', 'useCourts', 'fetchCourts');
     
     if (!isSupabaseConfigured()) {
       console.log('useCourts: Supabase not configured, using mock data');
       setCourts(MOCK_COURTS);
       setLoading(false);
+      logPerformance('QUERY_END', 'useCourts', 'fetchCourts', { mock: true });
       return;
     }
 
+    // Check cache first (2 minute TTL)
+    const cacheKey = `courts_${userId || 'all'}`;
+    const cached = getCachedData<Court[]>(cacheKey, 120000);
+    if (cached) {
+      console.log('useCourts: Using cached courts');
+      setCourts(cached);
+      setLoading(false);
+      
+      // Refresh in background
+      setTimeout(() => {
+        fetchCourtsFromServer();
+      }, 100);
+      return;
+    }
+
+    await fetchCourtsFromServer();
+  }, [userId]);
+
+  const fetchCourtsFromServer = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+
     try {
       console.log('useCourts: Fetching from Supabase...');
+      
+      // OPTIMIZED: Select only needed fields
       const { data, error } = await supabase
         .from('courts')
-        .select('*');
+        .select('id, name, address, city, zip_code, latitude, longitude, description, open_time, close_time, google_place_id');
 
       if (error) {
         console.log('useCourts: Error fetching courts:', error);
@@ -104,7 +129,7 @@ export const useCourts = (userId?: string) => {
       
       const courtsWithActivity = await Promise.all(
         (data || []).map(async (court) => {
-          // Fetch check-ins with user data to get DUPR ratings
+          // OPTIMIZED: Fetch check-ins with only needed fields
           const { data: checkIns, error: checkInsError } = await supabase
             .from('check_ins')
             .select(`
@@ -173,10 +198,17 @@ export const useCourts = (userId?: string) => {
       );
 
       console.log('useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data');
+      
+      // Cache the result
+      const cacheKey = `courts_${userId || 'all'}`;
+      setCachedData(cacheKey, courtsWithActivity);
+      
       setCourts(courtsWithActivity);
+      logPerformance('QUERY_END', 'useCourts', 'fetchCourts', { courtsCount: courtsWithActivity.length });
     } catch (error) {
       console.log('useCourts: Error in fetchCourts, falling back to mock data:', error);
       setCourts(MOCK_COURTS);
+      logPerformance('QUERY_END', 'useCourts', 'fetchCourts', { error: true });
     } finally {
       setLoading(false);
       console.log('useCourts: Fetch complete');
@@ -186,56 +218,36 @@ export const useCourts = (userId?: string) => {
   useEffect(() => {
     console.log('useCourts: Initializing...');
     fetchCourts();
-    
-    // Only setup realtime once
-    if (isSupabaseConfigured() && !hasSetupRealtime.current) {
-      hasSetupRealtime.current = true;
-      
-      try {
-        console.log('useCourts: Setting up realtime subscription for check-ins');
-        
-        // Use postgres_changes instead of broadcast for actual database changes
-        const channel = supabase
-          .channel('check_ins_changes')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'check_ins'
-            },
-            (payload) => {
-              console.log('useCourts: Check-in change detected:', payload);
-              fetchCourts();
-            }
-          )
-          .subscribe((status, err) => {
-            if (status === 'SUBSCRIBED') {
-              console.log('useCourts: Successfully subscribed to check-in updates');
-            } else if (status === 'CHANNEL_ERROR') {
-              console.error('useCourts: Channel error:', err);
-            } else if (status === 'CLOSED') {
-              console.log('useCourts: Channel closed');
-            } else if (status === 'TIMED_OUT') {
-              console.error('useCourts: Channel timed out');
-            }
-          });
-        
-        channelRef.current = channel;
-      } catch (error) {
-        console.error('useCourts: Error setting up realtime subscription:', error);
-      }
+  }, [fetchCourts]);
+
+  // FIXED: Use RealtimeManager for robust subscription management
+  useEffect(() => {
+    if (!isSupabaseConfigured() || hasSetupRealtime.current) {
+      return;
     }
 
+    hasSetupRealtime.current = true;
+    console.log('useCourts: Setting up realtime subscription with RealtimeManager');
+
+    // Subscribe to check-ins changes with fallback
+    const unsubscribe = realtimeManager.subscribe({
+      table: 'check_ins',
+      event: '*',
+      onUpdate: () => {
+        console.log('useCourts: Check-in change detected via realtime, refreshing');
+        fetchCourts();
+      },
+      fallbackFetch: fetchCourts,
+      timeoutMs: 10000,
+      maxRetries: 3,
+    });
+
     return () => {
-      if (channelRef.current) {
-        console.log('useCourts: Cleaning up realtime subscription');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-        hasSetupRealtime.current = false;
-      }
+      console.log('useCourts: Cleaning up realtime subscription');
+      unsubscribe();
+      hasSetupRealtime.current = false;
     };
-  }, [fetchCourts]);
+  }, [fetchCourts, realtimeManager]);
 
   return { courts, loading, refetch: fetchCourts };
 };
