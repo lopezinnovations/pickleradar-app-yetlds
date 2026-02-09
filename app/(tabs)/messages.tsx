@@ -27,6 +27,8 @@ interface Conversation {
   memberCount?: number;
 }
 
+const MESSAGES_LIMIT = 50; // Pagination limit for messages list
+
 export default function MessagesScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -103,7 +105,7 @@ export default function MessagesScreen() {
     setShowNotificationPrompt(false);
   };
 
-  // FIXED: Memoized fetchConversations with stable dependencies (removed 'error' from deps)
+  // OPTIMIZED: Fetch conversations with pagination and specific fields only
   const fetchConversations = useCallback(async () => {
     if (!user || !isSupabaseConfigured()) {
       console.log('MessagesScreen: No user or Supabase not configured');
@@ -116,18 +118,15 @@ export default function MessagesScreen() {
       console.log('MessagesScreen: Fetching conversations for user:', user.id);
       logPerformance('QUERY_START', 'MessagesScreen', 'fetchConversations');
 
-      // Fetch direct message conversations
-      // Use explicit FK names to avoid PGRST200 relationship errors
+      // OPTIMIZED: Fetch direct message conversations WITHOUT embedded joins
+      // Only select needed fields and limit results
       const messagesResult = await logSupabaseQuery(
         supabase
           .from('messages')
-          .select(`
-            *,
-            sender:users!messages_sender_id_fkey(id, first_name, last_name, pickleballer_nickname),
-            recipient:users!messages_recipient_id_fkey(id, first_name, last_name, pickleballer_nickname)
-          `)
+          .select('id, sender_id, recipient_id, content, created_at, read')
           .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
+          .limit(MESSAGES_LIMIT), // ADDED: Pagination limit
         'MessagesScreen',
         'messages.select'
       );
@@ -143,13 +142,32 @@ export default function MessagesScreen() {
 
       console.log('MessagesScreen: Fetched', messages?.length || 0, 'direct messages');
 
+      // OPTIMIZED: Fetch user details separately for unique users only
+      const uniqueUserIds = new Set<string>();
+      (messages || []).forEach((msg: any) => {
+        if (msg.sender_id !== user.id) uniqueUserIds.add(msg.sender_id);
+        if (msg.recipient_id !== user.id) uniqueUserIds.add(msg.recipient_id);
+      });
+
+      const userDetailsMap = new Map<string, any>();
+      if (uniqueUserIds.size > 0) {
+        const { data: userDetails } = await supabase
+          .from('users')
+          .select('id, first_name, last_name, pickleballer_nickname')
+          .in('id', Array.from(uniqueUserIds));
+        
+        (userDetails || []).forEach((u: any) => {
+          userDetailsMap.set(u.id, u);
+        });
+      }
+
       // Fetch group chats the user is a member of
-      // Use a simpler query that doesn't trigger RLS recursion
       const userGroupsResult = await logSupabaseQuery(
         supabase
           .from('group_members')
           .select('group_id')
-          .eq('user_id', user.id),
+          .eq('user_id', user.id)
+          .limit(MESSAGES_LIMIT), // ADDED: Pagination limit
         'MessagesScreen',
         'group_members.select'
       );
@@ -172,7 +190,7 @@ export default function MessagesScreen() {
         const groupsResult = await logSupabaseQuery(
           supabase
             .from('group_chats')
-            .select('*')
+            .select('id, name, created_at')
             .in('id', groupIds),
           'MessagesScreen',
           'group_chats.select'
@@ -188,7 +206,7 @@ export default function MessagesScreen() {
           // Fetch muted conversations
           const { data: mutes, error: mutesError } = await supabase
             .from('conversation_mutes')
-            .select('*')
+            .select('conversation_type, conversation_id, muted_until')
             .eq('user_id', user.id);
 
           if (mutesError && mutesError.code !== 'PGRST116') {
@@ -204,13 +222,13 @@ export default function MessagesScreen() {
 
           // Process each group
           for (const group of groups || []) {
-            // Fetch last message for this group
+            // OPTIMIZED: Fetch ONLY last message (limit 1) instead of all messages
             const { data: lastMessages, error: lastMsgError } = await supabase
               .from('group_messages')
-              .select('*')
+              .select('content, created_at')
               .eq('group_id', group.id)
               .order('created_at', { ascending: false })
-              .limit(1);
+              .limit(1); // OPTIMIZED: Only fetch last message
 
             if (lastMsgError && lastMsgError.code !== 'PGRST116') {
               console.log('MessagesScreen: Error fetching group messages (non-critical):', lastMsgError);
@@ -248,7 +266,7 @@ export default function MessagesScreen() {
       (messages || []).forEach((message: any) => {
         const isFromMe = message.sender_id === user.id;
         const partnerId = isFromMe ? message.recipient_id : message.sender_id;
-        const partner = isFromMe ? message.recipient : message.sender;
+        const partner = userDetailsMap.get(partnerId);
 
         if (!directConversationsMap.has(partnerId)) {
           const displayName = partner?.first_name && partner?.last_name
@@ -298,7 +316,7 @@ export default function MessagesScreen() {
     } finally {
       setLoading(false);
     }
-  }, [user]); // FIXED: Removed 'error' from dependencies to prevent refetch loops
+  }, [user]);
 
   // FIXED: Only fetch on focus (removed duplicate useEffect)
   useFocusEffect(
@@ -377,7 +395,7 @@ export default function MessagesScreen() {
       messagesSubscription.unsubscribe();
       groupMessagesSubscription.unsubscribe();
     };
-  }, [user, fetchConversations]); // FIXED: Stable dependencies only
+  }, [user, fetchConversations]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
