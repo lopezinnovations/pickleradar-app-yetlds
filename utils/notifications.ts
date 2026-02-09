@@ -4,6 +4,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { supabase, isSupabaseConfigured } from '@/app/integrations/supabase/client';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -13,6 +14,10 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
+
+// Constants for notification prompt persistence
+const NOTIFICATION_PROMPT_DISMISSED_KEY = 'notificationsPromptDismissedAt';
+const MIN_DAYS_BETWEEN_PROMPTS = 14; // 14 days
 
 /**
  * Check if we're running in Expo Go (not a dev build or production build)
@@ -43,6 +48,82 @@ export const isPushNotificationSupported = (): boolean => {
   }
 
   return true;
+};
+
+/**
+ * Get the timestamp when the user last dismissed the notification prompt
+ */
+export const getNotificationsPromptDismissedAt = async (): Promise<number | null> => {
+  try {
+    const dismissedAt = await AsyncStorage.getItem(NOTIFICATION_PROMPT_DISMISSED_KEY);
+    return dismissedAt ? parseInt(dismissedAt, 10) : null;
+  } catch (error) {
+    console.log('[Notifications] Error reading prompt dismissed timestamp:', error);
+    return null;
+  }
+};
+
+/**
+ * Set the timestamp when the user dismissed the notification prompt
+ */
+export const setNotificationsPromptDismissedAt = async (): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(NOTIFICATION_PROMPT_DISMISSED_KEY, Date.now().toString());
+    console.log('[Notifications] Prompt dismissed timestamp saved');
+  } catch (error) {
+    console.log('[Notifications] Error saving prompt dismissed timestamp:', error);
+  }
+};
+
+/**
+ * Clear the notification prompt dismissed timestamp (for manual re-enable)
+ */
+export const clearNotificationsPromptDismissedAt = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(NOTIFICATION_PROMPT_DISMISSED_KEY);
+    console.log('[Notifications] Prompt dismissed timestamp cleared');
+  } catch (error) {
+    console.log('[Notifications] Error clearing prompt dismissed timestamp:', error);
+  }
+};
+
+/**
+ * Check if we should show the notification prompt
+ * Returns true if:
+ * - User has never dismissed the prompt, OR
+ * - User dismissed the prompt more than 14 days ago
+ * - AND notifications are not already granted
+ */
+export const shouldShowNotificationsPrompt = async (): Promise<boolean> => {
+  try {
+    // Check if notifications are already granted
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status === 'granted') {
+      console.log('[Notifications] Already granted, no need to show prompt');
+      return false;
+    }
+
+    // Check when the user last dismissed the prompt
+    const dismissedAt = await getNotificationsPromptDismissedAt();
+    
+    if (!dismissedAt) {
+      console.log('[Notifications] Never dismissed, should show prompt');
+      return true; // Never dismissed, show prompt
+    }
+
+    // Check if 14 days have passed since dismissal
+    const fourteenDaysInMs = MIN_DAYS_BETWEEN_PROMPTS * 24 * 60 * 60 * 1000;
+    const fourteenDaysAgo = Date.now() - fourteenDaysInMs;
+    const shouldShow = dismissedAt < fourteenDaysAgo;
+    
+    console.log('[Notifications] Dismissed at:', new Date(dismissedAt).toISOString());
+    console.log('[Notifications] Should show prompt:', shouldShow);
+    
+    return shouldShow; // Show if dismissed more than 14 days ago
+  } catch (error) {
+    console.log('[Notifications] Error checking if should show prompt:', error);
+    return false;
+  }
 };
 
 export const requestNotificationPermissions = async (): Promise<boolean> => {
@@ -76,6 +157,10 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
     }
     
     console.log('[Push] Notification permissions granted');
+    
+    // Clear the dismissed timestamp since user explicitly enabled
+    await clearNotificationsPromptDismissedAt();
+    
     return true;
   } catch (error) {
     console.log('[Push] Error requesting notification permissions:', error);

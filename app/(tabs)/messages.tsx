@@ -7,7 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMessagesQuery } from '@/hooks/useMessagesQuery';
 import { IconSymbol } from '@/components/IconSymbol';
 import { NotificationPermissionModal } from '@/components/NotificationPermissionModal';
-import { requestNotificationPermissions, checkNotificationPermissionStatus } from '@/utils/notifications';
+import { 
+  requestNotificationPermissions, 
+  checkNotificationPermissionStatus,
+  shouldShowNotificationsPrompt,
+  setNotificationsPromptDismissedAt,
+  registerPushToken
+} from '@/utils/notifications';
 import { debounce } from '@/utils/performanceLogger';
 import { useRealtimeManager } from '@/utils/realtimeManager';
 import { ConversationCardSkeleton } from '@/components/SkillLevelBars';
@@ -38,7 +44,6 @@ export default function MessagesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
-  const [visitCount, setVisitCount] = useState(0);
   
   // REALTIME: Initialize realtime manager
   const realtimeManager = useRealtimeManager('MessagesScreen');
@@ -56,68 +61,52 @@ export default function MessagesScreen() {
     debouncedSearch(searchQuery);
   }, [searchQuery, debouncedSearch]);
 
+  // Check if we should show the notification prompt
   const checkAndShowNotificationPrompt = useCallback(async () => {
-    if (!user || !isSupabaseConfigured()) return;
+    if (!user) return;
 
+    console.log('MessagesScreen: Checking if should show notification prompt');
+    
     try {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('messages_visit_count, notification_prompt_shown')
-        .eq('id', user.id)
-        .single();
-
-      if (userError) {
-        console.log('Error fetching user notification status:', userError);
-        return;
-      }
-
-      const currentVisitCount = (userData?.messages_visit_count || 0) + 1;
-      setVisitCount(currentVisitCount);
-
-      await supabase
-        .from('users')
-        .update({ messages_visit_count: currentVisitCount })
-        .eq('id', user.id);
-
-      const hasShownPrompt = userData?.notification_prompt_shown || false;
-      const permissionStatus = await checkNotificationPermissionStatus();
-
-      if (currentVisitCount >= 2 && !hasShownPrompt && permissionStatus !== 'granted') {
+      const shouldShow = await shouldShowNotificationsPrompt();
+      
+      if (shouldShow) {
+        console.log('MessagesScreen: Showing notification prompt');
         setShowNotificationPrompt(true);
+      } else {
+        console.log('MessagesScreen: Not showing notification prompt');
       }
     } catch (err) {
-      console.log('Error checking notification prompt:', err);
+      console.log('MessagesScreen: Error checking notification prompt:', err);
     }
   }, [user]);
 
   const handleEnableNotifications = async () => {
-    console.log('User tapped Enable Notifications');
+    console.log('MessagesScreen: User tapped Enable Notifications');
+    setShowNotificationPrompt(false);
+    
     const granted = await requestNotificationPermissions();
     
-    if (granted && user && isSupabaseConfigured()) {
-      await supabase
-        .from('users')
-        .update({ notification_prompt_shown: true })
-        .eq('id', user.id);
-      
-      console.log('Notifications enabled successfully');
+    if (granted && user) {
+      console.log('MessagesScreen: Notifications enabled, registering push token');
+      // Register push token with backend
+      await registerPushToken(user.id);
+      console.log('MessagesScreen: Notifications enabled successfully');
+    } else {
+      console.log('MessagesScreen: Notifications not granted');
     }
-    
-    setShowNotificationPrompt(false);
   };
 
   const handleNotNow = async () => {
-    console.log('User tapped Not Now for notifications');
-    if (user && isSupabaseConfigured()) {
-      await supabase
-        .from('users')
-        .update({ notification_prompt_shown: true })
-        .eq('id', user.id);
-    }
+    console.log('MessagesScreen: User tapped Not Now for notifications');
     setShowNotificationPrompt(false);
+    
+    // Persist the dismissal timestamp - won't show again for 14 days
+    await setNotificationsPromptDismissedAt();
+    console.log('MessagesScreen: Notification prompt dismissed, will not show again for 14 days');
   };
 
-  // PULL-TO-REFRESH: Refetch on focus
+  // PULL-TO-REFRESH: Refetch on focus and check notification prompt
   useFocusEffect(
     useCallback(() => {
       console.log('MessagesScreen: Screen focused');

@@ -9,7 +9,14 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { LegalFooter } from '@/components/LegalFooter';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/app/integrations/supabase/client';
-import { sendTestPushNotification, isPushNotificationSupported } from '@/utils/notifications';
+import { 
+  sendTestPushNotification, 
+  isPushNotificationSupported,
+  requestNotificationPermissions,
+  checkNotificationPermissionStatus,
+  registerPushToken,
+  clearNotificationsPromptDismissedAt
+} from '@/utils/notifications';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -39,6 +46,7 @@ export default function ProfileScreen() {
   const [sendingTestPush, setSendingTestPush] = useState(false);
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [enablingNotifications, setEnablingNotifications] = useState(false);
   
   const hasLoadedUserData = useRef(false);
   const hasLoadedCheckIn = useRef(false);
@@ -51,6 +59,7 @@ export default function ProfileScreen() {
       refetchUser(),
       refetchCheckIns(),
       loadCurrentCheckIn(),
+      fetchAdminStatusAndPushToken(),
     ]);
     setRefreshing(false);
   }, [refetchUser, refetchCheckIns]);
@@ -64,7 +73,8 @@ export default function ProfileScreen() {
       refetchUser();
       refetchCheckIns();
       loadCurrentCheckIn();
-    }, [user, refetchUser, refetchCheckIns, loadCurrentCheckIn])
+      fetchAdminStatusAndPushToken();
+    }, [user, refetchUser, refetchCheckIns])
   );
 
   const fetchAdminStatusAndPushToken = useCallback(async () => {
@@ -85,10 +95,15 @@ export default function ProfileScreen() {
       const pushToken = data?.push_token || null;
       setUserPushToken(pushToken);
       
+      // Check current OS notification permission status
+      const permissionStatus = await checkNotificationPermissionStatus();
+      setNotificationsEnabled(permissionStatus === 'granted');
+      
       const isAdminUser = user.email?.toLowerCase().includes('admin') || false;
       setIsAdmin(isAdminUser);
       
       console.log('[Profile] User push token:', pushToken ? 'Present' : 'Not set');
+      console.log('[Profile] Notification permission:', permissionStatus);
       console.log('[Profile] Admin status:', isAdminUser);
     } catch (error) {
       console.error('[Profile] Error in fetchAdminStatusAndPushToken:', error);
@@ -104,7 +119,6 @@ export default function ProfileScreen() {
       setDuprRating(user.duprRating ? user.duprRating.toString() : '');
       setDuprError('');
       setPrivacyOptIn(user.privacyOptIn);
-      setNotificationsEnabled(user.notificationsEnabled);
       setLocationEnabled(user.locationEnabled);
       hasLoadedUserData.current = true;
       
@@ -205,6 +219,47 @@ export default function ProfileScreen() {
       Alert.alert('Error', 'Failed to update consent. Please try again.');
     } finally {
       setAcceptingConsent(false);
+    }
+  };
+
+  const handleEnableNotifications = async () => {
+    console.log('[Profile] User tapped Enable Notifications button');
+    
+    if (!user) return;
+    
+    setEnablingNotifications(true);
+    
+    try {
+      const granted = await requestNotificationPermissions();
+      
+      if (granted) {
+        console.log('[Profile] Notifications enabled, registering push token');
+        await registerPushToken(user.id);
+        
+        // Clear any previous dismissal so prompt can show again if needed
+        await clearNotificationsPromptDismissedAt();
+        
+        // Update local state
+        setNotificationsEnabled(true);
+        
+        // Refresh to get the new push token
+        await fetchAdminStatusAndPushToken();
+        
+        Alert.alert(
+          'Notifications Enabled',
+          'You will now receive notifications when friends check in and send you messages.'
+        );
+      } else {
+        Alert.alert(
+          'Permission Denied',
+          'Please enable notifications in your device settings to receive updates.'
+        );
+      }
+    } catch (error) {
+      console.error('[Profile] Error enabling notifications:', error);
+      Alert.alert('Error', 'Failed to enable notifications. Please try again.');
+    } finally {
+      setEnablingNotifications(false);
     }
   };
 
@@ -349,7 +404,6 @@ export default function ProfileScreen() {
         experienceLevel: skillLevel,
         duprRating: duprValue,
         privacyOptIn,
-        notificationsEnabled,
         locationEnabled,
       });
       
@@ -934,21 +988,55 @@ export default function ProfileScreen() {
             />
           </View>
 
-          <View style={styles.settingRow}>
+          <View style={[styles.settingRow, { borderTopWidth: 2, borderTopColor: colors.primary, marginTop: 16, paddingTop: 16 }]}>
             <View style={styles.settingInfo}>
-              <Text style={commonStyles.text}>Push Notifications</Text>
+              <Text style={[commonStyles.text, { fontWeight: '600' }]}>Push Notifications</Text>
               <Text style={commonStyles.textSecondary}>
-                Get notified when friends check in
+                {notificationsEnabled 
+                  ? 'Enabled - You will receive notifications' 
+                  : 'Disabled - Tap button below to enable'}
               </Text>
             </View>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.card}
-              disabled={!isEditing}
-            />
+            {notificationsEnabled ? (
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check-circle" 
+                size={24} 
+                color={colors.success} 
+              />
+            ) : (
+              <IconSymbol 
+                ios_icon_name="bell.slash.fill" 
+                android_material_icon_name="notifications-off" 
+                size={24} 
+                color={colors.textSecondary} 
+              />
+            )}
           </View>
+
+          {!notificationsEnabled && (
+            <TouchableOpacity
+              style={[buttonStyles.primary, { marginTop: 12 }]}
+              onPress={handleEnableNotifications}
+              disabled={enablingNotifications}
+            >
+              {enablingNotifications ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <React.Fragment>
+                  <IconSymbol 
+                    ios_icon_name="bell.fill" 
+                    android_material_icon_name="notifications" 
+                    size={20} 
+                    color={colors.card} 
+                  />
+                  <Text style={[buttonStyles.text, { marginLeft: 8 }]}>
+                    Enable Notifications
+                  </Text>
+                </React.Fragment>
+              )}
+            </TouchableOpacity>
+          )}
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
@@ -1078,7 +1166,6 @@ export default function ProfileScreen() {
                 setDuprRating(user.duprRating ? user.duprRating.toString() : '');
                 setDuprError('');
                 setPrivacyOptIn(user.privacyOptIn);
-                setNotificationsEnabled(user.notificationsEnabled);
                 setLocationEnabled(user.locationEnabled);
                 setIsEditing(false);
               }}
