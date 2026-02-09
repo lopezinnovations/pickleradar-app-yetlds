@@ -193,6 +193,27 @@ export default function HomeScreen() {
     await toggleFavorite(courtId);
   };
 
+  const handleOpenMapView = () => {
+    console.log('User tapped Map View button');
+    
+    // Limit to nearest 50 courts for performance
+    const courtsForMap = processedCourts.slice(0, 50);
+    
+    // Prepare navigation params
+    const courtsParam = JSON.stringify(courtsForMap);
+    const userLocationParam = userLocation
+      ? JSON.stringify({ latitude: userLocation.latitude, longitude: userLocation.longitude })
+      : null;
+    
+    router.push({
+      pathname: '/(tabs)/(home)/courts-map',
+      params: {
+        courts: courtsParam,
+        userLocation: userLocationParam || '',
+      },
+    });
+  };
+
   const renderSkeletonLoaders = () => {
     return (
       <View style={{ paddingHorizontal: 20 }}>
@@ -245,6 +266,7 @@ export default function HomeScreen() {
   const alphabeticalLabel = 'A-Z';
   const favoritesLabel = 'Favorites';
   const enableLocationText = 'Enable location to sort by distance';
+  const mapViewLabel = 'Map';
 
   return (
     <View style={commonStyles.container}>
@@ -335,9 +357,32 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.filtersContainer}>
-          <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 12 }]}>
-            Sort By
-          </Text>
+          <View style={styles.sortHeaderRow}>
+            <Text style={[commonStyles.text, { fontWeight: '600' }]}>
+              Sort By
+            </Text>
+            <TouchableOpacity
+              style={styles.mapViewButton}
+              onPress={handleOpenMapView}
+              disabled={processedCourts.length === 0}
+            >
+              <IconSymbol
+                ios_icon_name="map.fill"
+                android_material_icon_name="map"
+                size={16}
+                color={processedCourts.length === 0 ? colors.textSecondary : colors.primary}
+              />
+              <Text
+                style={[
+                  styles.mapViewButtonText,
+                  processedCourts.length === 0 && styles.mapViewButtonTextDisabled,
+                ]}
+              >
+                {mapViewLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.sortButtons}>
             <TouchableOpacity
               style={[
@@ -717,6 +762,31 @@ const styles = StyleSheet.create({
   filtersContainer: {
     paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  sortHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  mapViewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mapViewButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 6,
+  },
+  mapViewButtonTextDisabled: {
+    color: colors.textSecondary,
   },
   sortButtons: {
     flexDirection: 'row',

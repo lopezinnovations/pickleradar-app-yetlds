@@ -13,6 +13,7 @@ export default function HomeLayout() {
     <Stack screenOptions={screenOptions}>
       <Stack.Screen name="index" />
       <Stack.Screen name="court/[id]" />
+      <Stack.Screen name="courts-map" />
     </Stack>
   );
 }
