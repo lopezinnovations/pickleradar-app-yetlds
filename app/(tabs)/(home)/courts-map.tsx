@@ -7,12 +7,15 @@ import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Court } from '@/types';
 
+// CRITICAL: Detect Expo Go BEFORE attempting any imports
 const isExpoGo = Constants.appOwnership === 'expo';
 
-let MapView: any;
-let Marker: any;
-let Callout: any;
-let PROVIDER_GOOGLE: any;
+// Conditional import - only attempt if NOT in Expo Go
+let MapView: any = null;
+let Marker: any = null;
+let Callout: any = null;
+let PROVIDER_GOOGLE: any = null;
+let mapsAvailable = false;
 
 if (!isExpoGo) {
   try {
@@ -21,10 +24,14 @@ if (!isExpoGo) {
     Marker = maps.Marker;
     Callout = maps.Callout;
     PROVIDER_GOOGLE = maps.PROVIDER_GOOGLE;
+    mapsAvailable = true;
+    console.log('CourtsMapScreen: react-native-maps loaded successfully');
   } catch (e) {
-    console.warn("Failed to load react-native-maps:", e);
-    MapView = null;
+    console.warn('CourtsMapScreen: Failed to load react-native-maps:', e);
+    mapsAvailable = false;
   }
+} else {
+  console.log('CourtsMapScreen: Running in Expo Go, maps not available');
 }
 
 export default function CourtsMapScreen() {
@@ -38,10 +45,15 @@ export default function CourtsMapScreen() {
   const courts = useMemo(() => {
     try {
       const courtsParam = params.courts;
-      if (!courtsParam) return [];
+      if (!courtsParam) {
+        console.log('CourtsMapScreen: No courts parameter provided');
+        return [];
+      }
       
       const parsed = typeof courtsParam === 'string' ? JSON.parse(courtsParam) : courtsParam;
-      return Array.isArray(parsed) ? parsed : [];
+      const courtsArray = Array.isArray(parsed) ? parsed : [];
+      console.log('CourtsMapScreen: Loaded courts:', courtsArray.length);
+      return courtsArray;
     } catch (error) {
       console.error('CourtsMapScreen: Error parsing courts:', error);
       setHasError(true);
@@ -53,9 +65,13 @@ export default function CourtsMapScreen() {
   const userLocation = useMemo(() => {
     try {
       const locationParam = params.userLocation;
-      if (!locationParam) return null;
+      if (!locationParam) {
+        console.log('CourtsMapScreen: No user location provided');
+        return null;
+      }
       
       const parsed = typeof locationParam === 'string' ? JSON.parse(locationParam) : locationParam;
+      console.log('CourtsMapScreen: User location:', parsed);
       return parsed;
     } catch (error) {
       console.error('CourtsMapScreen: Error parsing user location:', error);
@@ -64,8 +80,7 @@ export default function CourtsMapScreen() {
   }, [params.userLocation]);
 
   useEffect(() => {
-    if (!courts || courts.length === 0) {
-      console.log('CourtsMapScreen: No courts to display');
+    if (!mapsAvailable || !courts || courts.length === 0) {
       return;
     }
 
@@ -105,7 +120,7 @@ export default function CourtsMapScreen() {
     } catch (error) {
       console.error('CourtsMapScreen: Error fitting map to coordinates:', error);
     }
-  }, [courts, userLocation]);
+  }, [courts, userLocation, mapsAvailable]);
 
   const handleMarkerPress = (court: Court) => {
     console.log('CourtsMapScreen: Marker pressed for court:', court.name);
@@ -130,7 +145,11 @@ export default function CourtsMapScreen() {
     return colorMap[activityLevel] || colorMap.low;
   };
 
+  // ERROR STATE
   if (hasError) {
+    const errorTitle = 'Unable to Load Map';
+    const backButtonText = 'Back to List View';
+    
     return (
       <View style={styles.fallbackContainer}>
         <Stack.Screen options={{ title: 'Map Error' }} />
@@ -140,16 +159,25 @@ export default function CourtsMapScreen() {
           size={64}
           color={colors.accent}
         />
-        <Text style={styles.fallbackTitle}>Unable to Load Map</Text>
+        <Text style={styles.fallbackTitle}>{errorTitle}</Text>
         <Text style={styles.fallbackText}>{errorMessage}</Text>
         <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
-          <Text style={styles.fallbackButtonText}>Back to List View</Text>
+          <Text style={styles.fallbackButtonText}>{backButtonText}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  if (isExpoGo || !MapView) {
+  // EXPO GO OR MAPS NOT AVAILABLE
+  if (isExpoGo || !mapsAvailable) {
+    const fallbackTitle = 'Map View Not Available';
+    const fallbackMessage1 = 'Map view isn\'t available in Expo Go. It requires native modules not included in the Expo Go app.';
+    const fallbackMessage2 = 'To use the map, please run this app in an Expo Development Build (EAS dev client) or a production build.';
+    const listViewButtonText = 'Use List View';
+    const devInfoTitle = 'For developers:';
+    const devInfoCommand = 'eas build --profile development --platform all';
+    const devInfoCommand2 = 'Then open with: expo start --dev-client';
+    
     return (
       <View style={styles.fallbackContainer}>
         <Stack.Screen options={{ title: 'Map View Not Available' }} />
@@ -159,26 +187,27 @@ export default function CourtsMapScreen() {
           size={64}
           color={colors.textSecondary}
         />
-        <Text style={styles.fallbackTitle}>Map View Not Available</Text>
-        <Text style={styles.fallbackText}>
-          Map view isn&apos;t available in Expo Go. It requires native modules not included in the Expo Go app.
-        </Text>
-        <Text style={styles.fallbackText}>
-          To use the map, please run this app in an Expo Development Build (EAS dev client) or a production build.
-        </Text>
+        <Text style={styles.fallbackTitle}>{fallbackTitle}</Text>
+        <Text style={styles.fallbackText}>{fallbackMessage1}</Text>
+        <Text style={styles.fallbackText}>{fallbackMessage2}</Text>
         <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
-          <Text style={styles.fallbackButtonText}>Use List View</Text>
+          <Text style={styles.fallbackButtonText}>{listViewButtonText}</Text>
         </TouchableOpacity>
         <View style={styles.devInfo}>
-          <Text style={styles.devInfoText}>For developers:</Text>
-          <Text style={styles.devInfoText}>`eas build --profile development --platform all`</Text>
-          <Text style={styles.devInfoText}>Then open with `expo start --dev-client`</Text>
+          <Text style={styles.devInfoText}>{devInfoTitle}</Text>
+          <Text style={styles.devInfoCommand}>{devInfoCommand}</Text>
+          <Text style={styles.devInfoCommand}>{devInfoCommand2}</Text>
         </View>
       </View>
     );
   }
 
+  // NO COURTS
   if (!courts || courts.length === 0) {
+    const noCourtsTitle = 'No Courts to Display';
+    const noCourtsMessage = 'No courts match your current filters.';
+    const backButtonText = 'Back to List View';
+    
     return (
       <View style={styles.fallbackContainer}>
         <Stack.Screen options={{ title: 'No Courts' }} />
@@ -188,17 +217,16 @@ export default function CourtsMapScreen() {
           size={64}
           color={colors.textSecondary}
         />
-        <Text style={styles.fallbackTitle}>No Courts to Display</Text>
-        <Text style={styles.fallbackText}>
-          No courts match your current filters.
-        </Text>
+        <Text style={styles.fallbackTitle}>{noCourtsTitle}</Text>
+        <Text style={styles.fallbackText}>{noCourtsMessage}</Text>
         <TouchableOpacity style={styles.fallbackButton} onPress={handleBackToList}>
-          <Text style={styles.fallbackButtonText}>Back to List View</Text>
+          <Text style={styles.fallbackButtonText}>{backButtonText}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  // CALCULATE INITIAL REGION
   const initialRegion = userLocation && userLocation.latitude && userLocation.longitude
     ? {
         latitude: userLocation.latitude,
@@ -220,6 +248,9 @@ export default function CourtsMapScreen() {
         longitudeDelta: 0.0421,
       };
 
+  const listViewButtonText = 'List View';
+
+  // RENDER MAP
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Courts Map' }} />
@@ -236,6 +267,10 @@ export default function CourtsMapScreen() {
             return null;
           }
 
+          const activityLevelText = court.activityLevel.charAt(0).toUpperCase() + court.activityLevel.slice(1);
+          const playersText = court.currentPlayers === 1 ? 'player' : 'players';
+          const playersCountText = `${court.currentPlayers} ${playersText} checked in`;
+
           return (
             <Marker
               key={court.id}
@@ -250,13 +285,9 @@ export default function CourtsMapScreen() {
                 <View style={styles.calloutContainer}>
                   <Text style={styles.calloutTitle}>{court.name}</Text>
                   <Text style={styles.calloutText}>{court.address}</Text>
-                  <Text style={styles.calloutText}>
-                    Activity: {court.activityLevel.charAt(0).toUpperCase() + court.activityLevel.slice(1)}
-                  </Text>
+                  <Text style={styles.calloutText}>Activity: {activityLevelText}</Text>
                   {court.currentPlayers > 0 && (
-                    <Text style={styles.calloutText}>
-                      {court.currentPlayers} player{court.currentPlayers !== 1 ? 's' : ''} checked in
-                    </Text>
+                    <Text style={styles.calloutText}>{playersCountText}</Text>
                   )}
                 </View>
               </Callout>
@@ -272,7 +303,7 @@ export default function CourtsMapScreen() {
           size={20}
           color={colors.card}
         />
-        <Text style={styles.backButtonText}>List View</Text>
+        <Text style={styles.backButtonText}>{listViewButtonText}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -329,6 +360,12 @@ const styles = StyleSheet.create({
   devInfoText: {
     fontSize: 12,
     color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  devInfoCommand: {
+    fontSize: 11,
+    color: colors.text,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     marginBottom: 4,
   },
   backButton: {

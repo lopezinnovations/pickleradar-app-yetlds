@@ -2,6 +2,7 @@
 import React, { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Linking, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import Constants from 'expo-constants';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourtsQuery } from '@/hooks/useCourtsQuery';
@@ -18,6 +19,10 @@ const INITIAL_DISPLAY_COUNT = 10;
 const LOAD_MORE_COUNT = 10;
 const RADIUS_MILES = 25; // Search radius for nearby courts
 const AUTO_REFRESH_INTERVAL = 90000; // 90 seconds (1.5 minutes)
+
+// Check if maps are available (not in Expo Go)
+const isExpoGo = Constants.appOwnership === 'expo';
+const mapsAvailable = !isExpoGo;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -196,18 +201,9 @@ export default function HomeScreen() {
   const handleOpenMapView = () => {
     console.log('User tapped Map View button');
     
-    // Check if react-native-maps is available
-    try {
-      require('react-native-maps');
-    } catch (error) {
-      console.log('Map view not available in this build');
-      // Still navigate - the map screen will show fallback UI
-    }
-    
-    // Limit to nearest 50 courts for performance
+    // Navigate to map screen - it will handle the fallback if maps aren't available
     const courtsForMap = processedCourts.slice(0, 50);
     
-    // Prepare navigation params
     const courtsParam = JSON.stringify(courtsForMap);
     const userLocationParam = userLocation
       ? JSON.stringify({ latitude: userLocation.latitude, longitude: userLocation.longitude })
@@ -276,6 +272,7 @@ export default function HomeScreen() {
   const enableLocationText = 'Enable location to sort by distance';
   const mapViewLabel = 'Map';
   const courtsCountText = processedCourts.length === 1 ? 'Court' : 'Courts';
+  const mapNotAvailableText = '(Not available in Expo Go)';
 
   return (
     <View style={commonStyles.container}>
@@ -576,6 +573,18 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {!mapsAvailable && (
+            <View style={styles.mapNotice}>
+              <IconSymbol
+                ios_icon_name="info.circle"
+                android_material_icon_name="info"
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.mapNoticeText}>{mapNotAvailableText}</Text>
+            </View>
+          )}
 
           {displayedCourts.length === 0 ? (
             <View style={styles.emptyState}>
@@ -909,6 +918,21 @@ const styles = StyleSheet.create({
   },
   mapButtonTextDisabled: {
     color: colors.textSecondary,
+  },
+  mapNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  mapNoticeText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 6,
+    fontStyle: 'italic',
   },
   addCourtButton: {
     flexDirection: 'row',
