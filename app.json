@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "PickleRadar",
-    "slug": "PickleRadar",
-    "version": "1.0.0",
+    "slug": "pickleradar-app-yetlds",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
     "userInterfaceStyle": "automatic",
@@ -31,11 +31,12 @@
         "backgroundColor": "#1B4D3E"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.PickleRadar",
+      "package": "com.lopezinnovations.pickleradar",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
-      ]
+      ],
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
@@ -65,6 +66,12 @@
         {
           "photosPermission": "PickleRadar needs access to your photo library to allow you to upload profile photos or court images.",
           "cameraPermission": "PickleRadar needs access to your camera to allow you to take profile photos or court images. Camera access is only requested when you choose to take a photo and is never used in the background."
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "iosGoogleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
         }
       ]
     ],

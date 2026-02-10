@@ -364,10 +364,6 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.filtersContainer}>
-          <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 12 }]}>
-            Sort By
-          </Text>
-
           <View style={styles.sortButtons}>
             <TouchableOpacity
               style={[
@@ -425,24 +421,6 @@ export default function HomeScreen() {
                 {nearestLabel}
               </Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.sortButton,
-                sortBy === 'alphabetical' && styles.sortButtonActive,
-              ]}
-              onPress={() => setSortBy('alphabetical')}
-            >
-              <Text
-                style={[
-                  styles.sortButtonText,
-                  sortBy === 'alphabetical' && styles.sortButtonTextActive,
-                ]}
-                numberOfLines={1}
-              >
-                {alphabeticalLabel}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           {!hasLocation && (
@@ -451,9 +429,6 @@ export default function HomeScreen() {
             </Text>
           )}
 
-          <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 20, marginBottom: 12 }]}>
-            Filter by Skill Level
-          </Text>
           <View style={styles.filterButtons}>
             <TouchableOpacity
               style={[
@@ -814,13 +789,12 @@ const styles = StyleSheet.create({
   sortButtons: {
     flexDirection: 'row',
     gap: 8,
-    flexWrap: 'wrap',
+    marginBottom: 12,
   },
   sortButton: {
-    flex: 1,
-    minWidth: 90,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    minWidth: 100,
+    height: 40,
+    paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: colors.highlight,
     alignItems: 'center',
@@ -849,12 +823,12 @@ const styles = StyleSheet.create({
   filterButtons: {
     flexDirection: 'row',
     gap: 8,
+    marginTop: 12,
   },
   filterButton: {
-    flex: 1,
-    minWidth: 90,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    minWidth: 100,
+    height: 40,
+    paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: colors.highlight,
     alignItems: 'center',
