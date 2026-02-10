@@ -364,6 +364,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.filtersContainer}>
+          <Text style={styles.sectionHeader}>Sort By</Text>
           <View style={styles.sortButtons}>
             <TouchableOpacity
               style={[
@@ -421,14 +422,33 @@ export default function HomeScreen() {
                 {nearestLabel}
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.sortButton,
+                sortBy === 'alphabetical' && styles.sortButtonActive,
+              ]}
+              onPress={() => setSortBy('alphabetical')}
+            >
+              <Text
+                style={[
+                  styles.sortButtonText,
+                  sortBy === 'alphabetical' && styles.sortButtonTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                {alphabeticalLabel}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {!hasLocation && (
-            <Text style={[commonStyles.textSecondary, { fontSize: 12, marginTop: 8, fontStyle: 'italic' }]}>
+            <Text style={[commonStyles.textSecondary, { fontSize: 12, marginTop: 4, fontStyle: 'italic' }]}>
               {enableLocationText}
             </Text>
           )}
 
+          <Text style={[styles.sectionHeader, { marginTop: 12 }]}>Filter by Skill Level</Text>
           <View style={styles.filterButtons}>
             <TouchableOpacity
               style={[
@@ -495,10 +515,10 @@ export default function HomeScreen() {
             <IconSymbol
               ios_icon_name={filters.showFriendsOnly ? "checkmark.square.fill" : "square"}
               android_material_icon_name={filters.showFriendsOnly ? "check-box" : "check-box-outline-blank"}
-              size={24}
+              size={22}
               color={filters.showFriendsOnly ? colors.primary : colors.textSecondary}
             />
-            <Text style={[commonStyles.text, { marginLeft: 12 }]}>
+            <Text style={[commonStyles.text, { marginLeft: 10, fontSize: 15 }]}>
               Show only courts with friends
             </Text>
           </TouchableOpacity>
@@ -784,17 +804,23 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     paddingHorizontal: 20,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
   },
   sortButtons: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sortButton: {
-    minWidth: 100,
-    height: 40,
-    paddingHorizontal: 16,
+    minWidth: 80,
+    height: 36,
+    paddingHorizontal: 12,
     borderRadius: 12,
     backgroundColor: colors.highlight,
     alignItems: 'center',
@@ -823,12 +849,12 @@ const styles = StyleSheet.create({
   filterButtons: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 12,
+    marginBottom: 8,
   },
   filterButton: {
-    minWidth: 100,
-    height: 40,
-    paddingHorizontal: 16,
+    minWidth: 90,
+    height: 36,
+    paddingHorizontal: 12,
     borderRadius: 12,
     backgroundColor: colors.highlight,
     alignItems: 'center',
@@ -851,9 +877,9 @@ const styles = StyleSheet.create({
   friendsFilterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     backgroundColor: colors.highlight,
     borderRadius: 12,
     borderWidth: 1,
@@ -878,17 +904,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.highlight,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border,
   },
   mapButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.primary,
-    marginLeft: 6,
+    marginLeft: 4,
   },
   mapButtonTextDisabled: {
     color: colors.textSecondary,
@@ -912,17 +938,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.highlight,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border,
   },
   addCourtText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.primary,
-    marginLeft: 6,
+    marginLeft: 4,
   },
   courtCard: {
     backgroundColor: colors.card,
