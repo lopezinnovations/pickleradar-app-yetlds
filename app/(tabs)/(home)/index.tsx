@@ -506,7 +506,7 @@ export default function HomeScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.friendsFilterButton}
+            style={[styles.friendsFilterButton, { height: null }]}
             onPress={() => {
               console.log('User toggled friends filter');
               setFilters(prev => ({ ...prev, showFriendsOnly: !prev.showFriendsOnly }));
@@ -518,7 +518,7 @@ export default function HomeScreen() {
               size={22}
               color={filters.showFriendsOnly ? colors.primary : colors.textSecondary}
             />
-            <Text style={[commonStyles.text, { marginLeft: 10, fontSize: 15 }]}>
+            <Text style={[commonStyles.text, { marginLeft: 10, fontSize: 15, paddingTop: 2, marginBottom: null }]}>
               Show only courts with friends
             </Text>
           </TouchableOpacity>
