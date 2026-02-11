@@ -4155,3 +4155,14 @@ Performance optimizations: OFF.
 [2026-02-11T05:22:05.905Z] [Web] [LOG] useAuth: User profile fetched successfully
 [2026-02-11T05:22:05.908Z] [Web] [LOG] [Push] Notification permissions not granted
 [2026-02-11T05:22:05.908Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:22:37.567Z] [Web] [LOG] LandingScreen: No active session
+[2026-02-11T05:22:37.104Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T05:22:36.478Z] [Web] [WARN] "shadow*" style props are deprecated. Use "boxShadow".
+[2026-02-11T05:22:35.814Z] [Web] [LOG] Running application "main" with appParams:
+ {"rootTag":"#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[2026-02-11T05:22:36.213Z] [Web] [WARN] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+[2026-02-11T05:22:37.092Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T05:22:37.481Z] [Web] [LOG] LandingScreen: Checking authentication status...
+[2026-02-11T05:22:36.458Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
