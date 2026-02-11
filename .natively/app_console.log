@@ -5453,3 +5453,11 @@ To reconnect:
 To reconnect:
 - Ensure that Metro is running and available on the same network
 - Reload this app (will trigger further help if Metro cannot be connected to)
+[2026-02-11T05:32:18.639Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:32:18.644Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:32:18.634Z] [Web] [LOG] HomeScreen: Auto-refresh triggered
+[2026-02-11T05:32:18.634Z] [Web] [LOG] useCourtsQuery: Manual refetch triggered
+[2026-02-11T05:32:19.716Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:32:19.913Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:32:20.117Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:32:20.717Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
