@@ -4166,3 +4166,832 @@ Performance optimizations: OFF.
 [2026-02-11T05:22:37.092Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
 [2026-02-11T05:22:37.481Z] [Web] [LOG] LandingScreen: Checking authentication status...
 [2026-02-11T05:22:36.458Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
+[2026-02-11T05:22:48.694Z] [Web] [WARN] Disconnected from Metro (1006)
+To reconnect:
+- Ensure that Metro is running and available on the same network
+- Reload this app (will trigger further help if Metro cannot be connected to)
+[2026-02-11T05:23:34.820Z] [Web] [LOG] HomeScreen: Auto-refresh triggered
+[2026-02-11T05:23:34.826Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:23:34.824Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:23:34.821Z] [Web] [LOG] useCourtsQuery: Manual refetch triggered
+[2026-02-11T05:23:35.729Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:23:35.939Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:23:36.192Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:23:36.786Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:24:16.260Z] [Web] [LOG] Running application "main" with appParams:
+ {"rootTag":"#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[2026-02-11T05:24:16.309Z] [Web] [WARN] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+[2026-02-11T05:24:16.338Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
+[2026-02-11T05:24:16.340Z] [Web] [WARN] "shadow*" style props are deprecated. Use "boxShadow".
+[2026-02-11T05:24:16.378Z] [Web] [WARN] [Reanimated] Reduced motion setting is enabled on this device. This warning is visible only in the development mode. Some animations will be disabled by default. You can override the behavior for individual animations, see https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#reduced-motion-setting-is-enabled-on-this-device.
+[2026-02-11T05:24:16.430Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T05:24:16.432Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T05:24:16.495Z] [Web] [LOG] LandingScreen: Checking authentication status...
+[2026-02-11T05:24:16.515Z] [Web] [LOG] LandingScreen: User session found: cdlopez8@gmail.com
+[2026-02-11T05:24:16.666Z] [Web] [WARN] Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+[2026-02-11T05:24:16.673Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:16.680Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:16.708Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"radiusMiles":25}
+[2026-02-11T05:24:16.759Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:16.852Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:16.851Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:16.853Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:16.886Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:17.280Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:24:17.351Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:17.156Z] [Web] [LOG] HomeScreen: Debounced search query: 
+[2026-02-11T05:24:17.353Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:17.388Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:17.388Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:17.406Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:17.468Z] [Web] [LOG] useFavorites: Fetching favorites for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:17.493Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","radiusMiles":25}
+[2026-02-11T05:24:17.757Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:17.756Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:17.507Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:17.791Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:17.813Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:17.824Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:24:17.842Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:17.863Z] [Web] [LOG] useFavorites: Loaded 2 favorites
+[2026-02-11T05:24:17.791Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:17.864Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:24:17.836Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:24:18.289Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:18.290Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:18.307Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:18.317Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:24:18.308Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:18.425Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:24:18.317Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:24:18.318Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:24:18.441Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:24:18.444Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:18.445Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:18.457Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:18.458Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:18.557Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:24:19.443Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:24:19.178Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:24:19.536Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:19.543Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:19.594Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:19.594Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:19.587Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:19.596Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:19.719Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:19.720Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:19.723Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:19.723Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:19.826Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:19.830Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:19.827Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:19.830Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:28.667Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:28.661Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:28.694Z] [Web] [LOG] FriendsScreen: Screen focused
+[2026-02-11T05:24:28.674Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:28.938Z] [Web] [LOG] useFriendsQuery: Fetching friends for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:28.920Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:28.712Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:28.706Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:28.707Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:28.706Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:28.920Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:28.930Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:28.931Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:29.072Z] [Web] [LOG] FriendsScreen: Debounced search query: 
+[2026-02-11T05:24:29.144Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:29.133Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:29.144Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:29.132Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:29.584Z] [Web] [LOG] useFriendsQuery: Loaded 1 friends, 0 pending requests, 3 total users
+[2026-02-11T05:24:30.528Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:30.534Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:30.560Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:30.549Z] [Web] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:24:30.560Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:30.563Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:30.561Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:30.802Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:30.793Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:30.793Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:30.802Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:30.816Z] [Web] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:24:30.810Z] [Web] [LOG] useMessagesQuery: Fetching conversations for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:30.822Z] [Web] [LOG] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:24:30.843Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:30.829Z] [Web] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:24:30.835Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:30.859Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:30.853Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:30.865Z] [Web] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:24:30.872Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:24:30.878Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT
+[2026-02-11T05:24:30.879Z] [Web] [LOG] [Notifications] Dismissed at: 2026-02-11T04:47:10.688Z
+[2026-02-11T05:24:30.971Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:30.944Z] [Web] [LOG] MessagesScreen: Debounced search query: 
+[2026-02-11T05:24:30.970Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:30.991Z] [Web] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:24:30.880Z] [Web] [LOG] MessagesScreen: Not showing notification prompt
+[2026-02-11T05:24:30.998Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:30.984Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:30.880Z] [Web] [LOG] [Notifications] Should show prompt: false
+[2026-02-11T05:24:30.984Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:31.011Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:31.004Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (162.50ms)
+[2026-02-11T05:24:31.024Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.017Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.030Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (170.40ms)
+[2026-02-11T05:24:31.054Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (176.00ms)
+[2026-02-11T05:24:31.041Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.064Z] [Web] [LOG] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:24:31.071Z] [Web] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:24:31.036Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:31.048Z] [Web] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:24:31.077Z] [Web] [LOG] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:24:31.059Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:24:31.091Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.084Z] [Web] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:24:31.098Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.105Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.111Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.124Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:24:31.118Z] [Web] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:24:31.181Z] [Web] [LOG] useMessagesQuery: Fetched 12 direct messages
+[2026-02-11T05:24:31.272Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:24:31.285Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.275Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:31.296Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT - {"status":"success","retryCount":0}
+[2026-02-11T05:24:31.293Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to group_messages_all_INSERT
+[2026-02-11T05:24:31.288Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:24:31.279Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:24:31.282Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:24:31.291Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: SUBSCRIBED
+[2026-02-11T05:24:31.668Z] [Web] [LOG] useMessagesQuery: User is member of 1 groups
+[2026-02-11T05:24:31.805Z] [Web] [LOG] useMessagesQuery: Fetched 1 group details
+[2026-02-11T05:24:32.200Z] [Web] [LOG] useMessagesQuery: Loaded 3 total conversations
+[2026-02-11T05:24:33.230Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:33.236Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:33.242Z] [Web] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:24:33.249Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:33.260Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:33.270Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:33.255Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (2157.60ms)
+[2026-02-11T05:24:33.264Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:33.276Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (2165.50ms)
+[2026-02-11T05:24:33.281Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:33.286Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:33.292Z] [Web] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:24:33.308Z] [Web] [LOG] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:24:33.303Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:24:33.325Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:33.298Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (2167.80ms)
+[2026-02-11T05:24:33.325Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:33.325Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.327Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:33.458Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:33.459Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.483Z] [Web] [WARN] props.pointerEvents is deprecated. Use style.pointerEvents
+[2026-02-11T05:24:33.507Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:33.487Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:33.506Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:33.514Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:33.520Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:33.526Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.609Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:33.612Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.639Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:33.533Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:33.640Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:33.629Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:33.752Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:33.758Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.647Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:33.764Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:33.785Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:33.785Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.802Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:33.821Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:33.820Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:33.863Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:33.829Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:33.862Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:33.863Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:33.863Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:33.921Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:33.928Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:33.982Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:33.935Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:34.011Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:33.953Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:34.011Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:34.011Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:34.011Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:34.026Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.025Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:34.069Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:34.069Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:34.090Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.084Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:34.145Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:34.166Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:34.187Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:34.227Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:34.227Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:34.244Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:34.227Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:34.227Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:34.263Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:34.300Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:34.264Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.300Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:34.320Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.380Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:34.470Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:34.479Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:34.494Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:34.497Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:34.499Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:34.499Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:34.497Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.533Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:34.549Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:34.499Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:34.500Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:34.640Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:34.549Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:34.576Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.647Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:34.683Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.682Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:34.721Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:34.709Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:34.721Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:34.741Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.795Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:34.817Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:34.748Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:34.802Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:34.817Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:34.817Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:34.838Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:34.817Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:34.838Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:34.876Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:34.863Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:34.876Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:35.032Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:35.038Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:35.150Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:35.206Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:35.218Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:35.219Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:35.219Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:35.218Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:35.219Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:35.263Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:35.285Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:35.263Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:35.285Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:35.220Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:35.286Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:35.289Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:35.338Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:35.394Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:35.394Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:35.394Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:35.394Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:35.414Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:35.459Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:35.414Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:35.504Z] [Web] [LOG] HomeScreen: Debounced search query: 
+[2026-02-11T05:24:35.459Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:35.489Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:35.558Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:35.558Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:35.559Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:35.558Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:35.603Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:35.560Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:35.560Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:35.603Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:35.632Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:35.769Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:35.769Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:35.769Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:35.764Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:35.819Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:35.718Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:35.768Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:35.719Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:35.764Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:35.926Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:35.925Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:35.962Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:35.951Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:35.965Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:35.965Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:35.964Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:36.029Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.029Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:35.964Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:35.962Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:36.111Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:36.134Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:36.134Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:36.217Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:36.154Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:36.154Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:36.154Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:36.154Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:36.217Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.356Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:36.351Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:36.356Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:36.352Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.456Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.497Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:36.456Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:36.497Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:36.504Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:36.511Z] [Web] [LOG] useFavorites: Fetching favorites for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.566Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:36.517Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:36.568Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.640Z] [Web] [LOG] useFavorites: Loaded 2 favorites
+[2026-02-11T05:24:36.694Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:36.695Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:36.759Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:36.759Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:36.768Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:36.774Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:36.803Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:36.804Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:39.094Z] [Web] [LOG] User toggled filters visibility
+[2026-02-11T05:24:40.237Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:40.244Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:40.275Z] [Web] [LOG] FriendsScreen: Screen focused
+[2026-02-11T05:24:40.251Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:40.288Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:40.430Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:40.285Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:40.429Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:40.288Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:40.440Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:40.440Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:40.291Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:40.539Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:40.540Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:40.550Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:40.550Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:40.645Z] [Web] [LOG] FriendsScreen: Debounced search query: 
+[2026-02-11T05:24:40.764Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:40.758Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:40.779Z] [Web] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:24:40.803Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:40.803Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:40.809Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:40.804Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:40.931Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:40.930Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:40.943Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:40.943Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:40.956Z] [Web] [LOG] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:24:40.963Z] [Web] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:24:40.977Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:40.950Z] [Web] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:24:40.970Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:40.993Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:40.984Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.000Z] [Web] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:24:41.006Z] [Web] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:24:41.015Z] [Web] [LOG] [Notifications] Should show prompt: false
+[2026-02-11T05:24:41.015Z] [Web] [LOG] [Notifications] Dismissed at: 2026-02-11T04:47:10.688Z
+[2026-02-11T05:24:41.014Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT
+[2026-02-11T05:24:41.036Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.038Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:24:41.041Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:24:41.033Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:24:41.015Z] [Web] [LOG] MessagesScreen: Not showing notification prompt
+[2026-02-11T05:24:41.044Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.073Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: SUBSCRIBED
+[2026-02-11T05:24:41.047Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:24:41.058Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:41.075Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to group_messages_all_INSERT
+[2026-02-11T05:24:41.059Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:41.078Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT - {"status":"success","retryCount":0}
+[2026-02-11T05:24:41.079Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:41.079Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:41.085Z] [Web] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:24:41.098Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (9817.20ms)
+[2026-02-11T05:24:41.092Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.109Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.103Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:41.127Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:41.122Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (9830.30ms)
+[2026-02-11T05:24:41.115Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.139Z] [Web] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:24:41.132Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.145Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (9845.70ms)
+[2026-02-11T05:24:41.162Z] [Web] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:24:41.150Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:24:41.155Z] [Web] [LOG] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:24:41.168Z] [Web] [LOG] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:24:41.250Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.221Z] [Web] [LOG] MessagesScreen: Debounced search query: 
+[2026-02-11T05:24:41.240Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:24:41.242Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:41.245Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:24:41.248Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:24:41.263Z] [Web] [LOG] [MessagesScreen] ✅ Successfully subscribed to group_messages_all_INSERT
+[2026-02-11T05:24:41.265Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT - {"status":"success","retryCount":0}
+[2026-02-11T05:24:41.254Z] [Web] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:24:41.260Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: SUBSCRIBED
+[2026-02-11T05:24:42.086Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:42.080Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:42.093Z] [Web] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:24:42.105Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (1129.30ms)
+[2026-02-11T05:24:42.099Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:42.110Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:42.120Z] [Web] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:42.131Z] [Web] [LOG] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:24:42.114Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:42.147Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (1134.60ms)
+[2026-02-11T05:24:42.126Z] [Web] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (1135.90ms)
+[2026-02-11T05:24:42.135Z] [Web] [LOG] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:24:42.152Z] [Web] [LOG] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:24:42.141Z] [Web] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:24:42.174Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:42.299Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:42.172Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:42.157Z] [Web] [LOG] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:24:42.173Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.172Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:42.300Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.340Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:42.340Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:42.347Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:42.320Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:42.353Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:42.359Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.503Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:42.471Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.494Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:42.470Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:42.365Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:42.504Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:42.512Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:42.532Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:42.519Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:42.576Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:42.576Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:42.576Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:42.526Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.577Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:42.694Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:42.710Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:42.711Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.725Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:42.734Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:42.743Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.749Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:42.750Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:42.792Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:42.792Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:42.751Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:42.792Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:42.880Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:42.858Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:42.793Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:42.902Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:42.944Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:42.903Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.944Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:42.969Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:42.976Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:42.962Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:42.977Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:42.977Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:42.977Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:42.978Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:43.075Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:43.102Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:43.134Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:43.135Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:43.134Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:43.135Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:43.154Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.153Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:43.197Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:43.197Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:43.210Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:43.224Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:43.216Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.284Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:43.322Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:43.353Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:43.353Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:43.353Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:43.354Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:43.353Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:43.354Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.407Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:43.407Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:43.506Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:43.426Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:43.443Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:43.434Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.482Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:43.527Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:43.527Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:43.527Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:43.598Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:43.599Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.528Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:43.624Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:43.640Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:43.658Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:43.664Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.640Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:43.671Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:43.725Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:43.748Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:43.748Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:43.749Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:43.770Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:43.749Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:43.771Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.819Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:43.801Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:43.820Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:43.835Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:43.842Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.848Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:43.872Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:43.873Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:43.873Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:43.873Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:43.922Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:43.923Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:43.959Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:43.934Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:43.985Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:43.959Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:44.010Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:44.016Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.024Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:44.025Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:44.025Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:44.025Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:44.026Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:44.145Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:44.157Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:44.173Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:44.167Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:44.190Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:44.158Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.180Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.190Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:44.252Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:44.253Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:44.254Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:44.280Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:44.253Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:44.334Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:44.334Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:44.254Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:44.391Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.378Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:44.384Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:44.399Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:44.400Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.456Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:44.456Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:44.577Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.693Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:44.695Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:44.456Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:44.457Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:44.555Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:44.694Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:44.490Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:44.604Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:44.564Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:44.556Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:44.604Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.541Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:44.570Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:44.717Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:44.695Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:44.695Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:44.743Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:44.878Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:44.780Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.881Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:44.912Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:44.717Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.767Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:44.756Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:44.773Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:44.756Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:44.881Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:44.929Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:44.927Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:44.927Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:44.928Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:44.929Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:44.936Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:44.928Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:44.942Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:44.950Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.108Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:45.087Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:45.130Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:45.172Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:45.123Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.170Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:45.171Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.204Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:45.203Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:45.172Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:45.336Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:45.172Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:45.320Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:45.336Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:45.172Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:45.336Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:45.337Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:45.344Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:45.363Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:45.350Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:45.403Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:45.356Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.403Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.436Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:45.523Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:45.435Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:45.543Z] [Web] [LOG] ProfileScreen: Screen focused, refetching data
+[2026-02-11T05:24:45.114Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:45.549Z] [Web] [LOG] useAuth: Refetching user profile
+[2026-02-11T05:24:45.556Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.651Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T05:24:45.563Z] [Web] [LOG] useCheckIn: Refetching check-in history
+[2026-02-11T05:24:45.658Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:24:45.765Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:45.824Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:45.825Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:45.826Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:45.929Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T05:24:45.827Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:45.930Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:45.856Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:45.928Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T05:24:45.931Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:24:46.046Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:46.009Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.067Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:46.010Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.075Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.075Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.067Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:46.076Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.076Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.138Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.117Z] [Web] [LOG] HomeScreen: Debounced search query: 
+[2026-02-11T05:24:46.139Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.188Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.187Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.188Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.270Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.187Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.217Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:46.303Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.301Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:46.301Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:46.303Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.303Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.271Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.303Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.391Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.392Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.421Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:46.435Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.435Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.505Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.504Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.436Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.558Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.551Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:46.436Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.552Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:46.559Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.559Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.559Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.585Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:46.624Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.624Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.663Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.663Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.664Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.664Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.737Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.737Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.763Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:46.774Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:46.773Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:46.775Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.775Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.776Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.866Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:46.776Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.891Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:46.866Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:46.951Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:46.951Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:46.951Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:46.979Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.023Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:46.952Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:46.980Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.073Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:47.023Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:47.073Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:47.102Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.074Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:47.134Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:47.103Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.074Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:47.245Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:47.206Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.246Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:47.248Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:47.249Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:47.206Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.271Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:47.313Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.249Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:47.355Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:47.248Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:47.313Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.355Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:47.356Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:47.356Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:47.494Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:47.517Z] [Web] [LOG] User tapped Enable Location button
+[2026-02-11T05:24:47.519Z] [Web] [LOG] useLocation: User explicitly requested location permission
+[2026-02-11T05:24:47.528Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:47.528Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:47.522Z] [Web] [LOG] useLocation: No user found, cannot request location
+[2026-02-11T05:24:47.529Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:47.581Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:47.529Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:47.530Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.530Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.581Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:47.656Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:47.681Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:47.681Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:47.681Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:47.729Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:47.729Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:47.683Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.682Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.682Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:47.804Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:47.865Z] [Web] [LOG] [Profile] Notification permission: denied
+[2026-02-11T05:24:47.864Z] [Web] [LOG] [Profile] User push token: Present
+[2026-02-11T05:24:47.865Z] [Web] [LOG] [Profile] Admin status: false
+[2026-02-11T05:24:47.865Z] [Web] [LOG] [Profile] Build type: Dev/TestFlight
+[2026-02-11T05:24:47.949Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:24:47.923Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:47.923Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:47.961Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:47.960Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:48.043Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:48.042Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:48.118Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:48.220Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:48.118Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:48.221Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:48.313Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:48.287Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:48.434Z] [Web] [LOG] useFavorites: Loaded 2 favorites
+[2026-02-11T05:24:48.300Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:48.336Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:48.288Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:48.307Z] [Web] [LOG] useFavorites: Fetching favorites for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:48.337Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:48.492Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:48.563Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T05:24:48.493Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:24:48.576Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:24:48.563Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T05:24:48.583Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:24:48.609Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T05:24:48.611Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:25:13.885Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.
+[2026-02-11T05:25:13.983Z] [Web] [LOG] useAuth: Cleaning up subscription
+[2026-02-11T05:25:14.234Z] [Web] [ERROR] Unexpected text node: . A text node cannot be a child of a <View>.

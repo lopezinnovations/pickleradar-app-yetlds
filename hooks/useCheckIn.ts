@@ -203,36 +203,17 @@ export const useCheckIn = (userId?: string) => {
     try {
       console.log('useCheckIn: Starting check-in for user', userId, 'at court', courtId);
 
-      // First, delete any existing check-ins for this user at ANY court
-      // This ensures we don't have duplicate check-ins and handles the constraint properly
-      const { data: existingCheckIns, error: fetchError } = await supabase
+      // Step 1: Check if a check-in already exists for this user and court
+      const { data: existingCheckIn, error: fetchError } = await supabase
         .from('check_ins')
         .select('id, notification_id')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('court_id', courtId)
+        .maybeSingle();
 
       if (fetchError) {
-        console.error('useCheckIn: Error fetching existing check-ins:', fetchError);
-      } else if (existingCheckIns && existingCheckIns.length > 0) {
-        console.log('useCheckIn: Found', existingCheckIns.length, 'existing check-ins, cleaning up...');
-        
-        // Cancel all existing notifications
-        for (const checkIn of existingCheckIns) {
-          if (checkIn.notification_id && isPushNotificationSupported()) {
-            await cancelCheckOutNotification(checkIn.notification_id);
-          }
-        }
-        
-        // Delete all existing check-ins for this user
-        const { error: deleteError } = await supabase
-          .from('check_ins')
-          .delete()
-          .eq('user_id', userId);
-
-        if (deleteError) {
-          console.error('useCheckIn: Error deleting existing check-ins:', deleteError);
-        } else {
-          console.log('useCheckIn: Cleaned up existing check-ins');
-        }
+        console.error('useCheckIn: Error checking for existing check-in:', fetchError);
+        throw fetchError;
       }
 
       // Get court name for notifications
@@ -244,35 +225,64 @@ export const useCheckIn = (userId?: string) => {
 
       const courtName = courtData?.name || 'Unknown Court';
 
-      // Schedule notification
-      let notificationId: string | null = null;
-      if (isPushNotificationSupported()) {
-        notificationId = await scheduleCheckInNotification(courtName, durationMinutes);
-      }
-
       // Calculate expiration time
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + durationMinutes);
 
-      // Insert new check-in (no conflict possible since we deleted all existing ones)
-      const { error: insertError } = await supabase
-        .from('check_ins')
-        .insert({
-          user_id: userId,
-          court_id: courtId,
-          skill_level: skillLevel,
-          expires_at: expiresAt.toISOString(),
-          duration_minutes: durationMinutes,
-          notification_id: notificationId,
-          created_at: new Date().toISOString(),
-        });
-
-      if (insertError) {
-        console.error('useCheckIn: Error inserting check-in:', insertError);
-        throw insertError;
+      // Schedule notification
+      let notificationId: string | null = null;
+      if (isPushNotificationSupported()) {
+        // Cancel old notification if updating
+        if (existingCheckIn?.notification_id) {
+          await cancelCheckOutNotification(existingCheckIn.notification_id);
+        }
+        notificationId = await scheduleCheckInNotification(courtName, durationMinutes);
       }
 
-      console.log('useCheckIn: Check-in successful');
+      if (existingCheckIn) {
+        // Step 2a: Update the existing check-in record
+        console.log('useCheckIn: Updating existing check-in with id', existingCheckIn.id);
+        
+        const { error: updateError } = await supabase
+          .from('check_ins')
+          .update({
+            skill_level: skillLevel,
+            expires_at: expiresAt.toISOString(),
+            duration_minutes: durationMinutes,
+            notification_id: notificationId,
+            created_at: new Date().toISOString(), // Update timestamp
+          })
+          .eq('id', existingCheckIn.id);
+
+        if (updateError) {
+          console.error('useCheckIn: Error updating check-in:', updateError);
+          throw updateError;
+        }
+
+        console.log('useCheckIn: Check-in updated successfully');
+      } else {
+        // Step 2b: Insert a new check-in record
+        console.log('useCheckIn: No existing check-in found, inserting new record');
+        
+        const { error: insertError } = await supabase
+          .from('check_ins')
+          .insert({
+            user_id: userId,
+            court_id: courtId,
+            skill_level: skillLevel,
+            expires_at: expiresAt.toISOString(),
+            duration_minutes: durationMinutes,
+            notification_id: notificationId,
+            created_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          console.error('useCheckIn: Error inserting check-in:', insertError);
+          throw insertError;
+        }
+
+        console.log('useCheckIn: Check-in inserted successfully');
+      }
       
       await fetchCheckInHistory(userId);
 
