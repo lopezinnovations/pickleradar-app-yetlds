@@ -5597,3 +5597,117 @@ Performance optimizations: OFF.
 [2026-02-11T15:55:53.916Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
 [2026-02-11T15:55:53.991Z] [Web] [LOG] LandingScreen: Checking authentication status...
 [2026-02-11T15:55:54.015Z] [Web] [LOG] LandingScreen: No active session
+[2026-02-11T22:36:24.678Z] [Web] [LOG] Running application "main" with appParams:
+ {"rootTag":"#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[2026-02-11T22:36:24.736Z] [Web] [WARN] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+[2026-02-11T22:36:24.768Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
+[2026-02-11T22:36:24.770Z] [Web] [WARN] "shadow*" style props are deprecated. Use "boxShadow".
+[2026-02-11T22:36:24.831Z] [Web] [WARN] [Reanimated] Reduced motion setting is enabled on this device. This warning is visible only in the development mode. Some animations will be disabled by default. You can override the behavior for individual animations, see https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#reduced-motion-setting-is-enabled-on-this-device.
+[2026-02-11T22:36:25.185Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T22:36:25.319Z] [Web] [LOG] LandingScreen: No active session
+[2026-02-11T22:36:25.246Z] [Web] [LOG] LandingScreen: Checking authentication status...
+[2026-02-11T22:36:25.183Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T22:41:56.159Z] [Web] [LOG] Running application "main" with appParams:
+ {"rootTag":"#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[2026-02-11T22:41:56.247Z] [Web] [WARN] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+[2026-02-11T22:41:56.286Z] [Web] [WARN] "shadow*" style props are deprecated. Use "boxShadow".
+[2026-02-11T22:41:56.607Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T22:41:56.284Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
+[2026-02-11T22:41:56.609Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T22:41:56.682Z] [Web] [LOG] LandingScreen: Checking authentication status...
+[2026-02-11T22:41:56.701Z] [Web] [LOG] LandingScreen: No active session
+[2026-02-11T22:42:05.457Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T22:42:05.471Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T22:42:05.518Z] [Web] [LOG] useAuth: Current session: None
+[2026-02-11T22:42:05.550Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged out
+[2026-02-11T22:42:18.497Z] [Web] [LOG] useAuth: Signing in with email: cdlopez8@gmail.com
+[2026-02-11T22:42:18.528Z] [Web] [WARN] props.pointerEvents is deprecated. Use style.pointerEvents
+[2026-02-11T22:42:19.439Z] [Web] [LOG] useAuth: Auth state changed: SIGNED_IN User logged in
+[2026-02-11T22:42:19.447Z] [Web] [LOG] useAuth: User signed in via: email
+[2026-02-11T22:42:19.456Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:20.123Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:20.131Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:20.152Z] [Web] [LOG] useAuth: User email: cdlopez8@gmail.com
+[2026-02-11T22:42:20.153Z] [Web] [LOG] User signed in successfully
+[2026-02-11T22:42:20.150Z] [Web] [LOG] useAuth: User signed in successfully
+[2026-02-11T22:42:20.211Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:42:20.147Z] [Web] [LOG] useAuth: Sign in successful: {"user":{"id":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","aud":"authenticated","role":"authenticated","email":"cdlopez8@gmail.com","email_confirmed_at":"2025-12-31T05:08:28.511764Z","phone":"","confirmed_at":"2025-12-31T05:08:28.511764Z","last_sign_in_at":"2026-02-11T22:42:17.651890746Z","app_metadata":{"provider":"email","providers":["email"]},"user_metadata":{"accepted_at":"2025-12-31T05:08:28.264Z","accepted_version":"v1.0","email":"cdlopez8@gmail.com","email_verified":true,"phone_verified":false,"privacy_accepted":true,"sub":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","terms_accepted":true},"identities":[{"identity_id":"8f086095-fca3-40dd-adb7-b7ed407ef245","id":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","user_id":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","identity_data":{"accepted_at":"2025-12-31T05:08:28.264Z","accepted_version":"v1.0","email":"cdlopez8@gmail.com","email_verified":false,"phone_verified":false,"privacy_accepted":true,"sub":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","terms_accepted":true},"provider":"email","last_sign_in_at":"2025-12-31T05:08:28.508531Z","created_at":"2025-12-31T05:08:28.508591Z","updated_at":"2025-12-31T05:08:28.508591Z","email":"cdlopez8@gmail.com"}],"created_at":"2025-12-31T05:08:28.500655Z","updated_at":"2026-02-11T22:42:17.685882Z","is_anonymous":false},"session":{"access_token":"eyJhbGciOiJIUzI1NiIsImtpZCI6IlJxa0t1bkFYMDJzZGZBNjgiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2JpY3pieG1haXNkeHBjYnBsZGRyLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2YWJiM2JkMS02OTc5LTRhZjItYTQwOS00MDNhZWVlY2IwZWYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzcwODUzMzM3LCJpYXQiOjE3NzA4NDk3MzcsImVtYWlsIjoiY2Rsb3BlejhAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJhY2NlcHRlZF9hdCI6IjIwMjUtMTItMzFUMDU6MDg6MjguMjY0WiIsImFjY2VwdGVkX3ZlcnNpb24iOiJ2MS4wIiwiZW1haWwiOiJjZGxvcGV6OEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwcml2YWN5X2FjY2VwdGVkIjp0cnVlLCJzdWIiOiI2YWJiM2JkMS02OTc5LTRhZjItYTQwOS00MDNhZWVlY2IwZWYiLCJ0ZXJtc19hY2NlcHRlZCI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NzA4NDk3Mzd9XSwic2Vzc2lvbl9pZCI6IjQxYzJlY2E5LTIzNTYtNGU4NC1hNGM5LTRiMGVmYmM0NmM4MyIsImlzX2Fub255bW91cyI6ZmFsc2V9.34W4nfab0QHQ7IANu3TgpApH-cNxQF5AGYhdlO8NWHo","token_type":"bearer","expires_in":3600,"expires_at":1770853337,"refresh_token":"jyw6nmthgubv","user":{"id":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","aud":"authenticated","role":"authenticated","email":"cdlopez8@gmail.com","email_confirmed_at":"2025-12-31T05:08:28.511764Z","phone":"","confirmed_at":"2025-12-31T05:08:28.511764Z","last_sign_in_at":"2026-02-11T22:42:17.651890746Z","app_metadata":{"provider":"email","providers":["email"]},"user_metadata":{"accepted_at":"2025-12-31T05:08:28.264Z","accepted_version":"v1.0","email":"cdlopez8@gmail.com","email_verified":true,"phone_verified":false,"privacy_accepted":true,"sub":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","terms_accepted":true},"identities":[{"identity_id":"8f086095-fca3-40dd-adb7-b7ed407ef245","id":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","user_id":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","identity_data":{"accepted_at":"2025-12-31T05:08:28.264Z","accepted_version":"v1.0","email":"cdlopez8@gmail.com","email_verified":false,"phone_verified":false,"privacy_accepted":true,"sub":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","terms_accepted":true},"provider":"email","last_sign_in_at":"2025-12-31T05:08:28.508531Z","created_at":"2025-12-31T05:08:28.508591Z","updated_at":"2025-12-31T05:08:28.508591Z","email":"cdlopez8@gmail.com"}],"created_at":"2025-12-31T05:08:28.500655Z","updated_at":"2026-02-11T22:42:17.685882Z","is_anonymous":false},"weak_password":null}}
+[2026-02-11T22:42:20.210Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:26.252Z] [Web] [LOG] Running application "main" with appParams:
+ {"rootTag":"#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[2026-02-11T22:42:26.554Z] [Web] [LOG] LandingScreen: Checking authentication status...
+[2026-02-11T22:42:26.316Z] [Web] [WARN] "shadow*" style props are deprecated. Use "boxShadow".
+[2026-02-11T22:42:26.497Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T22:42:26.781Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T22:42:26.313Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
+[2026-02-11T22:42:26.573Z] [Web] [LOG] LandingScreen: User session found: cdlopez8@gmail.com
+[2026-02-11T22:42:26.283Z] [Web] [WARN] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+[2026-02-11T22:42:26.679Z] [Web] [WARN] Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+[2026-02-11T22:42:26.698Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T22:42:26.499Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T22:42:26.724Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"radiusMiles":25}
+[2026-02-11T22:42:26.689Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T22:42:26.820Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T22:42:26.821Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:27.180Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T22:42:27.159Z] [Web] [LOG] useFavorites: Fetching favorites for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:26.848Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T22:42:27.134Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:42:27.245Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T22:42:27.168Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","radiusMiles":25}
+[2026-02-11T22:42:26.820Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T22:42:27.149Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T22:42:27.182Z] [Web] [LOG] HomeScreen: Debounced search query: 
+[2026-02-11T22:42:27.134Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:27.093Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:27.094Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:27.333Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:27.335Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:27.364Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:27.407Z] [Web] [LOG] useFavorites: Loaded 2 favorites
+[2026-02-11T22:42:27.548Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:42:27.444Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T22:42:27.566Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T22:42:27.525Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:27.557Z] [Web] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T22:42:27.547Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:27.364Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:42:27.525Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:27.755Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:27.756Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:42:27.657Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T22:42:27.583Z] [Web] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T22:42:27.730Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:27.729Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:27.575Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T22:42:27.778Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T22:42:27.826Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T22:42:27.791Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T22:42:27.896Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T22:42:28.143Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T22:42:28.175Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T22:42:28.493Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T22:42:28.632Z] [Web] [LOG] useAuth: Valid email session found
+[2026-02-11T22:42:28.632Z] [Web] [LOG] useAuth: Current session: Active
+[2026-02-11T22:42:28.611Z] [Web] [LOG] useAuth: Supabase configured: true
+[2026-02-11T22:42:28.603Z] [Web] [LOG] useAuth: Initializing...
+[2026-02-11T22:42:28.632Z] [Web] [LOG] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:28.636Z] [Web] [LOG] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T22:42:28.747Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:28.767Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:28.744Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:28.769Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:42:29.009Z] [Web] [LOG] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T22:42:29.000Z] [Web] [LOG] useAuth: User profile fetched successfully
+[2026-02-11T22:42:29.063Z] [Web] [LOG] [Push] Notification permissions not granted
+[2026-02-11T22:42:29.064Z] [Web] [LOG] [Push] No notification permission, skipping push token registration
+[2026-02-11T22:43:36.156Z] [Web] [WARN] Disconnected from Metro (1006)
+To reconnect:
+- Ensure that Metro is running and available on the same network
+- Reload this app (will trigger further help if Metro cannot be connected to)
