@@ -2,7 +2,7 @@
 {
   "expo": {
     "name": "PickleRadar",
-    "slug": "pickleradar-app-yetlds",
+    "slug": "PickleRadar",
     "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
@@ -16,6 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.PickleRadar",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "PickleRadar uses your location to show nearby pickleball courts, calculate distance in miles, and filter courts based on your selected radius. Location is only accessed when you grant permission and use location features.",
@@ -44,6 +47,11 @@
         "ACCESS_FINE_LOCATION",
         "CAMERA"
       ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        }
+      },
       "versionCode": 7,
       "privacyPolicy": "https://pickleradar.app/privacy-policy"
     },
@@ -80,7 +88,8 @@
       [
         "react-native-maps",
         {
-          "iosGoogleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
+          "iosGoogleMapsApiKey": "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+          "androidGoogleMapsApiKey": "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         }
       ]
     ],
