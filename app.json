@@ -23,7 +23,7 @@
     "ios": {
       "bundleIdentifier": "com.lopezinnovations.pickleradar",
       "supportsTablet": true,
-      "buildNumber": "8",
+      "buildNumber": "18",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "PickleRadar uses your location to show nearby pickleball courts, calculate distance in miles, and filter courts based on your selected radius. Location is only accessed when you grant permission and use location features.",
