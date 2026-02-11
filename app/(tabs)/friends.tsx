@@ -26,17 +26,19 @@ export default function FriendsScreen() {
   const [notifyCheckin, setNotifyCheckin] = useState(true);
   const [notifyMessages, setNotifyMessages] = useState(true);
 
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      console.log('FriendsScreen: Debounced search query:', query);
-      setDebouncedSearchQuery(query);
-    }, 400),
-    []
+  const debouncedSearch = useCallback((query: string) => {
+    console.log('FriendsScreen: Debounced search query:', query);
+    setDebouncedSearchQuery(query);
+  }, []);
+
+  const debouncedSearchHandler = useMemo(
+    () => debounce(debouncedSearch, 400),
+    [debouncedSearch]
   );
 
   useEffect(() => {
-    debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+    debouncedSearchHandler(searchQuery);
+  }, [searchQuery, debouncedSearchHandler]);
 
   useFocusEffect(
     useCallback(() => {

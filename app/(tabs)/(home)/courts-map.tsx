@@ -19,6 +19,7 @@ let mapsAvailable = false;
 
 if (!isExpoGo) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const maps = require('react-native-maps');
     MapView = maps.default;
     Marker = maps.Marker;
@@ -120,7 +121,7 @@ export default function CourtsMapScreen() {
     } catch (error) {
       console.error('CourtsMapScreen: Error fitting map to coordinates:', error);
     }
-  }, [courts, userLocation, mapsAvailable]);
+  }, [courts, userLocation]);
 
   const handleMarkerPress = (court: Court) => {
     console.log('CourtsMapScreen: Marker pressed for court:', court.name);

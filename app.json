@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "PickleRadar",
@@ -7,6 +8,7 @@
     "icon": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "privacyPolicy": "https://pickleradar.app/privacy-policy",
     "splash": {
       "image": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
       "resizeMode": "contain",
@@ -51,8 +53,7 @@
           "apiKey": "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         }
       },
-      "versionCode": 7,
-      "privacyPolicy": "https://pickleradar.app/privacy-policy"
+      "versionCode": 7
     },
     "web": {
       "favicon": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
@@ -100,7 +101,6 @@
       "supabaseUrl": "https://biczbxmaisdxpcbplddr.supabase.co",
       "supabaseAnonKey": "sb_publishable_G_5RZYmomd6zB_uFbRCDtw_rBflTxYk"
     },
-    "scheme": "PickleRadar",
-    "privacyPolicy": "https://lopezinnovations.com#privacy-policy"
+    "scheme": "PickleRadar"
   }
 }

@@ -55,17 +55,19 @@ export default function HomeScreen() {
   const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced search handler
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      console.log('HomeScreen: Debounced search query:', query);
-      setDebouncedSearchQuery(query);
-    }, 400),
-    []
+  const debouncedSearch = useCallback((query: string) => {
+    console.log('HomeScreen: Debounced search query:', query);
+    setDebouncedSearchQuery(query);
+  }, []);
+
+  const debouncedSearchHandler = useMemo(
+    () => debounce(debouncedSearch, 400),
+    [debouncedSearch]
   );
 
   useEffect(() => {
-    debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+    debouncedSearchHandler(searchQuery);
+  }, [searchQuery, debouncedSearchHandler]);
 
   // AUTO-REFRESH: Set up periodic refresh while Map tab is active
   useFocusEffect(

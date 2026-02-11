@@ -56,32 +56,6 @@ export default function ProfileScreen() {
   // Check if we're in a dev/TestFlight build (not production)
   const isDevOrTestFlightBuild = Constants.appOwnership !== 'standalone';
 
-  // PULL-TO-REFRESH: Manual refetch
-  const onRefresh = useCallback(async () => {
-    console.log('ProfileScreen: Pull-to-refresh triggered');
-    setRefreshing(true);
-    await Promise.all([
-      refetchUser(),
-      refetchCheckIns(),
-      loadCurrentCheckIn(),
-      fetchAdminStatusAndPushToken(),
-    ]);
-    setRefreshing(false);
-  }, [refetchUser, refetchCheckIns]);
-
-  // Auto-refresh when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) return;
-      
-      console.log('ProfileScreen: Screen focused, refetching data');
-      refetchUser();
-      refetchCheckIns();
-      loadCurrentCheckIn();
-      fetchAdminStatusAndPushToken();
-    }, [user, refetchUser, refetchCheckIns])
-  );
-
   const fetchAdminStatusAndPushToken = useCallback(async () => {
     if (!user) return;
 
@@ -116,6 +90,45 @@ export default function ProfileScreen() {
     }
   }, [user, isDevOrTestFlightBuild]);
 
+  const loadCurrentCheckIn = useCallback(async () => {
+    if (!user) return;
+    const checkIn = await getUserCheckIn(user.id);
+    if (checkIn) {
+      setCurrentCheckIn(checkIn);
+      const time = getRemainingTime(checkIn.expires_at);
+      setRemainingTime({ hours: time.hours, minutes: time.minutes });
+    } else {
+      setCurrentCheckIn(null);
+      setRemainingTime(null);
+    }
+  }, [user, getUserCheckIn, getRemainingTime]);
+
+  // PULL-TO-REFRESH: Manual refetch
+  const onRefresh = useCallback(async () => {
+    console.log('ProfileScreen: Pull-to-refresh triggered');
+    setRefreshing(true);
+    await Promise.all([
+      refetchUser(),
+      refetchCheckIns(),
+      loadCurrentCheckIn(),
+      fetchAdminStatusAndPushToken(),
+    ]);
+    setRefreshing(false);
+  }, [refetchUser, refetchCheckIns, loadCurrentCheckIn, fetchAdminStatusAndPushToken]);
+
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      
+      console.log('ProfileScreen: Screen focused, refetching data');
+      refetchUser();
+      refetchCheckIns();
+      loadCurrentCheckIn();
+      fetchAdminStatusAndPushToken();
+    }, [user, refetchUser, refetchCheckIns, loadCurrentCheckIn, fetchAdminStatusAndPushToken])
+  );
+
   useEffect(() => {
     if (user && !hasLoadedUserData.current) {
       setFirstName(user.firstName || '');
@@ -140,45 +153,6 @@ export default function ProfileScreen() {
       setUserPushToken(null);
     }
   }, [user, authLoading, needsConsentUpdate, fetchAdminStatusAndPushToken]);
-
-  const validateDuprRating = (value: string) => {
-    if (!value.trim()) {
-      setDuprError('');
-      return true;
-    }
-
-    const duprValue = parseFloat(value);
-    if (isNaN(duprValue)) {
-      setDuprError('DUPR rating must be a number');
-      return false;
-    }
-
-    if (duprValue < 1 || duprValue > 7) {
-      setDuprError('DUPR rating must be between 1.0 and 7.0');
-      return false;
-    }
-
-    setDuprError('');
-    return true;
-  };
-
-  const handleDuprChange = (value: string) => {
-    setDuprRating(value);
-    validateDuprRating(value);
-  };
-
-  const loadCurrentCheckIn = useCallback(async () => {
-    if (!user) return;
-    const checkIn = await getUserCheckIn(user.id);
-    if (checkIn) {
-      setCurrentCheckIn(checkIn);
-      const time = getRemainingTime(checkIn.expires_at);
-      setRemainingTime({ hours: time.hours, minutes: time.minutes });
-    } else {
-      setCurrentCheckIn(null);
-      setRemainingTime(null);
-    }
-  }, [user, getUserCheckIn, getRemainingTime]);
 
   useEffect(() => {
     if (user && !hasLoadedCheckIn.current) {
@@ -209,6 +183,32 @@ export default function ProfileScreen() {
       return () => clearInterval(interval);
     }
   }, [currentCheckIn?.expires_at, getRemainingTime, loadCurrentCheckIn]);
+
+  const validateDuprRating = (value: string) => {
+    if (!value.trim()) {
+      setDuprError('');
+      return true;
+    }
+
+    const duprValue = parseFloat(value);
+    if (isNaN(duprValue)) {
+      setDuprError('DUPR rating must be a number');
+      return false;
+    }
+
+    if (duprValue < 1 || duprValue > 7) {
+      setDuprError('DUPR rating must be between 1.0 and 7.0');
+      return false;
+    }
+
+    setDuprError('');
+    return true;
+  };
+
+  const handleDuprChange = (value: string) => {
+    setDuprRating(value);
+    validateDuprRating(value);
+  };
 
   const handleAcceptConsent = async () => {
     setAcceptingConsent(true);

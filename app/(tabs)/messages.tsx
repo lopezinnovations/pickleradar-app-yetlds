@@ -49,17 +49,19 @@ export default function MessagesScreen() {
   const realtimeManager = useRealtimeManager('MessagesScreen');
 
   // Debounced search handler
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      console.log('MessagesScreen: Debounced search query:', query);
-      setDebouncedSearchQuery(query);
-    }, 400),
-    []
+  const debouncedSearch = useCallback((query: string) => {
+    console.log('MessagesScreen: Debounced search query:', query);
+    setDebouncedSearchQuery(query);
+  }, []);
+
+  const debouncedSearchHandler = React.useMemo(
+    () => debounce(debouncedSearch, 400),
+    [debouncedSearch]
   );
 
   useEffect(() => {
-    debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+    debouncedSearchHandler(searchQuery);
+  }, [searchQuery, debouncedSearchHandler]);
 
   // Check if we should show the notification prompt
   const checkAndShowNotificationPrompt = useCallback(async () => {
