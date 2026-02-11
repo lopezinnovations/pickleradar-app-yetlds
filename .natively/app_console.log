@@ -5586,3 +5586,14 @@ Performance optimizations: OFF.
 [2026-02-11T07:10:25.413Z] [Web] [LOG] LandingScreen: Checking authentication status...
 [2026-02-11T07:10:25.534Z] [Web] [LOG] LandingScreen: No active session
 [2026-02-11T07:10:24.835Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T15:55:53.767Z] [Web] [WARN] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+[2026-02-11T15:55:53.699Z] [Web] [LOG] Running application "main" with appParams:
+ {"rootTag":"#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+[2026-02-11T15:55:53.807Z] [Web] [WARN] "shadow*" style props are deprecated. Use "boxShadow".
+[2026-02-11T15:55:53.804Z] [Web] [WARN] CourtsMapScreen: Failed to load react-native-maps: {}
+[2026-02-11T15:55:53.913Z] [Web] [WARN] Route "./integrations/supabase/client.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T15:55:53.916Z] [Web] [WARN] Route "./integrations/supabase/types.ts" is missing the required default export. Ensure a React component is exported as default.
+[2026-02-11T15:55:53.991Z] [Web] [LOG] LandingScreen: Checking authentication status...
+[2026-02-11T15:55:54.015Z] [Web] [LOG] LandingScreen: No active session
