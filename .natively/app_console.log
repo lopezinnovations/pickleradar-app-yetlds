@@ -5024,3 +5024,432 @@ Error: undefined
 [2026-02-11T05:26:07.891Z] [Android] [LOG] [InternalBytecode.js:1] useCourtsQuery: Fetched 24 courts
 [2026-02-11T05:26:08.193Z] [Android] [LOG] [InternalBytecode.js:1] useCourtsQuery: User has 1 friends
 [2026-02-11T05:26:08.049Z] [Android] [LOG] [InternalBytecode.js:1] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:26:09.054Z] [Android] [LOG] [InternalBytecode.js:1] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:26:10.616Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:26:10.483Z] [Android] [LOG] User tapped court: Ace Pickleball Club
+[2026-02-11T05:26:10.724Z] [Android] [LOG] useCourts: Initializing...
+[2026-02-11T05:26:10.671Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:26:10.729Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching courts...
+[2026-02-11T05:26:10.733Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_START] useCourts - fetchCourts
+[2026-02-11T05:26:10.737Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching from Supabase...
+[2026-02-11T05:26:10.791Z] [Android] [LOG] useCourts: Setting up realtime subscription with RealtimeManager
+[2026-02-11T05:26:10.898Z] [Android] [LOG] [useCourts] Setting up realtime subscription: check_ins_all_*
+[2026-02-11T05:26:10.845Z] [Android] [WARN] [useCourts] ⚠️ WARNING: Subscribing to large table "check_ins" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:26:10.951Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] useCourts - check_ins_all_*
+[2026-02-11T05:26:11.004Z] [Android] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:26:11.073Z] [Android] [LOG] CourtDetailScreen: Screen focused, refreshing court data
+[2026-02-11T05:26:11.094Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] ✅ Successfully subscribed to check_ins_all_*
+[2026-02-11T05:26:11.109Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:11.097Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] useCourts - check_ins_all_* - {"status":"success","retryCount":0}
+[2026-02-11T05:26:11.092Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] Subscription status for check_ins_all_*: SUBSCRIBED
+[2026-02-11T05:26:11.107Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:26:11.118Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:26:11.121Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:26:11.227Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetched 24 courts
+[2026-02-11T05:26:11.297Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:26:11.303Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:11.306Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:11.310Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:11.765Z] [Android] [LOG] [useCourts] Setting up realtime subscription: check_ins_all_*
+[2026-02-11T05:26:11.413Z] [Android] [LOG] useCourts: Cleaning up realtime subscription
+[2026-02-11T05:26:11.312Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:26:11.467Z] [Android] [LOG] [useCourts] Unsubscribing from check_ins_all_*
+[2026-02-11T05:26:11.520Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] useCourts - check_ins_all_* (568.58ms)
+[2026-02-11T05:26:11.528Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] Subscription status for check_ins_all_*: CLOSED
+[2026-02-11T05:26:11.588Z] [Android] [LOG] useCourts: Initializing...
+[2026-02-11T05:26:11.535Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] Channel closed for check_ins_all_*
+[2026-02-11T05:26:11.592Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching courts...
+[2026-02-11T05:26:11.596Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_START] useCourts - fetchCourts
+[2026-02-11T05:26:11.603Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching from Supabase...
+[2026-02-11T05:26:11.658Z] [Android] [LOG] useCourts: Setting up realtime subscription with RealtimeManager
+[2026-02-11T05:26:11.818Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] useCourts - check_ins_all_*
+[2026-02-11T05:26:11.712Z] [Android] [WARN] [useCourts] ⚠️ WARNING: Subscribing to large table "check_ins" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:26:11.824Z] [Android] [LOG] [InternalBytecode.js:1] useFriends: Fetching friends for userId: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:11.879Z] [Android] [LOG] CourtDetailScreen: Screen focused, refreshing court data
+[2026-02-11T05:26:11.910Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] Subscription status for check_ins_all_*: SUBSCRIBED
+[2026-02-11T05:26:11.913Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] ✅ Successfully subscribed to check_ins_all_*
+[2026-02-11T05:26:11.915Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] useCourts - check_ins_all_* - {"status":"success","retryCount":0}
+[2026-02-11T05:26:13.040Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:13.053Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (2318.50ms) - {"courtsCount":24}
+[2026-02-11T05:26:13.047Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_all
+[2026-02-11T05:26:13.061Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetched 24 courts
+[2026-02-11T05:26:13.056Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:13.162Z] [Android] [LOG] [InternalBytecode.js:1] useFriends: Sent friends: 1
+[2026-02-11T05:26:13.199Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:13.204Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_all
+[2026-02-11T05:26:13.215Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetched 24 courts
+[2026-02-11T05:26:13.212Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:13.209Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (2127.60ms) - {"courtsCount":24}
+[2026-02-11T05:26:13.248Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: User has 1 friends
+[2026-02-11T05:26:13.299Z] [Android] [LOG] [InternalBytecode.js:1] useFriends: Received friends: 0
+[2026-02-11T05:26:13.371Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: User has 1 friends
+[2026-02-11T05:26:13.938Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Starting check-in for user 6abb3bd1-6979-4af2-a409-403aeeecb0ef at court af9b2e1b-afd5-4fc5-93ed-1d28557b3200
+[2026-02-11T05:26:14.054Z] [Android] [LOG] [InternalBytecode.js:1] useFriends: Pending requests: 0
+[2026-02-11T05:26:14.093Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (2495.56ms) - {"courtsCount":24}
+[2026-02-11T05:26:14.081Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:14.087Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:14.097Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:14.760Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:14.752Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:14.770Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:14.766Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (2877.98ms) - {"courtsCount":24}
+[2026-02-11T05:26:14.776Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Found 1 existing check-ins, cleaning up...
+[2026-02-11T05:26:14.814Z] [Android] [LOG] [InternalBytecode.js:1] useFriends: Total friends: 1
+[2026-02-11T05:26:15.024Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Cleaned up existing check-ins
+[2026-02-11T05:26:14.818Z] [Android] [LOG] [InternalBytecode.js:1] Fetching all users for userId: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:15.072Z] [Android] [LOG] useCourts: Check-in change detected via realtime, refreshing
+[2026-02-11T05:26:15.034Z] [Android] [LOG] [InternalBytecode.js:1] Fetched users: 3
+[2026-02-11T05:26:15.055Z] [Android] [LOG] [useCourts] Realtime update received for check_ins_all_*: DELETE
+[2026-02-11T05:26:15.078Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_START] useCourts - fetchCourts
+[2026-02-11T05:26:15.075Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching courts...
+[2026-02-11T05:26:15.081Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE HIT: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef (age: 326ms)
+[2026-02-11T05:26:15.084Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Using cached courts
+[2026-02-11T05:26:15.237Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:15.199Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching from Supabase...
+[2026-02-11T05:26:15.245Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:15.376Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetched 24 courts
+[2026-02-11T05:26:15.455Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Check-in successful
+[2026-02-11T05:26:15.433Z] [Android] [LOG] [InternalBytecode.js:1] Fetched relationships: 3
+[2026-02-11T05:26:15.524Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: User has 1 friends
+[2026-02-11T05:26:15.588Z] [Android] [LOG] [useCourts] Realtime update received for check_ins_all_*: INSERT
+[2026-02-11T05:26:15.596Z] [Android] [LOG] useCourts: Check-in change detected via realtime, refreshing
+[2026-02-11T05:26:15.601Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_START] useCourts - fetchCourts
+[2026-02-11T05:26:15.599Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching courts...
+[2026-02-11T05:26:15.604Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE HIT: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef (age: 850ms)
+[2026-02-11T05:26:15.607Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Using cached courts
+[2026-02-11T05:26:15.618Z] [Android] [LOG] [InternalBytecode.js:1] Users with status: 3
+[2026-02-11T05:26:15.655Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:15.652Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:15.658Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Push notifications not supported in this environment, skipping friend notifications
+[2026-02-11T05:26:15.659Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Friend notification success: Push notifications not available in this build
+[2026-02-11T05:26:15.715Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching from Supabase...
+[2026-02-11T05:26:15.672Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE HIT: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef (age: 915ms)
+[2026-02-11T05:26:16.496Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:16.498Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:16.500Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (1423.33ms) - {"courtsCount":24}
+[2026-02-11T05:26:16.504Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetched 24 courts
+[2026-02-11T05:26:16.502Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:16.663Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: User has 1 friends
+[2026-02-11T05:26:17.362Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:18.069Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:18.113Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:18.118Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:18.115Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:18.117Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (2515.87ms) - {"courtsCount":24}
+[2026-02-11T05:26:18.181Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (2515.16ms) - {"courtsCount":24}
+[2026-02-11T05:26:18.830Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:18.596Z] [Web] [LOG] HomeScreen: Auto-refresh triggered
+[2026-02-11T05:26:18.600Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:26:18.602Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:26:18.596Z] [Web] [LOG] useCourtsQuery: Manual refetch triggered
+[2026-02-11T05:26:19.475Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:19.296Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:26:19.539Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:26:19.641Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:26:20.197Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:19.960Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:26:20.854Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:21.512Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:22.240Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:23.056Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:23.803Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:24.573Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:25.397Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:26.095Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:26.878Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:28.149Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:29.331Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:28.903Z] [Android] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[2026-02-11T05:26:29.341Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Friend checkout notification success: Push notifications not available in this build
+[2026-02-11T05:26:29.340Z] [Android] [LOG] [InternalBytecode.js:1] useCheckIn: Push notifications not supported in this environment
+[2026-02-11T05:26:29.333Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:29.343Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching courts...
+[2026-02-11T05:26:29.345Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_START] useCourts - fetchCourts
+[2026-02-11T05:26:29.350Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Using cached courts
+[2026-02-11T05:26:29.348Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE HIT: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef (age: 11167ms)
+[2026-02-11T05:26:29.467Z] [Android] [LOG] [useCourts] Realtime update received for check_ins_all_*: DELETE
+[2026-02-11T05:26:29.488Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_START] useCourts - fetchCourts
+[2026-02-11T05:26:29.492Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE HIT: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef (age: 11310ms)
+[2026-02-11T05:26:29.484Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching courts...
+[2026-02-11T05:26:29.480Z] [Android] [LOG] useCourts: Check-in change detected via realtime, refreshing
+[2026-02-11T05:26:29.498Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetching from Supabase...
+[2026-02-11T05:26:29.644Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetched 24 courts
+[2026-02-11T05:26:29.772Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: User has 1 friends
+[2026-02-11T05:26:29.888Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: User has 1 friends
+[2026-02-11T05:26:30.613Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:30.620Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:30.626Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (1277.54ms) - {"courtsCount":24}
+[2026-02-11T05:26:30.631Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:31.204Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Successfully processed courts with activity levels, skill averages, friend counts, and DUPR data
+[2026-02-11T05:26:31.220Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [QUERY_END] useCourts - fetchCourts (1728.43ms) - {"courtsCount":24}
+[2026-02-11T05:26:31.212Z] [Android] [LOG] [InternalBytecode.js:1] 📦 CACHE SET: courts_6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:31.224Z] [Android] [LOG] [InternalBytecode.js:1] useCourts: Fetch complete
+[2026-02-11T05:26:34.387Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] Subscription status for check_ins_all_*: CLOSED
+[2026-02-11T05:26:34.379Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] useCourts - check_ins_all_* (23230.92ms)
+[2026-02-11T05:26:34.325Z] [Android] [LOG] [useCourts] Unsubscribing from all subscriptions
+[2026-02-11T05:26:34.270Z] [Android] [LOG] useAuth: Cleaning up subscription
+[2026-02-11T05:26:34.394Z] [Android] [LOG] [InternalBytecode.js:1] [useCourts] Channel closed for check_ins_all_*
+[2026-02-11T05:26:34.448Z] [Android] [LOG] useCourts: Cleaning up realtime subscription
+[2026-02-11T05:26:34.502Z] [Android] [LOG] [useCourts] No active subscription found for check_ins_all_*
+[2026-02-11T05:26:34.556Z] [Android] [LOG] HomeScreen: Map tab focused, setting up auto-refresh
+[2026-02-11T05:26:38.190Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:26:38.136Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:26:38.242Z] [Android] [LOG] HomeScreen: Map tab blurred, clearing auto-refresh
+[2026-02-11T05:26:38.317Z] [Android] [LOG] FriendsScreen: Screen focused
+[2026-02-11T05:26:38.323Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:26:38.325Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:26:38.330Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:26:38.327Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:38.463Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:26:38.468Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:38.473Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:38.479Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:38.483Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:26:38.527Z] [Android] [LOG] [InternalBytecode.js:1] useFriendsQuery: Fetching friends for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:38.597Z] [Android] [LOG] FriendsScreen: Debounced search query: 
+[2026-02-11T05:26:38.955Z] [Android] [LOG] [InternalBytecode.js:1] useFriendsQuery: Loaded 1 friends, 0 pending requests, 3 total users
+[2026-02-11T05:26:39.531Z] [Android] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:26:39.409Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:26:39.464Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:26:39.536Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:26:39.537Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:26:39.546Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:26:39.539Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:39.671Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:26:39.677Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:39.685Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:39.692Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:39.696Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:26:39.769Z] [Android] [LOG] [InternalBytecode.js:1] useMessagesQuery: Fetching conversations for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:39.825Z] [Android] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:26:39.829Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:26:39.884Z] [Android] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:26:39.989Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:39.937Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.044Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.097Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.151Z] [Android] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:26:40.205Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:26:40.259Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT
+[2026-02-11T05:26:40.371Z] [Android] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:26:40.424Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.478Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (690721.66ms)
+[2026-02-11T05:26:40.485Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:26:40.492Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.598Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (690739.87ms)
+[2026-02-11T05:26:40.545Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.605Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:26:40.612Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:40.665Z] [Android] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:26:40.738Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:26:40.731Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:26:40.718Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (690704.86ms)
+[2026-02-11T05:26:41.226Z] [Android] [LOG] MessagesScreen: Debounced search query: 
+[2026-02-11T05:26:41.239Z] [Android] [LOG] User tapped conversation: John  D.
+[2026-02-11T05:26:41.373Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:26:41.320Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:26:41.425Z] [Android] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:26:41.481Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:41.763Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (691636.30ms)
+[2026-02-11T05:26:41.648Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (691560.14ms)
+[2026-02-11T05:26:41.532Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (691451.89ms)
+[2026-02-11T05:26:41.791Z] [Android] [LOG] [InternalBytecode.js:1] [Notifications] Never dismissed, should show prompt
+[2026-02-11T05:26:41.792Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Showing notification prompt
+[2026-02-11T05:26:41.805Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:26:41.808Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:41.806Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:26:41.815Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:26:41.823Z] [Android] [LOG] [InternalBytecode.js:1] useMessagesQuery: Fetched 12 direct messages
+[2026-02-11T05:26:41.957Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:41.952Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:41.948Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:26:41.962Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:41.966Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:26:42.399Z] [Android] [LOG] [InternalBytecode.js:1] useMessagesQuery: User is member of 1 groups
+[2026-02-11T05:26:42.553Z] [Android] [LOG] [InternalBytecode.js:1] useMessagesQuery: Fetched 1 group details
+[2026-02-11T05:26:42.972Z] [Android] [LOG] [InternalBytecode.js:1] useMessagesQuery: Loaded 3 total conversations
+[2026-02-11T05:26:48.378Z] [Android] [LOG] useAuth: Cleaning up subscription
+[2026-02-11T05:26:48.431Z] [Android] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:26:48.434Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:26:48.537Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:48.485Z] [Android] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:26:48.589Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:48.641Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:48.693Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:48.746Z] [Android] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:26:48.798Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:26:48.849Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT
+[2026-02-11T05:26:48.871Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:48.869Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:26:48.874Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:26:48.878Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:26:48.880Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:48.883Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:26:48.885Z] [Android] [LOG] [InternalBytecode.js:1] [Notifications] Never dismissed, should show prompt
+[2026-02-11T05:26:48.887Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Showing notification prompt
+[2026-02-11T05:26:48.956Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for group_messages_all_INSERT: SUBSCRIBED
+[2026-02-11T05:26:48.967Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to group_messages_all_INSERT
+[2026-02-11T05:26:48.975Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT - {"status":"success","retryCount":0}
+[2026-02-11T05:26:49.967Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: User tapped Enable Notifications
+[2026-02-11T05:26:49.977Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:50.022Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Notifications not granted
+[2026-02-11T05:26:49.985Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:52.802Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:26:52.629Z] [Android] [LOG] User tapped Create Group Chat
+[2026-02-11T05:26:52.747Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:26:52.855Z] [Android] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:26:52.907Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:52.959Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (12970.28ms)
+[2026-02-11T05:26:52.973Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:52.966Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:26:53.025Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:53.085Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:26:53.078Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (12981.12ms)
+[2026-02-11T05:26:53.092Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:26:53.145Z] [Android] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:26:53.196Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (12939.56ms)
+[2026-02-11T05:26:53.210Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:26:53.204Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:26:53.239Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:26:53.238Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:26:53.241Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:53.414Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:26:53.251Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:26:53.395Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:53.389Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:26:53.402Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:53.409Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:57.779Z] [Android] [LOG] User toggled friend selection: d748b003-25cb-4c40-b5f1-5dfa729ccfcc
+[2026-02-11T05:26:58.697Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:26:58.497Z] [Android] [LOG] [InternalBytecode.js:1] User tapped Create Group with name: New and 1 members
+[2026-02-11T05:26:58.688Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:26:58.701Z] [Android] [LOG] [InternalBytecode.js:1] Group created successfully: 4ede0daf-a6ec-41b6-9f3a-12fb1d7bf6fa
+[2026-02-11T05:26:58.505Z] [Android] [LOG] [InternalBytecode.js:1] Calling create_group_with_members RPC with: {"groupName":"New","memberIds":["d748b003-25cb-4c40-b5f1-5dfa729ccfcc"]}
+[2026-02-11T05:26:59.857Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:26:59.911Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:26:59.802Z] [Android] [LOG] useAuth: Cleaning up subscription
+[2026-02-11T05:26:59.937Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:26:59.939Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:59.952Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:26:59.953Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:27:00.085Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:27:00.078Z] [Android] [ERROR] [InternalBytecode.js:1] Error fetching group info: {"code":"PGRST205","details":null,"hint":"Perhaps you meant the table 'public.message_requests'","message":"Could not find the table 'public.message_groups' in the schema cache"}
+[2026-02-11T05:27:00.096Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:27:00.090Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:27:00.102Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:27:00.106Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:27:00.130Z] [Android] [ERROR] [InternalBytecode.js:1] Error fetching messages: {"code":"PGRST200","details":"Searched for a foreign key relationship between 'group_messages' and 'profiles' using the hint 'group_messages_sender_id_fkey' in the schema 'public', but no matches were found.","hint":null,"message":"Could not find a relationship between 'group_messages' and 'profiles' in the schema cache"}
+[2026-02-11T05:27:15.364Z] [Android] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:27:15.367Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:27:15.420Z] [Android] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:27:15.312Z] [Android] [LOG] useAuth: Cleaning up subscription
+[2026-02-11T05:27:15.472Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:15.524Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:15.683Z] [Android] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:27:15.577Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:15.630Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:15.735Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:27:15.788Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT
+[2026-02-11T05:27:15.812Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:15.809Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:27:15.815Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:27:15.820Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:15.818Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:27:15.823Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:27:15.825Z] [Android] [LOG] [InternalBytecode.js:1] [Notifications] Never dismissed, should show prompt
+[2026-02-11T05:27:15.826Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Showing notification prompt
+[2026-02-11T05:27:15.864Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT - {"status":"success","retryCount":0}
+[2026-02-11T05:27:15.861Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to group_messages_all_INSERT
+[2026-02-11T05:27:15.859Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for group_messages_all_INSERT: SUBSCRIBED
+[2026-02-11T05:27:16.887Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:27:16.882Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:27:16.877Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: User tapped Enable Notifications
+[2026-02-11T05:27:16.920Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Notifications not granted
+[2026-02-11T05:27:21.707Z] [Android] [LOG] User tapped conversation: New group
+[2026-02-11T05:27:21.812Z] [Android] [LOG] useAuth: Initializing...
+[2026-02-11T05:27:21.968Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:21.918Z] [Android] [LOG] MessagesScreen: Cleaning up realtime subscriptions (blurred)
+[2026-02-11T05:27:21.865Z] [Android] [LOG] useAuth: Supabase configured: true
+[2026-02-11T05:27:22.018Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (41067.39ms)
+[2026-02-11T05:27:22.026Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:27:22.032Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:22.083Z] [Android] [LOG] [MessagesScreen] Unsubscribing from messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:22.147Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: CLOSED
+[2026-02-11T05:27:22.135Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* (41075.51ms)
+[2026-02-11T05:27:22.154Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:22.206Z] [Android] [LOG] [MessagesScreen] Unsubscribing from group_messages_all_INSERT
+[2026-02-11T05:27:22.272Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Channel closed for group_messages_all_INSERT
+[2026-02-11T05:27:22.258Z] [Android] [LOG] ⏱️ PERF [REALTIME_UNSUBSCRIBE] MessagesScreen - group_messages_all_INSERT (41037.66ms)
+[2026-02-11T05:27:22.265Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for group_messages_all_INSERT: CLOSED
+[2026-02-11T05:27:22.298Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Auth state changed: INITIAL_SESSION User logged in
+[2026-02-11T05:27:22.313Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Current session: Active
+[2026-02-11T05:27:22.300Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Fetching user profile for: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:27:22.438Z] [Android] [ERROR] [InternalBytecode.js:1] Error fetching messages: {"code":"PGRST200","details":"Searched for a foreign key relationship between 'group_messages' and 'profiles' using the hint 'group_messages_sender_id_fkey' in the schema 'public', but no matches were found.","hint":null,"message":"Could not find a relationship between 'group_messages' and 'profiles' in the schema cache"}
+[2026-02-11T05:27:22.314Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Valid email session found
+[2026-02-11T05:27:22.510Z] [Android] [ERROR] [InternalBytecode.js:1] Error fetching group info: {"code":"PGRST205","details":null,"hint":"Perhaps you meant the table 'public.message_requests'","message":"Could not find the table 'public.message_groups' in the schema cache"}
+[2026-02-11T05:27:22.513Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: User profile fetched successfully
+[2026-02-11T05:27:22.515Z] [Android] [LOG] [InternalBytecode.js:1] useAuth: Registering push token for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:27:22.521Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Please use a Development Build or TestFlight/Production build to test push notifications
+[2026-02-11T05:27:22.523Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Push notifications not supported in this environment
+[2026-02-11T05:27:22.518Z] [Android] [LOG] [InternalBytecode.js:1] [Push] Not supported: Expo Go removed Android remote push notifications in SDK 53+
+[2026-02-11T05:27:34.597Z] [Android] [LOG] MessagesScreen: Screen focused
+[2026-02-11T05:27:34.543Z] [Android] [LOG] useAuth: Cleaning up subscription
+[2026-02-11T05:27:34.652Z] [Android] [LOG] MessagesScreen: Setting up realtime subscriptions (focused)
+[2026-02-11T05:27:34.600Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Checking if should show notification prompt
+[2026-02-11T05:27:34.704Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:34.756Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:34.862Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:34.965Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: group_messages_all_INSERT
+[2026-02-11T05:27:34.914Z] [Android] [WARN] [MessagesScreen] ⚠️ WARNING: Subscribing to large table "group_messages" without filter. This may cause performance issues. Consider adding a filter (e.g., "user_id=eq.123").
+[2026-02-11T05:27:34.810Z] [Android] [LOG] [MessagesScreen] Setting up realtime subscription: messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:35.016Z] [Android] [LOG] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT
+[2026-02-11T05:27:35.038Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:27:35.040Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:35.043Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_sender_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:27:35.046Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*: SUBSCRIBED
+[2026-02-11T05:27:35.049Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_*
+[2026-02-11T05:27:35.051Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - messages_recipient_id=eq.6abb3bd1-6979-4af2-a409-403aeeecb0ef_* - {"status":"success","retryCount":0}
+[2026-02-11T05:27:35.053Z] [Android] [LOG] [InternalBytecode.js:1] [Notifications] Never dismissed, should show prompt
+[2026-02-11T05:27:35.055Z] [Android] [LOG] [InternalBytecode.js:1] MessagesScreen: Showing notification prompt
+[2026-02-11T05:27:35.091Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] Subscription status for group_messages_all_INSERT: SUBSCRIBED
+[2026-02-11T05:27:35.094Z] [Android] [LOG] [InternalBytecode.js:1] [MessagesScreen] ✅ Successfully subscribed to group_messages_all_INSERT
+[2026-02-11T05:27:35.097Z] [Android] [LOG] [InternalBytecode.js:1] ⏱️ PERF [REALTIME_SUBSCRIBE] MessagesScreen - group_messages_all_INSERT - {"status":"success","retryCount":0}
+[2026-02-11T05:27:48.590Z] [Web] [LOG] useCourtsQuery: Manual refetch triggered
+[2026-02-11T05:27:48.590Z] [Web] [LOG] HomeScreen: Auto-refresh triggered
+[2026-02-11T05:27:48.593Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:27:48.959Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:27:48.595Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:27:49.075Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:27:49.201Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:27:49.532Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:29:18.588Z] [Web] [LOG] useCourtsQuery: Manual refetch triggered
+[2026-02-11T05:29:18.588Z] [Web] [LOG] HomeScreen: Auto-refresh triggered
+[2026-02-11T05:29:18.593Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:29:18.591Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:29:18.971Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:29:19.266Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:29:19.115Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:29:19.771Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:29:39.197Z] [Web] [LOG] useMessagesQuery: Fetching conversations for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:29:39.192Z] [Web] [LOG] useFriendsQuery: Fetching friends for user: 6abb3bd1-6979-4af2-a409-403aeeecb0ef
+[2026-02-11T05:26:13.976Z] [Web] [WARN] Disconnected from Metro (1006)
+To reconnect:
+- Ensure that Metro is running and available on the same network
+- Reload this app (will trigger further help if Metro cannot be connected to)
+[2026-02-11T05:29:40.478Z] [Web] [LOG] useMessagesQuery: Fetched 13 direct messages
+[2026-02-11T05:29:40.652Z] [Web] [LOG] useFriendsQuery: Loaded 1 friends, 0 pending requests, 3 total users
+[2026-02-11T05:29:40.685Z] [Web] [LOG] useMessagesQuery: User is member of 2 groups
+[2026-02-11T05:29:41.197Z] [Web] [LOG] useMessagesQuery: Fetched 2 group details
+[2026-02-11T05:29:41.817Z] [Web] [LOG] useMessagesQuery: Loaded 4 total conversations
+[2026-02-11T05:30:49.006Z] [Web] [LOG] HomeScreen: Auto-refresh triggered
+[2026-02-11T05:30:49.007Z] [Web] [LOG] useCourtsQuery: Manual refetch triggered
+[2026-02-11T05:30:49.009Z] [Web] [LOG] useCourtsQuery: Fetching courts with params: {"userId":"6abb3bd1-6979-4af2-a409-403aeeecb0ef","userLat":32.4038304,"userLng":-111.0180941,"radiusMiles":25}
+[2026-02-11T05:30:49.012Z] [Web] [LOG] useCourtsQuery: Applying bounding box filter: {"minLat":32.041511559420286,"maxLat":32.76614924057971,"minLng":-111.4472333040128,"maxLng":-110.5889548959872}
+[2026-02-11T05:30:49.321Z] [Web] [LOG] useCourtsQuery: Fetched 24 courts
+[2026-02-11T05:30:49.560Z] [Web] [LOG] useCourtsQuery: User has 1 friends
+[2026-02-11T05:30:49.914Z] [Web] [LOG] useCourtsQuery: Successfully processed courts with activity levels, skill averages, friend counts, DUPR data, distances, and favorites
+[2026-02-11T05:30:49.440Z] [Web] [LOG] useCourtsQuery: User has 2 favorite courts
+[2026-02-11T05:31:14.005Z] [Web] [WARN] Disconnected from Metro (1006)
+To reconnect:
+- Ensure that Metro is running and available on the same network
+- Reload this app (will trigger further help if Metro cannot be connected to)

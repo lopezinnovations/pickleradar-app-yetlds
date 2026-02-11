@@ -16,10 +16,15 @@ const queryClient = new QueryClient({
   },
 });
 
+// Define screenOptions OUTSIDE component to prevent recreation on every render
+const screenOptions = {
+  headerShown: false,
+};
+
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={screenOptions}>
         <Stack.Screen name="index" />
         <Stack.Screen name="welcome" />
         <Stack.Screen name="auth" />
