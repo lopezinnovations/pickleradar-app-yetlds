@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "PickleRadar",
@@ -37,7 +38,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png",
-        "backgroundColor": "#1B4D3E"
+        "backgroundColor": "#FFEB3B",
+        "monochromeImage": "./assets/images/1df577f2-3672-4bc4-a347-721aa5fb58e0.png"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lopezinnovations.pickleradar",
